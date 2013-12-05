@@ -50,6 +50,8 @@ namespace graphics
 		virtual void set_window_title(const std::string& title) = 0;
 		virtual void set_window_icon(const std::string& name) = 0;
 
+		virtual void swap() = 0;
+
 		void map_mouse_position(size_t* x, size_t* y);
 
 		void enable_16bpp(bool bpp=true);
@@ -68,7 +70,7 @@ namespace graphics
 		size_t width() const { return width_; }
 		size_t height() const { return height_; }
 
-		size_t width() const { return width_; }
+		size_t logical_width() const { return logical_width_; }
 		size_t logical_height() const { return logical_height_; }
 
 		const std::string& title() const { return title_; }

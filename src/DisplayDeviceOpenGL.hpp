@@ -35,6 +35,9 @@ namespace graphics
 
 		DisplayDeviceId id() const { return DISPLAY_DEVICE_OPENGL; }
 
+		void swap();
+		void clear(uint32_t clr);
+
 		void init(size_t width, size_t height);
 		void print_device_info();
 	private:

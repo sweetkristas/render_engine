@@ -46,13 +46,19 @@ namespace graphics
 			// Display device is Direct3D
 			DISPLAY_DEVICE_D3D,
 		};
+		enum ClearFlags {
+			DISPLAY_CLEAR_COLOR		= 1,
+			DISPLAY_CLEAR_DEPTH		= 2,
+			DISPLAY_CLEAR_STENCIL	= 4,
+		};
 
 		DisplayDevice();
 		virtual ~DisplayDevice();
 
 		virtual DisplayDeviceId id() const = 0;
 
-		virtual void swap();
+		virtual void clear(uint32_t clr) = 0;
+		virtual void swap() = 0;
 
 		virtual void init(size_t width, size_t height) = 0;
 		virtual void print_device_info() = 0;

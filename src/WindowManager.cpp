@@ -86,6 +86,7 @@ namespace graphics
 		SDLWindowManager(const std::string& title, const std::string& renderer_hint) 
 			: WindowManager(title), 
 			renderer_hint_(renderer_hint),
+			renderer_(NULL),
 			context_(NULL) {
 			if(renderer_hint_.empty()) {
 				renderer_hint_ = "opengl";
@@ -156,36 +157,50 @@ namespace graphics
 					break;
 			}
 			window_.reset(SDL_CreateWindow(title().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
-				SDL_DestroyRenderer(renderer_);
-				renderer_ = NULL;
+				display_.reset();
+				if(display_->id() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+					SDL_DestroyRenderer(renderer_);
+				}
 				if(context_) {
 					SDL_GL_DeleteContext(context_);
 					context_ = NULL;
 				}
 				SDL_DestroyWindow(wnd);
 			});
+
+			if(display_->id() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+				Uint32 rnd_flags = SDL_RENDERER_ACCELERATED;
+				if(vsync()) {
+					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
+				}
+				renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
+				ASSERT_LOG(renderer_ != NULL, "FATAL: Failed to create renderer: " << SDL_GetError());				
+			}
+
 			ASSERT_LOG(window_ != NULL, "FATAL: Failed to create window: " << SDL_GetError());
 			if(display_->id() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				context_ = SDL_GL_CreateContext(window_.get());	
 				ASSERT_LOG(context_ != NULL, "FATAL: Failed to GL Context: " << SDL_GetError());
 			}
-			Uint32 rnd_flags = SDL_RENDERER_ACCELERATED;
-			if(vsync()) {
-				rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
-			}
-			if(renderer_hint_.size() > 4 && renderer_hint_.substr(0,4) == "sdl:") {
-				SDL_SetHint(SDL_HINT_RENDER_DRIVER, renderer_hint_.substr(5).c_str());
-			}
-			renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
-			ASSERT_LOG(renderer_ != NULL, "FATAL: Failed to create renderer: " << SDL_GetError());
 
 			display_->init(width_, height_);
 			display_->print_device_info();
 		}
 
 		void destroy_window() {
-			display_.reset();
 			window_.reset();
+		}
+
+		void swap() {
+			// This is a little bit hacky -- ideally the display device should swap buffers.
+			// But SDL provides a device independent way of doing it which is really nice.
+			// So we use that.
+			if(display_->id() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+				SDL_GL_SwapWindow(window_.get());
+			} else {
+				// default to delegating to the display device.
+				display_->swap();
+			}
 		}
 
 		void set_window_icon(const std::string& name) {
@@ -193,9 +208,13 @@ namespace graphics
 		}
 		
 		bool set_window_size(size_t width, size_t height) {
+			// XXX
+			return false;
 		}
 
 		bool auto_window_size(size_t& width, size_t& height) {
+			// XXX
+			return false;
 		}
 
 		void set_window_title(const std::string& title) {
@@ -209,8 +228,8 @@ namespace graphics
 	private:
 		DisplayDevicePtr display_;
 		SDL_WindowPtr window_;
-		SDL_Renderer* renderer_;
 		SDL_GLContext context_;
+		SDL_Renderer* renderer_;
 		std::string renderer_hint_;
 		SDLWindowManager(const SDLWindowManager&);
 	};
@@ -232,16 +251,16 @@ namespace graphics
 	{
 	}
 
-	void WindowManager::enable_16bpp(bool bpp=true) {
+	void WindowManager::enable_16bpp(bool bpp) {
 		use_16bpp_ = bpp;
 	}
 
-	void WindowManager::enable_multisampling(bool multi_sampling=true, size_t samples=4) {
+	void WindowManager::enable_multisampling(bool multi_sampling, size_t samples) {
 		use_multi_sampling_ = multi_sampling;
 		samples_ = samples;
 	}
 
-	void WindowManager::enable_resizeable_window(bool en=true) {
+	void WindowManager::enable_resizeable_window(bool en) {
 		is_resizeable_ = en;
 	}
 

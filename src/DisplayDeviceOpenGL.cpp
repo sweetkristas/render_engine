@@ -21,4 +21,37 @@
 	   distribution.
 */
 
+#include "GL/gl.h"
 #include "DisplayDeviceOpenGL.hpp"
+
+namespace graphics
+{
+	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
+	{
+	}
+
+	DisplayDeviceOpenGL::~DisplayDeviceOpenGL()
+	{
+	}
+
+	void DisplayDeviceOpenGL::init(size_t width, size_t height)
+	{
+		glViewPort(0, 0, width, height);
+	}
+
+	void DisplayDeviceOpenGL::print_device_info()
+	{
+	}
+
+	void DisplayDeviceOpenGL::clear(uint32_t clr)
+	{
+		glClear(clr & DISPLAY_CLEAR_COLOR ? GL_COLOR_BUFFER_BIT : 0 
+			| clr & DISPLAY_CLEAR_DEPTH ? GL_DEPTH_BUFFER_BIT : 0 
+			| clr & DISPLAY_CLEAR_STENCIL ? GL_STENCIL_BUFFER_BIT : 0);
+	}
+
+	void DisplayDeviceOpenGL::swap()
+	{
+		// This is a no-action.
+	}
+}

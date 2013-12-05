@@ -25,4 +25,8 @@
 
 namespace graphics
 {
+	/* XX
+		Private member of class
+		SDL_Renderer* renderer_;		
+	*/
 }
