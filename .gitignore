@@ -11,3 +11,6 @@
 *.lai
 *.la
 *.a
+
+vs2012/Debug
+vs2012/Release
