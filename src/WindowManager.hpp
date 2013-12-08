@@ -75,14 +75,21 @@ namespace graphics
 
 		const std::string& title() const { return title_; }
 
+		void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
+		void set_clear_color(float r, float g, float b, float a=1.0f);
+		// color clear_color() const { return clear_color_; }		
+
 		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 	protected:
 		size_t width_;
 		size_t height_;
 		size_t logical_width_;
 		size_t logical_height_;
+		// XXX repolace the following with a proper color interface.
+		float clear_color_[4];
 
 		virtual void change_fullscreen_mode() = 0;
+		virtual void handle_set_clear_color() = 0;
 	private:
 		bool use_16bpp_;
 		bool use_multi_sampling_;

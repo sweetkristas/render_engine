@@ -36,6 +36,15 @@
     <ClCompile Include="..\src\logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Renderable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\RenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\RenderQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\logger.hpp">
@@ -59,10 +68,26 @@
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\SDLWrapper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\profile_timer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Renderable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\RenderManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\RenderQueue.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
     <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
     <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
+    <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
   </ItemGroup>
 </Project>

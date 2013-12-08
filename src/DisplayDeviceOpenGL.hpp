@@ -38,6 +38,8 @@ namespace graphics
 		void swap();
 		void clear(uint32_t clr);
 
+		void set_clear_color(float r, float g, float b, float a);
+
 		void init(size_t width, size_t height);
 		void print_device_info();
 	private:

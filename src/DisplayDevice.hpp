@@ -50,12 +50,16 @@ namespace graphics
 			DISPLAY_CLEAR_COLOR		= 1,
 			DISPLAY_CLEAR_DEPTH		= 2,
 			DISPLAY_CLEAR_STENCIL	= 4,
+			DISPLAY_CLEAR_ALL		= 0xffffffff,
 		};
 
 		DisplayDevice();
 		virtual ~DisplayDevice();
 
 		virtual DisplayDeviceId id() const = 0;
+
+		virtual void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+		virtual void set_clear_color(float r, float g, float b, float a) = 0;
 
 		virtual void clear(uint32_t clr) = 0;
 		virtual void swap() = 0;

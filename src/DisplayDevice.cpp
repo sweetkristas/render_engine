@@ -52,6 +52,11 @@ namespace graphics
 	{
 	}
 
+	void DisplayDevice::set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	{
+		set_clear_color(r/255.0f, g/255.0f, b/255.0f, a/255.0f);
+	}
+
 	DisplayDevicePtr DisplayDevice::factory(const std::string& type)
 	{
 		if(icasecmp(type, "opengl")) {
@@ -59,9 +64,9 @@ namespace graphics
 		} else if(icasecmp(type, "opengles")) {
 		} else if(type.size() >= 3 && icasecmp(type.substr(0,3), "sdl")) {
 		} else if(icasecmp(type, "direct3d")) {
-			ASSERT_LOG(false, "FATAL: Use of Direct3D isn't directly supported");
+			ASSERT_LOG(false, "Use of Direct3D isn't directly supported");
 		}
-		ASSERT_LOG(false, "FATAL: Unknown display device type: " << type);
+		ASSERT_LOG(false, "Unknown display device type: " << type);
 		return DisplayDevicePtr();
 	}
 }

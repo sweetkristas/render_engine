@@ -21,7 +21,9 @@
 	   distribution.
 */
 
-#include "GL/gl.h"
+#include <GL/glew.h>
+
+#include "asserts.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 
 namespace graphics
@@ -36,7 +38,10 @@ namespace graphics
 
 	void DisplayDeviceOpenGL::init(size_t width, size_t height)
 	{
-		glViewPort(0, 0, width, height);
+		GLenum err = glewInit();
+		ASSERT_LOG(err == GLEW_OK, "Could not initialise GLEW: " << glewGetErrorString(err));
+
+		glViewport(0, 0, width, height);
 	}
 
 	void DisplayDeviceOpenGL::print_device_info()
@@ -48,6 +53,11 @@ namespace graphics
 		glClear(clr & DISPLAY_CLEAR_COLOR ? GL_COLOR_BUFFER_BIT : 0 
 			| clr & DISPLAY_CLEAR_DEPTH ? GL_DEPTH_BUFFER_BIT : 0 
 			| clr & DISPLAY_CLEAR_STENCIL ? GL_STENCIL_BUFFER_BIT : 0);
+	}
+
+	void DisplayDeviceOpenGL::set_clear_color(float r, float g, float b, float a)
+	{
+		glClearColor(r, g, b, a);
 	}
 
 	void DisplayDeviceOpenGL::swap()

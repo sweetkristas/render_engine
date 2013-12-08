@@ -28,11 +28,11 @@
 
 enum LogLevel
 {
-	LOG_DEBUG, 
-	LOG_INFO,
-	LOG_WARN,
-	LOG_ERROR,
-	LOG_FATAL,
+	LOG_LEVEL_DEBUG, 
+	LOG_LEVEL_INFO,
+	LOG_LEVEL_WARN,
+	LOG_LEVEL_ERROR,
+	LOG_LEVEL_FATAL,
 };
 
 const char* get_log_level_as_string(LogLevel l);
@@ -44,3 +44,8 @@ const char* get_log_level_as_string(LogLevel l);
 				<< get_log_level_as_string(_ll) << ": " << _msg << "\n";	\
 			std::cerr << _s.str();											\
 	} while(0)
+
+#define LOG_DEBUG(_msg)	LOG_MSG(LOG_LEVEL_DEBUG, _msg)
+#define LOG_INFO(_msg)	LOG_MSG(LOG_LEVEL_INFO, _msg)
+#define LOG_WARN(_msg)	LOG_MSG(LOG_LEVEL_WARN, _msg)
+#define LOG_ERROR(_msg) LOG_MSG(LOG_LEVEL_ERROR, _msg)

@@ -17,6 +17,9 @@
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\Renderable.cpp" />
+    <ClCompile Include="..\src\RenderManager.cpp" />
+    <ClCompile Include="..\src\RenderQueue.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -26,9 +29,15 @@
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
     <ClInclude Include="..\src\logger.hpp" />
+    <ClInclude Include="..\src\profile_timer.hpp" />
+    <ClInclude Include="..\src\Renderable.hpp" />
+    <ClInclude Include="..\src\RenderManager.hpp" />
+    <ClInclude Include="..\src\RenderQueue.hpp" />
+    <ClInclude Include="..\src\SDLWrapper.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
     <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
     <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
     <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
@@ -75,11 +84,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

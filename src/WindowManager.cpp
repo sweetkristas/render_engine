@@ -36,38 +36,6 @@ namespace graphics
 	{
 		typedef std::shared_ptr<SDL_Window> SDL_WindowPtr;
 
-		class init_error : public std::exception
-		{
-		public:
-			init_error() : exception(), msg_(SDL_GetError())
-			{}
-			init_error(const std::string& msg) : exception(), msg_(msg)
-			{}
-			virtual ~init_error() throw()
-			{}
-			virtual const char* what() const throw() { return msg_.c_str(); }
-		private:
-			std::string msg_;
-		};
-
-		class SDL
-		{
-		public:
-			SDL(Uint32 flags = SDL_INIT_VIDEO)
-			{
-				if (SDL_Init(flags) < 0) {
-					std::stringstream ss;
-					ss << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
-					throw init_error(ss.str());
-				}
-			}
-
-			virtual ~SDL()
-			{
-				SDL_Quit();
-			}
-		};
-
 		uint32_t next_pow2(uint32_t v) 
 		{
 			--v;
@@ -125,11 +93,11 @@ namespace graphics
 				}
 				if(use_multi_sampling()) {
 					if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) != 0) {
-						LOG_MSG(LOG_WARN, "MSAA(" << multi_samples() << ") requested but mutlisample buffer couldn't be allocated.");
+						LOG_WARN("MSAA(" << multi_samples() << ") requested but mutlisample buffer couldn't be allocated.");
 					} else {
 						size_t msaa = next_pow2(multi_samples());
 						if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa) != 0) {
-							LOG_MSG(LOG_INFO, "Requested MSAA of " << msaa << " but couldn't allocate");
+							LOG_INFO("Requested MSAA of " << msaa << " but couldn't allocate");
 						}
 					}
 				}
@@ -157,10 +125,10 @@ namespace graphics
 					break;
 			}
 			window_.reset(SDL_CreateWindow(title().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
-				display_.reset();
 				if(display_->id() != DisplayDevice::DISPLAY_DEVICE_SDL) {
 					SDL_DestroyRenderer(renderer_);
 				}
+				display_.reset();
 				if(context_) {
 					SDL_GL_DeleteContext(context_);
 					context_ = NULL;
@@ -174,17 +142,20 @@ namespace graphics
 					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
 				}
 				renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
-				ASSERT_LOG(renderer_ != NULL, "FATAL: Failed to create renderer: " << SDL_GetError());				
+				ASSERT_LOG(renderer_ != NULL, "Failed to create renderer: " << SDL_GetError());				
 			}
 
-			ASSERT_LOG(window_ != NULL, "FATAL: Failed to create window: " << SDL_GetError());
+			ASSERT_LOG(window_ != NULL, "Failed to create window: " << SDL_GetError());
 			if(display_->id() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				context_ = SDL_GL_CreateContext(window_.get());	
-				ASSERT_LOG(context_ != NULL, "FATAL: Failed to GL Context: " << SDL_GetError());
+				ASSERT_LOG(context_ != NULL, "Failed to GL Context: " << SDL_GetError());
 			}
 
+			display_->set_clear_color(clear_color_[0],clear_color_[1],clear_color_[2],clear_color_[3]);
 			display_->init(width_, height_);
 			display_->print_device_info();
+			display_->clear(DisplayDevice::DISPLAY_CLEAR_ALL);
+			swap();
 		}
 
 		void destroy_window() {
@@ -217,15 +188,22 @@ namespace graphics
 			return false;
 		}
 
+		void handle_set_clear_color()
+		{
+			if(display_ != NULL) {
+				display_->set_clear_color(clear_color_[0],clear_color_[1],clear_color_[2],clear_color_[3]);
+			}
+		}
+
 		void set_window_title(const std::string& title) {
-			ASSERT_LOG(window_ != NULL, "FATAL: Window is null");
+			ASSERT_LOG(window_ != NULL, "Window is null");
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 	protected:
 		void change_fullscreen_mode() {
 			// XXX
 		}
-	private:
+	private:		
 		DisplayDevicePtr display_;
 		SDL_WindowPtr window_;
 		SDL_GLContext context_;
@@ -245,6 +223,10 @@ namespace graphics
 		is_resizeable_(false),
 		title_(title)
 	{
+		clear_color_[0] = 0.0f;
+		clear_color_[1] = 0.0f;
+		clear_color_[2] = 0.0f;
+		clear_color_[3] = 1.0f;
 	}
 
 	WindowManager::~WindowManager()
@@ -286,6 +268,24 @@ namespace graphics
 		if(y) {
 			*y = int(*y * double(logical_height_) / height_);
 		}
+	}
+
+	void WindowManager::set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	{
+		clear_color_[0] = r/255.0f;
+		clear_color_[1] = g/255.0f;
+		clear_color_[2] = b/255.0f;
+		clear_color_[3] = a/255.0f;
+		handle_set_clear_color();
+	}
+
+	void WindowManager::set_clear_color(float r, float g, float b, float a)
+	{
+		clear_color_[0] = r;
+		clear_color_[1] = g;
+		clear_color_[2] = b;
+		clear_color_[3] = a;
+		handle_set_clear_color();
 	}
 
 	WindowManagerPtr WindowManager::factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)

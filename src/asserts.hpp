@@ -7,7 +7,7 @@
 	do {																				\
 		if(!(_a)) {																		\
 			std::ostringstream _s;														\
-			_s << __FILE__ << ":" << __LINE__ << " ASSERTION FAILED: " << _b << "\n";	\
+			_s << __FILE__ << ":" << __LINE__ << " FATAL: ASSERTION FAILED: " << _b << "\n";	\
 			std::cerr << _s.str();														\
 			exit(1);																	\
 		}																				\
