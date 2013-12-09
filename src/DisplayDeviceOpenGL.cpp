@@ -25,6 +25,7 @@
 
 #include "asserts.hpp"
 #include "DisplayDeviceOpenGL.hpp"
+#include "RenderVariable.hpp"
 
 namespace graphics
 {
@@ -42,6 +43,9 @@ namespace graphics
 		ASSERT_LOG(err == GLEW_OK, "Could not initialise GLEW: " << glewGetErrorString(err));
 
 		glViewport(0, 0, width, height);
+
+		// Register with the render variable factory so we can create 
+		// VBO backed render variables.
 	}
 
 	void DisplayDeviceOpenGL::print_device_info()

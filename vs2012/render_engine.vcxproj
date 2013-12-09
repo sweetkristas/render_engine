@@ -86,7 +86,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
