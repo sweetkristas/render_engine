@@ -23,6 +23,18 @@
 
 #include "Renderable.hpp"
 
-namespace render
+namespace Render
 {
+	Renderable::Renderable()
+	{
+	}
+
+	Renderable::~Renderable()
+	{
+	}
+
+	void Renderable::draw() const
+	{
+		handle_draw();
+	}
 }

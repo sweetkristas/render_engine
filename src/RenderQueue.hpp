@@ -23,16 +23,15 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
+#include <cstdint>
 
 #include "Renderable.hpp"
 
-namespace render
+namespace Render
 {
-	class RenderQueue;
-	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;
-
 	class RenderQueue
 	{
 	public:
@@ -41,11 +40,16 @@ namespace render
 
 		const std::string& name() const { return name_; }
 
+		void enqueue(uint64_t order, RenderablePtr p);	
+		void dequeue(uint64_t order);
+
 		void draw() const;
-		static RenderQueuePtr factory(const std::string& type, const std::string& name);
 	private:
+		std::map<uint64_t, RenderablePtr> renderables_;
 		std::string name_;
 		RenderQueue();
 		RenderQueue(const RenderQueue&);
 	};
+
+	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;
 }

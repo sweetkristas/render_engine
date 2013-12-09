@@ -27,7 +27,7 @@
 
 #include "RenderQueue.hpp"
 
-namespace render
+namespace Render
 {
 	class RenderManager
 	{

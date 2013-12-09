@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <memory>
+#include "RenderVariable.hpp"
 
-namespace render
+namespace Render
 {
 	class Renderable;
 	typedef std::shared_ptr<Renderable> RenderablePtr;

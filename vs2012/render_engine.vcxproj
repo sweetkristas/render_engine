@@ -20,6 +20,7 @@
     <ClCompile Include="..\src\Renderable.cpp" />
     <ClCompile Include="..\src\RenderManager.cpp" />
     <ClCompile Include="..\src\RenderQueue.cpp" />
+    <ClCompile Include="..\src\RenderVariable.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -33,6 +34,7 @@
     <ClInclude Include="..\src\Renderable.hpp" />
     <ClInclude Include="..\src\RenderManager.hpp" />
     <ClInclude Include="..\src\RenderQueue.hpp" />
+    <ClInclude Include="..\src\RenderVariable.hpp" />
     <ClInclude Include="..\src\SDLWrapper.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
   </ItemGroup>
@@ -101,12 +103,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

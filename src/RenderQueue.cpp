@@ -21,8 +21,36 @@
 	   distribution.
 */
 
+#include "asserts.hpp"
 #include "RenderQueue.hpp"
 
-namespace render
+namespace Render
 {
+	RenderQueue::RenderQueue(const std::string& name) 
+		: name_(name) 
+	{
+	}
+
+	RenderQueue::~RenderQueue() 
+	{
+	}
+
+	void RenderQueue::enqueue(uint64_t order, RenderablePtr p)
+	{
+		renderables_[order] = p;
+	}
+
+	void RenderQueue::dequeue(uint64_t order)
+	{
+		auto it = renderables_.find(order);
+		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
+		renderables_.erase(it);
+	}
+
+	void RenderQueue::draw() const 
+	{
+		for(auto r : renderables_) {
+			r.second->draw();
+		}
+	}
 }

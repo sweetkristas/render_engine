@@ -25,7 +25,7 @@
 #include "logger.hpp"
 #include "RenderManager.hpp"
 
-namespace render
+namespace Render
 {
 	RenderManager::RenderManager()
 	{
