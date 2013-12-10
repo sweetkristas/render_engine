@@ -31,6 +31,7 @@
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
     <ClInclude Include="..\src\logger.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
+    <ClInclude Include="..\src\ref_counted_ptr.hpp" />
     <ClInclude Include="..\src\Renderable.hpp" />
     <ClInclude Include="..\src\RenderManager.hpp" />
     <ClInclude Include="..\src\RenderQueue.hpp" />
@@ -86,7 +87,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -14,7 +14,7 @@ namespace Render
 	public:
 		SquareRenderable(int x1, int y1, int x2, int y2) 
 			: x1_(x1), y1_(y1), x2_(x2), y2_(y2) {
-			vars_.push_back(RenderVariablePtr(new RenderVariable("vertex")));
+			vars_.push_back(RenderVariablePtr(new RenderVariable("VertexPosition")));
 		}
 		~SquareRenderable() {}
 	protected:

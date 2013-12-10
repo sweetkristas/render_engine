@@ -111,39 +111,17 @@ namespace Render
 		VariableType type_;
 	};
 
+	template<typename T>
 	class RenderVariable
 	{
 	public:
 		RenderVariable(const RenderVariableDescription& desc);
-		virtual ~RenderVariable();
 
-		const RenderVariableDescription& desc() const { return desc_; }
-		virtual const void* value() const = 0;
-
-		static RenderVariablePtr factory(const RenderVariableDescription& desc);
-		static void register_factory_worker(std::function<RenderVariablePtr(const RenderVariableDescription&)> fn);
-		virtual RenderVariablePtr clone() = 0;
+		virtual void update(size_t offset, const std::vector<T>& values, size_t count);
+		virtual void update(std::vector<T>* values);
 	private:
-		RenderVariableDescription desc_;
-		
+		std::vector<T> values_;
 		RenderVariable();
 		RenderVariable(const RenderVariable&);
-	};
-
-	template<typename T> 
-	class LocalRenderVariable : public RenderVariable
-	{
-	public:
-		LocalRenderVariable(const RenderVariableDescription& desc);
-		virtual ~LocalRenderVariable();
-
-		const void* value() const { return &value_[0]; }
-		void update(size_t offset, const std::vector<T>& values);
-		void update(size_t offset, std::vector<T>* values);
-		RenderVariablePtr clone();
-	private:
-		std::vector<T> value_;
-		LocalRenderVariable();
-		LocalRenderVariable(const LocalRenderVariable&);
 	};
 }

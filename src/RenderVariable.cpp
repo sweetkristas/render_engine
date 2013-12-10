@@ -57,115 +57,24 @@ namespace Render
 	{
 	}
 
-	RenderVariable::RenderVariable(const RenderVariableDescription& desc)
+	template<typename T>
+	RenderVariable<T>::RenderVariable(const RenderVariableDescription& desc)
 		: desc_(desc)
-	{}
-
-	RenderVariable::~RenderVariable()
-	{}
-
-	void RenderVariable::register_factory_worker(std::function<RenderVariablePtr(const RenderVariableDescription&)> fn)
 	{
-		get_factory_workers().push_back(fn);
 	}
 
-	RenderVariablePtr RenderVariable::factory(const RenderVariableDescription& desc)
+	template<typename T>
+	void RenderVariable<T>::update(size_t offset, const std::vector<T>& values, size_t count)
 	{
-		for(auto fn : get_factory_workers()) {
-			auto ret = fn(desc);
-			if(ret != NULL) {
-				return ret;
-			}
+		if(values_.size() < offset + count) {
+			values_.resize(values_.size() + offset + count);
 		}
-		switch(desc.type()) {
-			case RenderVariableDescription::TYPE_FLOAT: 
-				return RenderVariablePtr(new LocalRenderVariable<float>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_VEC2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::vec2>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_VEC3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::vec3>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_VEC4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::vec4>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat2>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat3>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat4>(desc));
-			case RenderVariableDescription::TYPE_INT:
-				return RenderVariablePtr(new LocalRenderVariable<int32_t>(desc));
-			case RenderVariableDescription::TYPE_INT_VEC2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::ivec2>(desc));
-			case RenderVariableDescription::TYPE_INT_VEC3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::ivec3>(desc));
-			case RenderVariableDescription::TYPE_INT_VEC4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::ivec4>(desc));
-			case RenderVariableDescription::TYPE_USIGNED_INT:
-				return RenderVariablePtr(new LocalRenderVariable<uint32_t>(desc));
-			case RenderVariableDescription::TYPE_USIGNED_INT_VEC2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::uvec2>(desc));
-			case RenderVariableDescription::TYPE_USIGNED_INT_VEC3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::uvec3>(desc));
-			case RenderVariableDescription::TYPE_USIGNED_INT_VEC4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::uvec4>(desc));
-			case RenderVariableDescription::TYPE_BOOL:
-				return RenderVariablePtr(new LocalRenderVariable<bool>(desc));
-			case RenderVariableDescription::TYPE_BOOL_VEC2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::bvec2>(desc));
-			case RenderVariableDescription::TYPE_BOOL_VEC3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::bvec3>(desc));
-			case RenderVariableDescription::TYPE_BOOL_VEC4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::bvec4>(desc));
-			case RenderVariableDescription::TYPE_SAMPLER_1D:
-			case RenderVariableDescription::TYPE_SAMPLER_2D:
-			case RenderVariableDescription::TYPE_SAMPLER_3D:
-			case RenderVariableDescription::TYPE_SAMPLER_CUBE:
-				return RenderVariablePtr(new LocalRenderVariable<int32_t>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT2x3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat2x3>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT2x4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat2x4>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT3x2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat3x2>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT3x4:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat3x4>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT4x2:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat4x2>(desc));
-			case RenderVariableDescription::TYPE_FLOAT_MAT4x3:
-				return RenderVariablePtr(new LocalRenderVariable<glm::mat4x3>(desc));
-		}
+		std::copy(values.begin(), values.end(), values_.begin() + offset);
 	}
 
 	template<typename T>
-	LocalRenderVariable<T>::LocalRenderVariable(const RenderVariableDescription& desc)
-		: RenderVariable(desc)
+	void RenderVariable<T>::update(std::vector<T>* values)
 	{
-	}
-
-	template<typename T>
-	LocalRenderVariable<T>::~LocalRenderVariable()
-	{
-	}
-
-	template<typename T>
-	RenderVariablePtr LocalRenderVariable<T>::clone()
-	{
-		// XXX
-		if(desc().is_shareable()) {
-			return RenderVariablePtr(this);
-		}
-	}
-
-	template<typename T>
-	void LocalRenderVariable<T>::update(const std::vector<T>& values)
-	{
-		value_.clear();
-		std::copy(values.begin(), values.end(), std::back_inserter(value_));
-	}
-
-	template<typename T>
-	void LocalRenderVariable<T>::update(std::vector<T>* values)
-	{
-		value_.swap(*values);
+		values_.swap(*values);
 	}
 }
