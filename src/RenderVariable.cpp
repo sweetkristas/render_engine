@@ -56,25 +56,4 @@ namespace Render
 		geometry_related_(geometry_related)
 	{
 	}
-
-	template<typename T>
-	RenderVariable<T>::RenderVariable(const RenderVariableDescription& desc)
-		: desc_(desc)
-	{
-	}
-
-	template<typename T>
-	void RenderVariable<T>::update(size_t offset, const std::vector<T>& values, size_t count)
-	{
-		if(values_.size() < offset + count) {
-			values_.resize(values_.size() + offset + count);
-		}
-		std::copy(values.begin(), values.end(), values_.begin() + offset);
-	}
-
-	template<typename T>
-	void RenderVariable<T>::update(std::vector<T>* values)
-	{
-		values_.swap(*values);
-	}
 }

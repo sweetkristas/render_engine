@@ -28,6 +28,8 @@
 #include <typeinfo>
 #include <vector>
 
+#include "glm/glm.hpp"
+
 namespace Render
 {
 	class RenderVariable;
@@ -111,17 +113,53 @@ namespace Render
 		VariableType type_;
 	};
 
+	struct RenderVariableVisitor
+	{
+		virtual void Visit(const std::vector<glm::vec2>&) = 0;
+		virtual void Visit(const glm::vec4&) = 0;
+	};
+
+	typedef std::shared_ptr<RenderVariableVisitor> RenderVariableVisitorPtr;
+
 	template<typename T>
+	class UpdateImpl : RenderVariableVisitor
+	{
+	public:
+		UpdateImpl(T& data) : data_(data) {}
+		void Visit(const std::vector<glm::vec2>& value) { data_.Update(value); }
+		void Visit(const glm::vec4& value) { data_.Update(value); }
+	private:
+		T& data_;
+	};
+
 	class RenderVariable
 	{
 	public:
-		RenderVariable(const RenderVariableDescription& desc);
-
-		virtual void update(size_t offset, const std::vector<T>& values, size_t count);
-		virtual void update(std::vector<T>* values);
+		virtual ~RenderVariable();
+		RenderVariableVisitorPtr update;
+	protected:
+		RenderVariable(const RenderVariableDescription& desc, RenderVariableVisitorPtr visitor) 
+			: desc_(desc), 
+			update(visitor) {
+		}
 	private:
-		std::vector<T> values_;
+		RenderVariableDescription desc_;
 		RenderVariable();
 		RenderVariable(const RenderVariable&);
+	};
+
+	template<typename T>
+	class TypedRenderVariable : public RenderVariable
+	{
+	public:
+		TypedRenderVariable<T>(const RenderVariableDescription& desc) 
+			: RenderVariable(desc, RenderVariableVisitorPtr(new UpdateImpl<TypedRenderVariable<T>>(*this))) {
+		}
+		virtual ~TypedRenderVariable<T>() {}
+		void Update(const T& value) {
+			value_ = value;
+		}
+	private:
+		T value_;
 	};
 }
