@@ -51,10 +51,13 @@ namespace Render
 		render_queues_.erase(it);
 	}
 
-	void RenderManager::draw() const
+	void RenderManager::Render() const
 	{
 		for(auto& q : render_queues_) {
-			q.second->draw();
+			q.second->Render();
+		}
+		for(auto& q : render_queues_) {
+			q.second->FinishRender();
 		}
 	}
 }

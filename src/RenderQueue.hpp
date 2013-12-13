@@ -28,24 +28,27 @@
 #include <string>
 #include <cstdint>
 
-#include "Renderable.hpp"
+#include "RenderVariable.hpp"
+#include "WindowManager.hpp"
 
 namespace Render
 {
 	class RenderQueue
 	{
 	public:
-		RenderQueue(const std::string& name);
+		RenderQueue(const std::string& name, graphics::WindowManagerPtr wm);
 		~RenderQueue();
 
 		const std::string& name() const { return name_; }
 
-		void enqueue(uint64_t order, RenderablePtr p);	
+		void enqueue(uint64_t order, RenderVariableListPtr p);	
 		void dequeue(uint64_t order);
 
-		void draw() const;
+		void Render() const;
+		void FinishRender();
 	private:
-		std::map<uint64_t, RenderablePtr> renderables_;
+		graphics::WindowManagerPtr wm_;
+		std::map<uint64_t, RenderVariableListPtr> renderables_;
 		std::string name_;
 		RenderQueue();
 		RenderQueue(const RenderQueue&);

@@ -11,24 +11,32 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\CameraObject.cpp" />
     <ClCompile Include="..\src\DisplayDevice.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
+    <ClCompile Include="..\src\LightObject.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\Renderable.cpp" />
     <ClCompile Include="..\src\RenderManager.cpp" />
     <ClCompile Include="..\src\RenderQueue.cpp" />
     <ClCompile Include="..\src\RenderVariable.cpp" />
+    <ClCompile Include="..\src\SceneGraph.cpp" />
+    <ClCompile Include="..\src\SceneNode.cpp" />
+    <ClCompile Include="..\src\SceneObject.cpp" />
+    <ClCompile Include="..\src\SceneParameters.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\asserts.hpp" />
+    <ClInclude Include="..\src\CameraObject.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
+    <ClInclude Include="..\src\LightObject.hpp" />
     <ClInclude Include="..\src\logger.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
     <ClInclude Include="..\src\ref_counted_ptr.hpp" />
@@ -36,7 +44,13 @@
     <ClInclude Include="..\src\RenderManager.hpp" />
     <ClInclude Include="..\src\RenderQueue.hpp" />
     <ClInclude Include="..\src\RenderVariable.hpp" />
+    <ClInclude Include="..\src\SceneFwd.hpp" />
+    <ClInclude Include="..\src\SceneGraph.hpp" />
+    <ClInclude Include="..\src\SceneNode.hpp" />
+    <ClInclude Include="..\src\SceneObject.hpp" />
+    <ClInclude Include="..\src\SceneParameters.hpp" />
     <ClInclude Include="..\src\SDLWrapper.hpp" />
+    <ClInclude Include="..\src\spline.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
   </ItemGroup>
   <ItemGroup>

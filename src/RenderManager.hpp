@@ -38,7 +38,7 @@ namespace Render
 		void add_queue(int priority, RenderQueuePtr queue);
 		void remove_queue(int priority);
 
-		void draw() const;
+		void Render() const;
 	private:
 		typedef std::map<int,RenderQueuePtr> RenderQueueList;
 		RenderQueueList render_queues_;

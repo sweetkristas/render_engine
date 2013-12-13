@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
 
 namespace Render
@@ -36,9 +37,10 @@ namespace Render
 		Renderable();
 		virtual ~Renderable();
 
-		void draw() const;
+		void draw(RenderQueuePtr queue) const;
 	protected:
 		virtual void handle_draw() const = 0;
+		RenderVariableListPtr render_vars_;
 	private:
 		Renderable(const Renderable&);
 	};

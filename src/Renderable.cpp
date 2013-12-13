@@ -33,8 +33,9 @@ namespace Render
 	{
 	}
 
-	void Renderable::draw() const
+	void Renderable::draw(RenderQueuePtr queue) const
 	{
 		handle_draw();
+		queue->enqueue(0, render_vars_);
 	}
 }

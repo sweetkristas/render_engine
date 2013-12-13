@@ -148,6 +148,9 @@ namespace Render
 		RenderVariable(const RenderVariable&);
 	};
 
+	typedef std::vector<RenderVariablePtr> RenderVariableList;
+	typedef std::shared_ptr<RenderVariableList> RenderVariableListPtr;
+
 	template<typename T>
 	class TypedRenderVariable : public RenderVariable
 	{

@@ -26,8 +26,9 @@
 
 namespace Render
 {
-	RenderQueue::RenderQueue(const std::string& name) 
-		: name_(name) 
+	RenderQueue::RenderQueue(const std::string& name, graphics::WindowManagerPtr wm) 
+		: name_(name),
+		wm_(wm)
 	{
 	}
 
@@ -35,7 +36,7 @@ namespace Render
 	{
 	}
 
-	void RenderQueue::enqueue(uint64_t order, RenderablePtr p)
+	void RenderQueue::enqueue(uint64_t order, RenderVariableListPtr p)
 	{
 		renderables_[order] = p;
 	}
@@ -47,10 +48,15 @@ namespace Render
 		renderables_.erase(it);
 	}
 
-	void RenderQueue::draw() const 
+	void RenderQueue::Render() const 
 	{
 		for(auto r : renderables_) {
-			r.second->draw();
+			wm_->Render(r);
 		}
+	}
+
+	void RenderQueue::FinishRender()
+	{
+		renderables_.clear();
 	}
 }

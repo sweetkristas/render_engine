@@ -26,6 +26,8 @@
 #include <string>
 #include <memory>
 
+#include "RenderVariable.hpp"
+
 namespace graphics
 {
 	class WindowManager;
@@ -49,6 +51,8 @@ namespace graphics
 
 		virtual void set_window_title(const std::string& title) = 0;
 		virtual void set_window_icon(const std::string& name) = 0;
+
+		virtual void Render(Render::RenderVariableListPtr vars);
 
 		virtual void swap() = 0;
 
@@ -77,7 +81,7 @@ namespace graphics
 
 		void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
 		void set_clear_color(float r, float g, float b, float a=1.0f);
-		// color clear_color() const { return clear_color_; }		
+		// color clear_color() const { return clear_color_; }
 
 		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 	protected:
