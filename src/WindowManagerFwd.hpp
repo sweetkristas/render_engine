@@ -21,42 +21,12 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "RenderQueue.hpp"
+#pragma once
 
-namespace Render
+#include <memory>
+
+namespace Graphics
 {
-	RenderQueue::RenderQueue(const std::string& name, Graphics::WindowManagerPtr wm) 
-		: name_(name),
-		wm_(wm)
-	{
-	}
-
-	RenderQueue::~RenderQueue() 
-	{
-	}
-
-	void RenderQueue::enqueue(uint64_t order, RenderVariableListPtr p)
-	{
-		renderables_[order] = p;
-	}
-
-	void RenderQueue::dequeue(uint64_t order)
-	{
-		auto it = renderables_.find(order);
-		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
-		renderables_.erase(it);
-	}
-
-	void RenderQueue::Render() const 
-	{
-		for(auto r : renderables_) {
-			//wm_->Render(r);
-		}
-	}
-
-	void RenderQueue::FinishRender()
-	{
-		renderables_.clear();
-	}
+	class WindowManager;
+	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
 }

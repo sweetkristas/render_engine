@@ -23,6 +23,6 @@
 
 #pragma once
 
-namespace graphics
+namespace Graphics
 {
 }

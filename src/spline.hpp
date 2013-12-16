@@ -72,12 +72,12 @@ namespace geometry
 					z_prime_prime_[i] = z_prime_prime_[i] * z_prime_prime_[i+1] + u[i];
 				}
 			}
-			float interpolate(float x)
+			double interpolate(double x)
 			{
 				size_t lo = 0;
 				size_t hi = z_prime_prime_.size()-1;
 				size_t k;
-				float h, b, a;
+				double h, b, a;
 
 				while(hi - lo > 1) {
 						k = (hi + lo) >> 1;

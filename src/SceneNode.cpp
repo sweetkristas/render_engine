@@ -48,4 +48,18 @@ namespace Scene
 	{
 		objects_.emplace_back(obj);
 	}
+
+	void SceneNode::AttachLight(size_t ref, const LightPtr& obj)
+	{
+		auto it = lights_.find(ref);
+		if(it != lights_.end()) {
+			lights_.erase(it);
+		}
+		lights_.emplace(ref,obj);
+	}
+
+	void SceneNode::AttachCamera(const CameraPtr& obj)
+	{
+		camera_ = obj;
+	}
 }

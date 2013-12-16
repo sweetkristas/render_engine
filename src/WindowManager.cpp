@@ -30,7 +30,7 @@
 #include "SDL.h"
 #include "WindowManager.hpp"
 
-namespace graphics
+namespace Graphics
 {
 	namespace 
 	{
@@ -198,6 +198,11 @@ namespace graphics
 		void set_window_title(const std::string& title) {
 			ASSERT_LOG(window_ != NULL, "Window is null");
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
+		}
+
+		virtual void Render(Render::RenderVariableListPtr vars)
+		{
+			// XXX
 		}
 	protected:
 		void change_fullscreen_mode() {

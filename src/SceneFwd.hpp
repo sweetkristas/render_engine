@@ -30,6 +30,10 @@
 
 namespace Scene
 {
+	class Light;
+	typedef std::shared_ptr<Light> LightPtr;
+	class Camera;
+	typedef std::shared_ptr<Camera> CameraPtr;
 	class Parameter;
 	typedef std::shared_ptr<Parameter> ParameterPtr;
 	class SceneObject;

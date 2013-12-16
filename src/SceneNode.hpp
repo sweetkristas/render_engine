@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 
 #include "SceneFwd.hpp"
@@ -32,13 +33,19 @@ namespace Scene
 	class SceneNode
 	{
 	public:
-		SceneNode(SceneGraph* sg);
+		explicit SceneNode(SceneGraph* sg);
 		~SceneNode();
 		void AttachNode(const SceneNodePtr& node);
+		void AttachLight(size_t ref, const LightPtr& obj);
+		void AttachCamera(const CameraPtr& obj);
 		void AttachObject(const SceneObjectPtr& obj);
 	private:
 		SceneGraph* scene_graph_;
 		std::vector<SceneObjectPtr> objects_;
+		std::unordered_map<size_t, LightPtr> lights_;
+		CameraPtr camera_;
+		SceneNode();
 		SceneNode(const SceneNode&);
+		SceneNode& operator=(const SceneNode&);
 	};
 }

@@ -23,7 +23,7 @@
 
 #pragma once
 
-namespace graphics
+namespace Graphics
 {
 	/* XX
 		Private member of class

@@ -25,7 +25,7 @@
 
 #include "DisplayDevice.hpp"
 
-namespace graphics
+namespace Graphics
 {
 	class DisplayDeviceOpenGL : public DisplayDevice
 	{

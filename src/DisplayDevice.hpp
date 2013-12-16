@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 
-namespace graphics
+namespace Graphics
 {
 	class DisplayDevice;
 	typedef std::shared_ptr<DisplayDevice> DisplayDevicePtr;

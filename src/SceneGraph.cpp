@@ -37,6 +37,7 @@ namespace Scene
 		SceneObjectFactoryLookupTable& get_object_factory()
 		{
 			static SceneObjectFactoryLookupTable res;
+			return res;
 		}
 	}
 		
@@ -54,7 +55,7 @@ namespace Scene
 		return *graph_.begin();
 	}
 
-	void SceneGraph::AttachNode(const SceneNodePtr& parent, const SceneNodePtr& node) 
+	void SceneGraph::AttachNode(const SceneNodePtr& parent, SceneNodePtr node) 
 	{
 		if(parent == NULL) {
 			graph_.insert(graph_.end_child(), node);
@@ -63,7 +64,7 @@ namespace Scene
 		the::tree<SceneNodePtr>::const_pre_iterator it = graph_.begin();
 		for(; it != graph_.end(); ++it) {
 			if(*it == parent) {
-				graph_.insert(it, node);
+				//graph_.insert(it, node);
 				return;
 			}
 		}
@@ -73,22 +74,22 @@ namespace Scene
 	SceneGraphPtr SceneGraph::Create(const std::string& name) 
 	{
 		// Create graph then insert a root node into the tree.
-		auto sg = std::make_shared<SceneGraph>(new SceneGraph(name));
+		auto sg = std::make_shared<SceneGraph>(name);
 		sg->graph_.insert(sg->graph_.end(), sg->CreateNode());
 		return sg;
 	}
 	
 	SceneNodePtr SceneGraph::CreateNode()
 	{
-		return std::make_shared<SceneNode>(new SceneNode(this));
+		return std::make_shared<SceneNode>(this);
 	}
 
-	SceneObjectPtr SceneGraph::CreateObject(const std::string& type, const std::string& name) 
+	/*SceneObjectPtr SceneGraph::CreateObject(const std::string& type, const std::string& name) 
 	{
 		auto it = get_object_factory().find(type);
 		ASSERT_LOG(it == get_object_factory().end(), "Couldn't find a way to create the following type of object: " << type);
 		return it->second(name);
-	}
+	}*/
 
 	void SceneGraph::RegisterObjectType(const std::string& type, ObjectTypeFunction fn)
 	{

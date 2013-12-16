@@ -24,15 +24,12 @@
 #pragma once
 
 #include <string>
-#include <memory>
 
 #include "RenderVariable.hpp"
+#include "WindowManagerFwd.hpp"
 
-namespace graphics
+namespace Graphics
 {
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
-	
 	class WindowManager
 	{
 	public:
@@ -52,7 +49,7 @@ namespace graphics
 		virtual void set_window_title(const std::string& title) = 0;
 		virtual void set_window_icon(const std::string& name) = 0;
 
-		virtual void Render(Render::RenderVariableListPtr vars);
+		virtual void Render(Render::RenderVariableListPtr vars) = 0;
 
 		virtual void swap() = 0;
 

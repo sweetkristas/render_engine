@@ -4,9 +4,31 @@
 #include "logger.hpp"
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
+#include "CameraObject.hpp"
+#include "LightObject.hpp"
+#include "Renderable.hpp"
+#include "RenderVariable.hpp"
 #include "SceneGraph.hpp"
+#include "SceneNode.hpp"
 #include "WindowManager.hpp"
 
+namespace
+{
+	class SquareRenderable : public Render::Renderable
+	{
+	public:
+		SquareRenderable() {
+			render_vars_.reset(new Render::RenderVariableList(4));
+		}
+		virtual ~SquareRenderable() {}
+	protected:
+		void handle_draw() const {
+		}
+	private:
+		SquareRenderable(const SquareRenderable&);
+		SquareRenderable& operator=(const SquareRenderable&);
+	};
+}
 
 int main(int argc, char *argv[])
 {
@@ -16,14 +38,18 @@ int main(int argc, char *argv[])
 
 	SDL::SDL_ptr manager(new SDL::SDL());
 
-	graphics::WindowManagerPtr main_wnd = graphics::WindowManager::factory("SDL", "opengl");
+	Graphics::WindowManagerPtr main_wnd = Graphics::WindowManager::factory("SDL", "opengl");
 	main_wnd->enable_vsync(false);
 	main_wnd->create_window(800,600);
 
 	Scene::SceneGraphPtr scene = Scene::SceneGraph::Create("main");
 	Scene::SceneNodePtr root = scene->RootNode();
-	auto sunlight = Scene::SceneGraph::CreateObject("light", "the_sun");
-	
+	auto scenecam = std::make_shared<Scene::Camera>("cam0", 0, 800, 0, 600);
+	scenecam->AttachFrustum(std::make_shared<Scene::Frustum>());
+	root->AttachCamera(scenecam);
+	auto sunlight = std::make_shared<Scene::Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
+	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
+	root->AttachLight(0, sunlight);
 
 	SDL_Event e;
 	bool done = false;

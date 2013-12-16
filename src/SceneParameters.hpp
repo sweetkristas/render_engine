@@ -82,7 +82,6 @@ namespace Scene
 	private:
 		float min_value_;
 		float max_value_;
-		RandomParameter();
 		RandomParameter(const RandomParameter&);
 	};
 

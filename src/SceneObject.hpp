@@ -33,7 +33,7 @@ namespace Scene
 	public:
 		SceneObject(const std::string& name);
 		virtual ~SceneObject();
-		virtual void Apply(const graphics::DisplayDevicePtr& dd) const = 0;
+		virtual void Apply(const Graphics::DisplayDevicePtr& dd) const = 0;
 	private:
 		std::string name_;
 		SceneObject();

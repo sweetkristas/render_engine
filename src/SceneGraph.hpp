@@ -35,9 +35,8 @@ namespace Scene
 	public:
 		SceneGraph(const std::string& name);
 		~SceneGraph();
-		void AttachNode(const SceneNodePtr& parent, const SceneNodePtr& node);
+		void AttachNode(const SceneNodePtr& parent, SceneNodePtr node);
 		static SceneGraphPtr Create(const std::string& name);
-		static SceneObjectPtr CreateObject(const std::string& type, const std::string& name);
 		SceneNodePtr CreateNode();
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();

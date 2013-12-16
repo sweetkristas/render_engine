@@ -35,9 +35,10 @@ namespace Scene
 			LT_DIRECTIONAL,
 			LT_SPOT,
 		};
-		Light(const std::string& name, const glm::vec3& position);
+		explicit Light(const std::string& name, const glm::vec3& position);
+		//explicit Light(const variant& node);
 		virtual ~Light();
-		void Apply(const graphics::DisplayDevicePtr& dd) const;
+		void Apply(const Graphics::DisplayDevicePtr& dd) const;
 		void SetType(LightType type);
 		void SetPosition(const glm::vec3& position);
 		void SetAmbientColor(const glm::vec4& color);
@@ -58,6 +59,7 @@ namespace Scene
 		float ConstantAttenuation() const { return constant_attenuation_; }
 		float LinearAttenuation() const { return linear_attenuation_; }
 		float QuadraticAttenuation() const { return quadratic_attenuation_; }
+		//variant write() const;
 	private:
 		LightType type_;
 		glm::vec3 position_;
@@ -72,5 +74,8 @@ namespace Scene
 		float quadratic_attenuation_;
 		Light();
 		Light(const Light&);
+		Light& operator=(const Light&);
 	};
+
+	typedef std::shared_ptr<Light> LightPtr;
 }

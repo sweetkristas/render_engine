@@ -36,7 +36,7 @@ namespace Render
 	class RenderQueue
 	{
 	public:
-		RenderQueue(const std::string& name, graphics::WindowManagerPtr wm);
+		RenderQueue(const std::string& name, Graphics::WindowManagerPtr wm);
 		~RenderQueue();
 
 		const std::string& name() const { return name_; }
@@ -47,7 +47,7 @@ namespace Render
 		void Render() const;
 		void FinishRender();
 	private:
-		graphics::WindowManagerPtr wm_;
+		Graphics::WindowManagerPtr wm_;
 		std::map<uint64_t, RenderVariableListPtr> renderables_;
 		std::string name_;
 		RenderQueue();

@@ -28,7 +28,7 @@
 #include "DisplayDeviceSDL.hpp"
 //#include "DisplayDeviceD3D.hpp"
 
-namespace graphics
+namespace Graphics
 {
 	namespace 
 	{

@@ -21,42 +21,44 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "RenderQueue.hpp"
+#pragma once
 
-namespace Render
+#include <memory>
+#include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+namespace Scene
 {
-	RenderQueue::RenderQueue(const std::string& name, Graphics::WindowManagerPtr wm) 
-		: name_(name),
-		wm_(wm)
+	class Frustum
 	{
-	}
+	public:
+		Frustum();
+		virtual ~Frustum();
+		explicit Frustum(const glm::mat4& perspective, const glm::mat4& view);
+		
+		void UpdateMatrices(const glm::mat4& perspective, const glm::mat4& view);
 
-	RenderQueue::~RenderQueue() 
-	{
-	}
+		bool PointInside(const glm::vec3& pt) const;
+		bool CircleInside(const glm::vec3& pt, float radius) const;
+		bool CubeInside(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
+		
+		int CircleIntersects(const glm::vec3& pt, float radius) const;
+		int CubeIntersects(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
+	private:
+		enum 
+		{
+			NEAR_PLANE,
+			RIGHT_PLANE,
+			TOP_PLANE,
+			FAR_PLANE,
+			LEFT_PLANE,
+			BOTTOM_PLANE,
+			MAX_PLANES,
+		};
+		std::vector<glm::vec4> planes_;
+		glm::mat4 vp_;
+	};
 
-	void RenderQueue::enqueue(uint64_t order, RenderVariableListPtr p)
-	{
-		renderables_[order] = p;
-	}
-
-	void RenderQueue::dequeue(uint64_t order)
-	{
-		auto it = renderables_.find(order);
-		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
-		renderables_.erase(it);
-	}
-
-	void RenderQueue::Render() const 
-	{
-		for(auto r : renderables_) {
-			//wm_->Render(r);
-		}
-	}
-
-	void RenderQueue::FinishRender()
-	{
-		renderables_.clear();
-	}
+	typedef std::shared_ptr<Frustum> FrustumPtr;
 }

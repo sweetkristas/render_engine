@@ -21,7 +21,9 @@
 	   distribution.
 */
 
+#include "Frustum.hpp"
 #include "SceneObject.hpp"
+#include "WindowManagerFwd.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Scene
@@ -30,9 +32,10 @@ namespace Scene
 	{
 	public:
 		enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGONAL };
-		Camera();
-		explicit Camera(int left, int right, int top, int bottom);
-		explicit Camera(float fov, float aspect, float near_clip, float far_clip);
+		Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd);
+		explicit Camera(const std::string& name, int left, int right, int top, int bottom);
+		explicit Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip);
+		virtual ~Camera();
 
 		void SetMouseSpeed(float ms) { mouse_speed_ = ms; }
 		void SetSpeed(float spd) { speed_ = spd; }
@@ -63,14 +66,15 @@ namespace Scene
 		const glm::vec3& Up() const { return up_; }
 		void SetPosition(const glm::vec3& position) { position_ = position; }
 
-		void LookAt(glm::vec3 position, glm::vec3 target, glm::vec3 up);
+		void LookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up);
 
 		const float* Projection() const { return glm::value_ptr(projection_); }
 		const float* View() const { return glm::value_ptr(view_); }
 		const glm::mat4& ViewMat() const { return view_; }
 		const glm::mat4& ProjectionMat() const { return projection_; }
 
-		//const graphics::frustum& Frustum() { return frustum_; }
+		const FrustumPtr& GetFrustum() const { return frustum_; }
+		void AttachFrustum(const FrustumPtr& frustum);
 
 		glm::vec3 ScreenToWorld(int x, int y, int wx, int wy) const;
 		glm::ivec3 GetFacing(const glm::vec3& coords) const;
@@ -79,7 +83,17 @@ namespace Scene
 
 		void ComputeView();
 		void ComputeProjection();
+
+		virtual void Apply(const Graphics::DisplayDevicePtr& dd) const;
 	private:
+		// special case handling if LookAt function is called.
+		// Since we then are specifying the position/target/up
+		// vectors directly rather than being calculated.
+		enum {
+			VIEW_MODE_MANUAL,
+			VIEW_MODE_AUTO,
+		} view_mode_;
+
 		CameraType type_;
 
 		float fov_;
@@ -99,7 +113,7 @@ namespace Scene
 
 		float aspect_;
 
-		//graphics::frustum frustum_;
+		FrustumPtr frustum_;
 
 		int ortho_left_;
 		int ortho_right_;
@@ -110,5 +124,8 @@ namespace Scene
 		glm::mat4 view_;
 
 		Camera(const Camera&);
+		Camera& operator=(const Camera&);
 	};
+
+	typedef std::shared_ptr<Camera> CameraPtr;
 }

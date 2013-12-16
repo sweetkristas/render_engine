@@ -27,7 +27,7 @@
 #include "DisplayDeviceOpenGL.hpp"
 #include "RenderVariable.hpp"
 
-namespace graphics
+namespace Graphics
 {
 	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
 	{

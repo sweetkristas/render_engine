@@ -51,8 +51,8 @@ namespace Scene
 		{
 			static std::unique_ptr<std::default_random_engine> res;
 			if(res == NULL) {
-				unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-				res.reset(new std::default_random_engine(seed));
+				auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+				res.reset(new std::default_random_engine((std::default_random_engine::result_type)seed));
 			}
 			return *res;
 		}
@@ -137,7 +137,7 @@ namespace Scene
 	{
 	}*/
 
-	RandomParameter::RandomParameter(float mnv=0.0f, float mxv=1.0f)
+	RandomParameter::RandomParameter(float mnv, float mxv)
 		: Parameter(PARAMETER_RANDOM), 
 		min_value_(mnv),
 		max_value_(mxv)
@@ -205,9 +205,9 @@ namespace Scene
 	float OscillateParameter::get_value(float t)
 	{
 		if(osc_type_ == TYPE_SINE) {
-			return base_ + amplitude_ * sin(2*M_PI*frequency_*t + phase_);
+			return float(base_ + amplitude_ * sin(2*M_PI*frequency_*t + phase_));
 		} else if(osc_type_ == TYPE_SQUARE) {
-			return base_ + amplitude_ * sign(sin(2*M_PI*frequency_*t + phase_));
+			return float(base_ + amplitude_ * sign(sin(2*M_PI*frequency_*t + phase_)));
 		}
 		return 0;
 	}
@@ -269,16 +269,16 @@ namespace Scene
 			auto it = find_closest_point(t);
 			auto it2 = it + 1;
 			if(it2 == control_points_.end()) {
-				return it2->second;
+				return float(it2->second);
 			} else {
 				// linear interpolate, see http://en.wikipedia.org/wiki/Linear_interpolation
-				return it->second + (it2->second - it->second) * (t - it->first) / (it2->first - it->first);
+				return float(it->second + (it2->second - it->second) * (t - it->first) / (it2->first - it->first));
 			}
 		} else if(curve_type_ == INTERPOLATE_SPLINE) {
 			// http://en.wikipedia.org/wiki/Spline_interpolation
 			geometry::spline spl(control_points_);
-			return spl.interpolate(t);
+			return float(spl.interpolate(t));
 		}
-		return 0;
+		return 0.0f;
 	}
 }

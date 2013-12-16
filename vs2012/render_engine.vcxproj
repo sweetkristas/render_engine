@@ -16,6 +16,7 @@
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
+    <ClCompile Include="..\src\Frustum.cpp" />
     <ClCompile Include="..\src\LightObject.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\main.cpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
+    <ClInclude Include="..\src\Frustum.hpp" />
     <ClInclude Include="..\src\LightObject.hpp" />
     <ClInclude Include="..\src\logger.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
@@ -52,6 +54,7 @@
     <ClInclude Include="..\src\SDLWrapper.hpp" />
     <ClInclude Include="..\src\spline.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
+    <ClInclude Include="..\src\WindowManagerFwd.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
