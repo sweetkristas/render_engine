@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"
 
 namespace Render
 {
@@ -36,45 +37,31 @@ namespace Render
 	typedef std::shared_ptr<RenderVariable> RenderVariablePtr;
 	typedef std::vector<RenderVariablePtr> RenderVariableList;
 
-	class RenderVariableDescription
+	class RenderVariable
 	{
 	public:
-		enum VariableUsage {
-			// Per vertex data, e.g. normals, vertex position, color
-			USAGE_VERTEX,
-			// Per primitive data
-			USAGE_PRIMITIVE,
-			// Per primitive group data, e.g. material
-			USAGE_PRIMITIVE_GROUP,
-			// Per geometry data, e.g. cameras, lighting
-			USAGE_GEOMETRY,
-			// Global objects, e.g. matrices
-			USAGE_GLOBAL,
+		virtual ~RenderVariable() {}
+
+		enum VertexType {
+			VERTEX_UNKNOWN,
+			VERTEX_POSITION,
+			VERTEX_COLOR,
+			VERTEX_TEXTURE,
+			VERTEX_NORMAL,
 		};
 		enum VariableType {
 			TYPE_FLOAT,
-			TYPE_FLOAT_VEC2,
-			TYPE_FLOAT_VEC3,
-			TYPE_FLOAT_VEC4,
-			TYPE_FLOAT_MAT2,
-			TYPE_FLOAT_MAT3,
-			TYPE_FLOAT_MAT4,
 			TYPE_INT,
-			TYPE_INT_VEC2,
-			TYPE_INT_VEC3,
-			TYPE_INT_VEC4,
-			TYPE_USIGNED_INT,
-			TYPE_USIGNED_INT_VEC2,
-			TYPE_USIGNED_INT_VEC3,
-			TYPE_USIGNED_INT_VEC4,
+			TYPE_UNSIGNED_INT,
+			TYPE_UNSIGNED_BYTE,
 			TYPE_BOOL,
-			TYPE_BOOL_VEC2,
-			TYPE_BOOL_VEC3,
-			TYPE_BOOL_VEC4,
 			TYPE_SAMPLER_1D,
 			TYPE_SAMPLER_2D,
 			TYPE_SAMPLER_3D,
 			TYPE_SAMPLER_CUBE,
+			TYPE_FLOAT_MAT2,
+			TYPE_FLOAT_MAT3,
+			TYPE_FLOAT_MAT4,
 			TYPE_FLOAT_MAT2x3,
 			TYPE_FLOAT_MAT2x4,
 			TYPE_FLOAT_MAT3x2,
@@ -82,25 +69,48 @@ namespace Render
 			TYPE_FLOAT_MAT4x2,
 			TYPE_FLOAT_MAT4x3,
 		};
-		RenderVariableDescription(const std::string& name, 
-			VariableType type,
-			VariableUsage use, 
-			size_t count = 0,
-			bool dynamic = true, 
-			bool shareable = true, 
-			bool geometry_related = true);
-		const std::string& name() const { return name_; }
-		VariableUsage usage() const {return usage_; }
-		bool is_dynamic() const { return dynamic_; }
-		bool is_static() const { return !dynamic_; }
-		bool is_shareable() const { return shareable_; }
-		bool is_geometry_related() const { return geometry_related_; }
-		VariableType type() const { return type_; }
+		void AddVariableDescription(VertexType vertex_type, unsigned num_elements, VariableType var_type, unsigned stride, unsigned offset);
+		void AddVariableDescription(const std::string& vertex_type, unsigned num_elements, VariableType var_type, unsigned stride, unsigned offset);
+		
+		void SetIndexedDraw(bool indexed_draw) { indexed_draw_ = indexed_draw; }
+		bool IsIndexedDraw() const { return indexed_draw_; }
+
+		enum DrawMode {
+			POINTS,
+			LINE_STRIP,
+			LINE_LOOP,
+			LINES,
+			TRIANGLE_STRIP,
+			TRIANGLE_FAN,
+			TRIANGLES,
+			QUAD_STRIP,
+			QUADS,
+			POLYGON,
+		};
+		void SetDrawMode(DrawMode draw_mode) { draw_mode_ = draw_mode; }
+		DrawMode GetDrawMode() const { return draw_mode_; }
+	protected:
+		RenderVariable(size_t count,
+			bool dynamic, 
+			bool shareable, 
+			bool geometry_related) 
+			: count_(count),
+			dynamic_(dynamic),
+			shareable_(shareable),
+			geometry_related_(geometry_related),
+			draw_mode_(TRIANGLE_STRIP),
+			indexed_draw_(false)
+		{
+		}
 	private:
-		// Name of the variable.
-		std::string name_;
-		// usage pattern as defined above.
-		VariableUsage usage_;
+		VertexType vertex_type_;
+		const std::string vertex_type_str_;
+		unsigned num_elements_;
+		VariableType var_type_;
+		unsigned stride_;
+		unsigned offset_;
+		bool indexed_draw_;
+		DrawMode draw_mode_;
 		// Estimated count of number of items.
 		size_t count_;
 		// Whether the data is reloaded often or is static.
@@ -109,41 +119,6 @@ namespace Render
 		bool shareable_;
 		// Whether the data is geometry related. e.g. Vertex positions.
 		bool geometry_related_;
-		// data type
-		VariableType type_;
-	};
-
-	struct RenderVariableVisitor
-	{
-		virtual void Visit(const std::vector<glm::vec2>&) = 0;
-		virtual void Visit(const glm::vec4&) = 0;
-	};
-
-	typedef std::shared_ptr<RenderVariableVisitor> RenderVariableVisitorPtr;
-
-	template<typename T>
-	class UpdateImpl : RenderVariableVisitor
-	{
-	public:
-		UpdateImpl(T& data) : data_(data) {}
-		void Visit(const std::vector<glm::vec2>& value) { data_.Update(value); }
-		void Visit(const glm::vec4& value) { data_.Update(value); }
-	private:
-		T& data_;
-	};
-
-	class RenderVariable
-	{
-	public:
-		virtual ~RenderVariable();
-		RenderVariableVisitorPtr update;
-	protected:
-		RenderVariable(const RenderVariableDescription& desc, RenderVariableVisitorPtr visitor) 
-			: desc_(desc), 
-			update(visitor) {
-		}
-	private:
-		RenderVariableDescription desc_;
 		RenderVariable();
 		RenderVariable(const RenderVariable&);
 	};
@@ -155,8 +130,11 @@ namespace Render
 	class TypedRenderVariable : public RenderVariable
 	{
 	public:
-		TypedRenderVariable<T>(const RenderVariableDescription& desc) 
-			: RenderVariable(desc, RenderVariableVisitorPtr(new UpdateImpl<TypedRenderVariable<T>>(*this))) {
+		TypedRenderVariable<T>(size_t count = 0,
+			bool dynamic = true, 
+			bool shareable = true, 
+			bool geometry_related = true) 
+			: RenderVariable(count, dynamic, shareable, geometry_related) {
 		}
 		virtual ~TypedRenderVariable<T>() {}
 		void Update(const T& value) {

@@ -21,30 +21,37 @@
 	   distribution.
 */
 
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <glm/glm.hpp>
+#pragma once
 
-#include "RenderVariable.hpp"
+#include <boost/intrusive_ptr.hpp>
 
-namespace Render
+template<class T>
+inline void intrusive_ptr_add_ref(T* expr)
 {
-	void RenderVariable::AddVariableDescription(VertexType vertex_type, 
-		unsigned num_elements, 
-		VariableType var_type, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		// XXX
-	}
-
-	void RenderVariable::AddVariableDescription(const std::string& vertex_type, 
-		unsigned num_elements, 
-		VariableType var_type, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		// XXX
-	}
+	expr->add_reference();
 }
+
+template<class T>
+inline void intrusive_ptr_release(T* expr)
+{
+	expr->release_reference();
+}
+
+class reference_counted_ptr
+{
+public:
+	reference_counted_ptr() 
+		: references_(0) 
+	{}
+	virtual ~reference_counted_ptr()
+	{}
+	void add_reference() const { ++references_; }
+	void release_reference() const
+	{ 
+			if(--references_ == 0) { 
+				delete this;
+			}
+	}
+private:
+	mutable long references_;
+};

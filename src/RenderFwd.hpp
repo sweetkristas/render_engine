@@ -21,30 +21,19 @@
 	   distribution.
 */
 
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <glm/glm.hpp>
+#pragma once
 
-#include "RenderVariable.hpp"
+#include <memory>
+#include <string>
 
 namespace Render
 {
-	void RenderVariable::AddVariableDescription(VertexType vertex_type, 
-		unsigned num_elements, 
-		VariableType var_type, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		// XXX
-	}
+	class Renderable;
+	typedef std::shared_ptr<Renderable> RenderablePtr;
 
-	void RenderVariable::AddVariableDescription(const std::string& vertex_type, 
-		unsigned num_elements, 
-		VariableType var_type, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		// XXX
-	}
+	class RenderQueue;
+	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;
+
+	class RenderManager;
+	typedef std::shared_ptr<RenderManager> RenderManagerPtr;
 }

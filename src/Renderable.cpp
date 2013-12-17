@@ -36,6 +36,45 @@ namespace Render
 	void Renderable::draw(RenderQueuePtr queue) const
 	{
 		handle_draw();
-		queue->enqueue(0, render_vars_);
+	}
+
+	void Renderable::SetPosition(const glm::vec3& position) 
+	{
+		position_ = position;
+	}
+
+	void Renderable::SetPosition(float x, float y, float z) 
+	{
+		position_ = glm::vec3(x, y, z);
+	}
+
+	void Renderable::SetPosition(int x, int y, int z) 
+	{
+		position_ = glm::vec3(float(x), float(y), float(z));
+	}
+
+	void Renderable::SetRotation(float angle, const glm::vec3& axis) 
+	{
+		rotation_ = glm::angleAxis(angle, axis);
+	}
+
+	void Renderable::SetRotation(const glm::quat& rot) 
+	{
+		rotation_ = rot;
+	}
+
+	void Renderable::SetScale(float xs, float ys, float zs) 
+	{
+		scale_ = glm::vec3(xs, ys, zs);
+	}
+
+	void Renderable::SetScale(const glm::vec3& scale) 
+	{
+		scale_ = scale;
+	}
+
+	const glm::mat4& Renderable::ModelMatrix() const 
+	{
+		return glm::translate(glm::mat4(1.0f), position_) * glm::toMat4(rotation_) * glm::scale(glm::mat4(1.0f), scale_);
 	}
 }

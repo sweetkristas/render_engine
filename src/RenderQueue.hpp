@@ -24,35 +24,30 @@
 #pragma once
 
 #include <map>
-#include <memory>
-#include <string>
 #include <cstdint>
 
-#include "RenderVariable.hpp"
-#include "WindowManager.hpp"
+#include "RenderFwd.hpp"
+#include "WindowManagerFwd.hpp"
 
 namespace Render
 {
 	class RenderQueue
 	{
 	public:
-		RenderQueue(const std::string& name, Graphics::WindowManagerPtr wm);
+		RenderQueue(const std::string& name);
 		~RenderQueue();
 
 		const std::string& name() const { return name_; }
 
-		void enqueue(uint64_t order, RenderVariableListPtr p);	
-		void dequeue(uint64_t order);
+		void Enqueue(uint64_t order, RenderablePtr p);	
+		void Dequeue(uint64_t order);
 
-		void Render() const;
+		void Render(const Graphics::WindowManagerPtr& wm) const;
 		void FinishRender();
 	private:
-		Graphics::WindowManagerPtr wm_;
-		std::map<uint64_t, RenderVariableListPtr> renderables_;
+		std::map<uint64_t, RenderablePtr> renderables_;
 		std::string name_;
 		RenderQueue();
 		RenderQueue(const RenderQueue&);
 	};
-
-	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;
 }

@@ -24,6 +24,7 @@
 #include "asserts.hpp"
 #include "logger.hpp"
 #include "RenderManager.hpp"
+#include "RenderQueue.hpp"
 
 namespace Render
 {
@@ -35,7 +36,7 @@ namespace Render
 	{
 	}
 
-	void RenderManager::add_queue(int priority, RenderQueuePtr queue)
+	void RenderManager::AddQueue(int priority, RenderQueuePtr queue)
 	{
 		auto it = render_queues_.find(priority);
 		if(it != render_queues_.end()) {
@@ -44,17 +45,17 @@ namespace Render
 		render_queues_[priority] = queue;
 	}
 
-	void RenderManager::remove_queue(int priority)
+	void RenderManager::RemoveQueue(int priority)
 	{
 		auto it = render_queues_.find(priority);
 		ASSERT_LOG(it != render_queues_.end(), "Tried to remove non-existant render queue at priority: " << priority);
 		render_queues_.erase(it);
 	}
 
-	void RenderManager::Render() const
+	void RenderManager::Render(const Graphics::WindowManagerPtr& wm) const
 	{
 		for(auto& q : render_queues_) {
-			q.second->Render();
+			q.second->Render(wm);
 		}
 		for(auto& q : render_queues_) {
 			q.second->FinishRender();

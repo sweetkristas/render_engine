@@ -28,20 +28,35 @@
 
 namespace Render
 {
-	class Renderable;
-	typedef std::shared_ptr<Renderable> RenderablePtr;
-
 	class Renderable
 	{
 	public:
 		Renderable();
 		virtual ~Renderable();
 
+		void SetPosition(const glm::vec3& position);
+		void SetPosition(float x, float y, float z=0.0f);
+		void SetPosition(int x, int y, int z=0);
+		const glm::vec3& Position() const { return position_; }
+
+		void SetRotation(float angle, const glm::vec3& axis);
+		void SetRotation(const glm::quat& rot);
+		const glm::quat& Rotation() const { return rotation_; }
+
+		void SetScale(float xs, float ys, float zs=1.0f);
+		void SetScale(const glm::vec3& scale);
+		const glm::vec3& Scale() const { return scale_; }
+
+		const glm::mat4& ModelMatrix() const;
+
 		void draw(RenderQueuePtr queue) const;
 	protected:
 		virtual void handle_draw() const = 0;
-		RenderVariableListPtr render_vars_;
+		RenderVariableList render_vars_;
 	private:
+		glm::vec3 position_;
+		glm::quat rotation_;
+		glm::vec3 scale_;
 		Renderable(const Renderable&);
 	};
 }

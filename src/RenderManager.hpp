@@ -25,7 +25,8 @@
 
 #include <map>
 
-#include "RenderQueue.hpp"
+#include "RenderFwd.hpp"
+#include "WindowManagerFwd.hpp"
 
 namespace Render
 {
@@ -35,10 +36,10 @@ namespace Render
 		RenderManager();
 		~RenderManager();
 
-		void add_queue(int priority, RenderQueuePtr queue);
-		void remove_queue(int priority);
+		void AddQueue(int priority, RenderQueuePtr queue);
+		void RemoveQueue(int priority);
 
-		void Render() const;
+		void Render(const Graphics::WindowManagerPtr& wm) const;
 	private:
 		typedef std::map<int,RenderQueuePtr> RenderQueueList;
 		RenderQueueList render_queues_;

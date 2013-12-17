@@ -43,6 +43,7 @@
     <ClInclude Include="..\src\profile_timer.hpp" />
     <ClInclude Include="..\src\ref_counted_ptr.hpp" />
     <ClInclude Include="..\src\Renderable.hpp" />
+    <ClInclude Include="..\src\RenderFwd.hpp" />
     <ClInclude Include="..\src\RenderManager.hpp" />
     <ClInclude Include="..\src\RenderQueue.hpp" />
     <ClInclude Include="..\src\RenderVariable.hpp" />

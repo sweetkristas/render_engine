@@ -23,12 +23,12 @@
 
 #include "asserts.hpp"
 #include "RenderQueue.hpp"
+#include "WindowManager.hpp"
 
 namespace Render
 {
-	RenderQueue::RenderQueue(const std::string& name, Graphics::WindowManagerPtr wm) 
-		: name_(name),
-		wm_(wm)
+	RenderQueue::RenderQueue(const std::string& name) 
+		: name_(name)
 	{
 	}
 
@@ -36,19 +36,19 @@ namespace Render
 	{
 	}
 
-	void RenderQueue::enqueue(uint64_t order, RenderVariableListPtr p)
+	void RenderQueue::Enqueue(uint64_t order, RenderablePtr p)
 	{
 		renderables_[order] = p;
 	}
 
-	void RenderQueue::dequeue(uint64_t order)
+	void RenderQueue::Dequeue(uint64_t order)
 	{
 		auto it = renderables_.find(order);
 		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
 		renderables_.erase(it);
 	}
 
-	void RenderQueue::Render() const 
+	void RenderQueue::Render(const Graphics::WindowManagerPtr& wm) const 
 	{
 		for(auto r : renderables_) {
 			//wm_->Render(r);
