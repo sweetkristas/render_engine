@@ -24,17 +24,21 @@
 #pragma once
 
 #include "DisplayDevice.hpp"
+#include "Renderable.hpp"
 #include "SceneFwd.hpp"
 
 namespace Scene
 {
-	class SceneObject
+	class SceneObject : public Render::Renderable
 	{
 	public:
 		SceneObject(const std::string& name);
 		virtual ~SceneObject();
 		virtual void Apply(const Graphics::DisplayDevicePtr& dd) const = 0;
+		size_t Queue() const { return queue_; }
+		void SetQueue(size_t q) { queue_ = q; }
 	private:
+		size_t queue_;
 		std::string name_;
 		SceneObject();
 		SceneObject(const SceneObject&);

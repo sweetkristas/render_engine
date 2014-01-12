@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "glm/glm.hpp"
 
@@ -32,6 +33,7 @@ namespace Scene
 {
 	class Light;
 	typedef std::shared_ptr<Light> LightPtr;
+	typedef std::unordered_map<size_t, LightPtr> LightPtrList;
 	class Camera;
 	typedef std::shared_ptr<Camera> CameraPtr;
 	class Parameter;

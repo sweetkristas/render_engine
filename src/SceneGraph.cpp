@@ -97,4 +97,26 @@ namespace Scene
 		ASSERT_LOG(it != get_object_factory().end(), "Type(" << type << ") already registered");
 		get_object_factory()[type] = fn;
 	}
+
+	void SceneGraph::RenderSceneHelper(const Render::RenderManagerPtr& renderer, 
+		the::tree<SceneNodePtr>::pre_iterator& it, 
+		const CameraPtr& camera, 
+		const LightPtrList& lights)
+	{
+		if(it == graph_.end()) {
+			return;
+		}
+		CameraPtr cam = camera;
+		LightPtrList l = lights;
+		(*it)->RenderNode(renderer, cam, l);
+		RenderSceneHelper(renderer, ++it, cam, l);
+	}
+
+	void SceneGraph::RenderScene(const Render::RenderManagerPtr& renderer)
+	{
+		CameraPtr camera;
+		LightPtrList lights;
+		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
+		RenderSceneHelper(renderer, graph_.begin(), camera, lights);
+	}
 }

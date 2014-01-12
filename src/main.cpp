@@ -24,10 +24,10 @@ namespace
 		glm::u8vec4 color;
 	};
 
-	class SquareRenderable : public Render::Renderable
+	class SquareRenderable : public Scene::SceneObject
 	{
 	public:
-		SquareRenderable() {
+		SquareRenderable() : Scene::SceneObject("square") {
 			render_vars_.resize(2);
 			render_vars_[0] = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
 			render_vars_[0]->AddVariableDescription(Render::RenderVariable::VERTEX_POSITION, 2, Render::RenderVariable::TYPE_FLOAT, sizeof(vertex_color), 0);
@@ -40,9 +40,12 @@ namespace
 			vertices.emplace_back(glm::vec2(1.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(1.0f,1.0f), glm::u8vec4(255,0,0,255));
 			//render_vars_[0]->Update(vertices);
+
+			SetOrder(0);
 		}
 		virtual ~SquareRenderable() {}
 	protected:
+		void Apply(const Graphics::DisplayDevicePtr& dd) const {}
 		void handle_draw() const {}
 	private:
 		SquareRenderable(const SquareRenderable&);
@@ -51,12 +54,38 @@ namespace
 	typedef std::shared_ptr<SquareRenderable> SquareRenderablePtr;
 }
 
+void recurse_tree(const the::tree<int>& xt, the::tree<int>::pre_iterator& it)
+{
+	if(xt.end() == it) {
+		return;
+	}
+	std::cerr << *it << std::endl;
+	recurse_tree(xt, ++it);
+}
+
 
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
 	double cumulative_time = 0.0;
 	int cnt = 0;
+
+	// "(1 (5 (6 7 8)) (9 (10 11) 12) (2 3 4 42))
+	//the::tree<int> xt = the::tree_of(1)(the::tree_of(5)(the::tree_of(6)(7,8)),
+    //                  the::tree_of(9)(the::tree_of(10)(11),12),
+    //                  the::tree_of(2)(3,4,42));
+	//
+	//              1
+	//             / \
+	//            /   \
+	//           /     \
+	//          5       9
+	//         / \     / \
+	//        6   7   10 12
+	//                /
+	//               11
+	//the::tree<int> xt = the::tree_of(1)(the::tree_of(5)(6,7), the::tree_of(9)(the::tree_of(10)(11),12));
+	//recurse_tree(xt, xt.begin());
 
 	SDL::SDL_ptr manager(new SDL::SDL());
 
@@ -75,8 +104,9 @@ int main(int argc, char *argv[])
 
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->SetPosition(0.5f, 0.5f);
+	root->AttachObject(square);
 
-	auto rman = new Render::RenderManager();
+	auto rman = std::make_shared<Render::RenderManager>();
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
@@ -91,9 +121,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		// Render stuff here
-		rq->Enqueue(0, std::dynamic_pointer_cast<Render::Renderable>(square));
-		// End rendering
+		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 
 		double t1 = timer.check();

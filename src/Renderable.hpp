@@ -32,6 +32,7 @@ namespace Render
 	{
 	public:
 		Renderable();
+		Renderable(size_t order);
 		virtual ~Renderable();
 
 		void SetPosition(const glm::vec3& position);
@@ -49,11 +50,14 @@ namespace Render
 
 		const glm::mat4& ModelMatrix() const;
 
+		size_t Order() const { return order_; }
+		void SetOrder(size_t o) { order_ = o; }
+
 		void draw(RenderQueuePtr queue) const;
 	protected:
-		virtual void handle_draw() const = 0;
 		RenderVariableList render_vars_;
 	private:
+		size_t order_;
 		glm::vec3 position_;
 		glm::quat rotation_;
 		glm::vec3 scale_;

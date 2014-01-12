@@ -26,6 +26,12 @@
 namespace Render
 {
 	Renderable::Renderable()
+		: order_(0)
+	{
+	}
+
+	Renderable::Renderable(size_t order)
+		: order_(order)
 	{
 	}
 
@@ -35,7 +41,6 @@ namespace Render
 
 	void Renderable::draw(RenderQueuePtr queue) const
 	{
-		handle_draw();
 	}
 
 	void Renderable::SetPosition(const glm::vec3& position) 

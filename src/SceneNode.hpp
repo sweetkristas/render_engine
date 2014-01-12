@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "RenderFwd.hpp"
 #include "SceneFwd.hpp"
 
 namespace Scene
@@ -39,6 +40,7 @@ namespace Scene
 		void AttachLight(size_t ref, const LightPtr& obj);
 		void AttachCamera(const CameraPtr& obj);
 		void AttachObject(const SceneObjectPtr& obj);
+		void RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights);
 	private:
 		SceneGraph* scene_graph_;
 		std::vector<SceneObjectPtr> objects_;

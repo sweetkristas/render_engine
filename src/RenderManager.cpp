@@ -61,4 +61,11 @@ namespace Render
 			q.second->FinishRender();
 		}
 	}
+
+	void RenderManager::AddRenderableToQueue(size_t q, size_t order, const RenderablePtr& r)
+	{
+		auto it = render_queues_.find(q);
+		ASSERT_LOG(it != render_queues_.end(), "Tried to add renderable to non-existant render queue at priority: " << q);
+		it->second->Enqueue(order, r);
+	}
 }

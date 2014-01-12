@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "RenderFwd.hpp"
 #include "SceneFwd.hpp"
 #include "treetree/tree.hpp"
 
@@ -40,6 +41,8 @@ namespace Scene
 		SceneNodePtr CreateNode();
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
+		void RenderScene(const Render::RenderManagerPtr& renderer);
+		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, const CameraPtr& camera, const LightPtrList& lights);
 	private:
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;

@@ -22,6 +22,7 @@
 */
 
 #include "asserts.hpp"
+#include "RenderManager.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"
@@ -61,5 +62,18 @@ namespace Scene
 	void SceneNode::AttachCamera(const CameraPtr& obj)
 	{
 		camera_ = obj;
+	}
+
+	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights)
+	{
+		for(auto l : lights_) {
+			lights[l.first] = l.second;
+			if(camera_) {
+				camera = camera_;
+			}
+		}
+		for(auto o : objects_) {
+			renderer->AddRenderableToQueue(o->Queue(), o->Order(), o);
+		}
 	}
 }

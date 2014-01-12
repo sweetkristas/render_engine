@@ -27,7 +27,7 @@
 namespace Scene
 {
 	SceneObject::SceneObject(const std::string& name)
-		: name_(name)
+		: name_(name), queue_(0)
 	{
 	}
 

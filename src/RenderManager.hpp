@@ -40,8 +40,9 @@ namespace Render
 		void RemoveQueue(int priority);
 
 		void Render(const Graphics::WindowManagerPtr& wm) const;
+		void AddRenderableToQueue(size_t q, size_t order, const RenderablePtr& r);
 	private:
-		typedef std::map<int,RenderQueuePtr> RenderQueueList;
+		typedef std::map<size_t,RenderQueuePtr> RenderQueueList;
 		RenderQueueList render_queues_;
 
 		RenderManager(const RenderManager&);
