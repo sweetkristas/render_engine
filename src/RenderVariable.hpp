@@ -37,11 +37,9 @@ namespace Render
 	typedef std::shared_ptr<RenderVariable> RenderVariablePtr;
 	typedef std::vector<RenderVariablePtr> RenderVariableList;
 
-	class RenderVariable
+	class RenderVariableDesc
 	{
 	public:
-		virtual ~RenderVariable() {}
-
 		enum VertexType {
 			VERTEX_UNKNOWN,
 			VERTEX_POSITION,
@@ -50,30 +48,70 @@ namespace Render
 			VERTEX_NORMAL,
 		};
 		enum VariableType {
+			TYPE_BOOL,
+			TYPE_HALF_FLOAT,
 			TYPE_FLOAT,
+			TYPE_DOUBLE,
+			TYPE_FIXED,
+			TYPE_SHORT,
+			TYPE_UNSIGNED_SHORT,
+			TYPE_BYTE,
+			TYPE_UNSIGNED_BYTE,
 			TYPE_INT,
 			TYPE_UNSIGNED_INT,
-			TYPE_UNSIGNED_BYTE,
-			TYPE_BOOL,
-			TYPE_SAMPLER_1D,
-			TYPE_SAMPLER_2D,
-			TYPE_SAMPLER_3D,
-			TYPE_SAMPLER_CUBE,
-			TYPE_FLOAT_MAT2,
-			TYPE_FLOAT_MAT3,
-			TYPE_FLOAT_MAT4,
-			TYPE_FLOAT_MAT2x3,
-			TYPE_FLOAT_MAT2x4,
-			TYPE_FLOAT_MAT3x2,
-			TYPE_FLOAT_MAT3x4,
-			TYPE_FLOAT_MAT4x2,
-			TYPE_FLOAT_MAT4x3,
+			TYPE_INT_2_10_10_10,
+			TYPE_UNSIGNED_INT_2_10_10_10,
+			TYPE_UNSIGNED_INT_10F_11F_11F,
 		};
-		void AddVariableDescription(VertexType vertex_type, unsigned num_elements, VariableType var_type, unsigned stride, unsigned offset);
-		void AddVariableDescription(const std::string& vertex_type, unsigned num_elements, VariableType var_type, unsigned stride, unsigned offset);
+
+		RenderVariableDesc(VertexType vertex_type, 
+			unsigned num_elements, 
+			VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset);
+		~RenderVariableDesc();
+
+		VertexType GetVertexType() const { return vertex_type_; }
+		VariableType GetVariableType() const { return var_type_; }
+		unsigned NumElements() const { return num_elements_; }
+		unsigned Stride() const { return stride_; }
+		unsigned Offset() const { return offset_; }
+		bool Normalised() const { return normalised_; }
+	private:
+		VertexType vertex_type_; 
+		unsigned num_elements_;
+		VariableType var_type_;
+		unsigned stride_; 
+		unsigned offset_;
+		bool normalised_;
+	};
+
+	typedef std::vector<RenderVariableDesc> RenderVariableDescList;
+
+	class RenderVariable
+	{
+	public:
+		virtual ~RenderVariable() {}
+
+		void AddVariableDescription(RenderVariableDesc::VertexType vertex_type, 
+			unsigned num_elements, 
+			RenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset);
+		void AddVariableDescription(const std::string& vertex_type, 
+			unsigned num_elements, 
+			RenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset);
 		
 		void SetIndexedDraw(bool indexed_draw) { indexed_draw_ = indexed_draw; }
 		bool IsIndexedDraw() const { return indexed_draw_; }
+
+		void SetCount(size_t cnt) { count_ = cnt; }
+		size_t Count() const { return count_; }
 
 		enum DrawMode {
 			POINTS,
@@ -89,6 +127,10 @@ namespace Render
 		};
 		void SetDrawMode(DrawMode draw_mode) { draw_mode_ = draw_mode; }
 		DrawMode GetDrawMode() const { return draw_mode_; }
+
+		const RenderVariableDescList& VariableDescritionList() const { return desc_list_; }
+
+		virtual void* Value() = 0;
 	protected:
 		RenderVariable(size_t count,
 			bool dynamic, 
@@ -103,12 +145,12 @@ namespace Render
 		{
 		}
 	private:
-		VertexType vertex_type_;
-		const std::string vertex_type_str_;
-		unsigned num_elements_;
-		VariableType var_type_;
-		unsigned stride_;
-		unsigned offset_;
+		//VertexType vertex_type_;
+		//const std::string vertex_type_str_;
+		//unsigned num_elements_;
+		//VariableType var_type_;
+		//unsigned stride_;
+		//unsigned offset_;
 		bool indexed_draw_;
 		DrawMode draw_mode_;
 		// Estimated count of number of items.
@@ -119,12 +161,12 @@ namespace Render
 		bool shareable_;
 		// Whether the data is geometry related. e.g. Vertex positions.
 		bool geometry_related_;
+
+		RenderVariableDescList desc_list_;
+
 		RenderVariable();
 		RenderVariable(const RenderVariable&);
 	};
-
-	typedef std::vector<RenderVariablePtr> RenderVariableList;
-	typedef std::shared_ptr<RenderVariableList> RenderVariableListPtr;
 
 	template<typename T>
 	class TypedRenderVariable : public RenderVariable
@@ -137,10 +179,11 @@ namespace Render
 			: RenderVariable(count, dynamic, shareable, geometry_related) {
 		}
 		virtual ~TypedRenderVariable<T>() {}
-		void Update(const T& value) {
+		void Update(const std::vector<T>& value) {
 			value_ = value;
 		}
+		void* Value() override { return &value_[0]; }
 	private:
-		T value_;
+		std::vector<T> value_;
 	};
 }

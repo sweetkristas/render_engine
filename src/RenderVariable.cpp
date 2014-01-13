@@ -26,25 +26,49 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "asserts.hpp"
 #include "RenderVariable.hpp"
 
 namespace Render
 {
-	void RenderVariable::AddVariableDescription(VertexType vertex_type, 
+	RenderVariableDesc::RenderVariableDesc(VertexType vertex_type, 
 		unsigned num_elements, 
 		VariableType var_type, 
+		bool normalised, 
+		unsigned stride, 
+		unsigned offset)
+		: vertex_type_(vertex_type), 
+		num_elements_(num_elements),
+		var_type_(var_type),
+		normalised_(normalised),
+		stride_(stride),
+		offset_(offset)
+	{
+	}
+
+	RenderVariableDesc::~RenderVariableDesc()
+	{
+	}
+
+
+	void RenderVariable::AddVariableDescription(RenderVariableDesc::VertexType vertex_type, 
+		unsigned num_elements, 
+		RenderVariableDesc::VariableType var_type, 
+		bool normalised, 
 		unsigned stride, 
 		unsigned offset)
 	{
-		// XXX
+		desc_list_.push_back(RenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset));
 	}
 
 	void RenderVariable::AddVariableDescription(const std::string& vertex_type, 
 		unsigned num_elements, 
-		VariableType var_type, 
+		RenderVariableDesc::VariableType var_type, 
+		bool normalised, 
 		unsigned stride, 
 		unsigned offset)
 	{
 		// XXX
+		ASSERT_LOG(false, "Uninplemented call to AddVariableDescription");
 	}
 }

@@ -40,6 +40,8 @@ namespace Graphics
 
 		void set_clear_color(float r, float g, float b, float a);
 
+		void render(const Render::RenderablePtr& r) override;
+
 		void init(size_t width, size_t height);
 		void print_device_info();
 	private:

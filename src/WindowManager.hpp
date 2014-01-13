@@ -25,7 +25,7 @@
 
 #include <string>
 
-#include "RenderVariable.hpp"
+#include "Renderable.hpp"
 #include "WindowManagerFwd.hpp"
 
 namespace Graphics
@@ -49,7 +49,7 @@ namespace Graphics
 		virtual void set_window_title(const std::string& title) = 0;
 		virtual void set_window_icon(const std::string& name) = 0;
 
-		virtual void Render(Render::RenderVariableListPtr vars) = 0;
+		virtual void Render(const Render::RenderablePtr& r) = 0;
 
 		virtual void swap() = 0;
 

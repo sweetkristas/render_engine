@@ -26,6 +26,8 @@
 #include <memory>
 #include <string>
 
+#include "Renderable.hpp"
+
 namespace Graphics
 {
 	class DisplayDevice;
@@ -66,6 +68,8 @@ namespace Graphics
 
 		virtual void init(size_t width, size_t height) = 0;
 		virtual void print_device_info() = 0;
+
+		virtual void render(const Render::RenderablePtr& r) = 0;
 
 		static DisplayDevicePtr factory(const std::string& type);
 	private:

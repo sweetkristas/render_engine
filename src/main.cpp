@@ -28,10 +28,12 @@ namespace
 	{
 	public:
 		SquareRenderable() : Scene::SceneObject("square") {
-			render_vars_.resize(2);
-			render_vars_[0] = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
-			render_vars_[0]->AddVariableDescription(Render::RenderVariable::VERTEX_POSITION, 2, Render::RenderVariable::TYPE_FLOAT, sizeof(vertex_color), 0);
-			render_vars_[0]->AddVariableDescription(Render::RenderVariable::VERTEX_COLOR, 4, Render::RenderVariable::TYPE_UNSIGNED_BYTE, sizeof(vertex_color), sizeof(glm::vec2));
+			std::shared_ptr<Render::TypedRenderVariable<vertex_color>> rv = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
+
+			render_vars_.resize(1);
+			render_vars_[0] = rv;
+			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_POSITION, 2, Render::RenderVariableDesc::TYPE_FLOAT, true, sizeof(vertex_color), 0);
+			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_COLOR, 4, Render::RenderVariableDesc::TYPE_UNSIGNED_BYTE, false, sizeof(vertex_color), sizeof(glm::vec2));
 			render_vars_[0]->SetDrawMode(Render::RenderVariable::TRIANGLE_STRIP);
 
 			std::vector<vertex_color> vertices;
@@ -39,7 +41,7 @@ namespace
 			vertices.emplace_back(glm::vec2(0.0f,1.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(1.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(1.0f,1.0f), glm::u8vec4(255,0,0,255));
-			//render_vars_[0]->Update(vertices);
+			rv->Update(vertices);
 
 			SetOrder(0);
 		}

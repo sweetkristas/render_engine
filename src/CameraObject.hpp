@@ -126,6 +126,4 @@ namespace Scene
 		Camera(const Camera&);
 		Camera& operator=(const Camera&);
 	};
-
-	typedef std::shared_ptr<Camera> CameraPtr;
 }

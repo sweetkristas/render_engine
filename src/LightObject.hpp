@@ -76,6 +76,4 @@ namespace Scene
 		Light(const Light&);
 		Light& operator=(const Light&);
 	};
-
-	typedef std::shared_ptr<Light> LightPtr;
 }

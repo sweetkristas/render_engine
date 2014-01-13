@@ -200,9 +200,10 @@ namespace Graphics
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 
-		virtual void Render(Render::RenderVariableListPtr vars)
+		virtual void Render(const Render::RenderablePtr& r)
 		{
-			// XXX
+			ASSERT_LOG(display_ != NULL, "No display to render to.");
+			display_->render(r);
 		}
 	protected:
 		void change_fullscreen_mode() {

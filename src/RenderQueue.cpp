@@ -51,7 +51,7 @@ namespace Render
 	void RenderQueue::Render(const Graphics::WindowManagerPtr& wm) const 
 	{
 		for(auto r : renderables_) {
-			//wm_->Render(r);
+			wm->Render(r.second);
 		}
 	}
 

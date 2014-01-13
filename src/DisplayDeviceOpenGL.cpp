@@ -29,6 +29,32 @@
 
 namespace Graphics
 {
+	namespace 
+	{
+		GLenum ConvertRenderVariableType(Render::RenderVariableDesc::VariableType type)
+		{
+			static std::vector<GLenum> res;
+			if(res.empty()) {
+				res.push_back(GL_BYTE);					// TYPE_BOOL
+				res.push_back(GL_HALF_FLOAT);			// TYPE_HALF_FLOAT
+				res.push_back(GL_FLOAT);				// TYPE_FLOAT
+				res.push_back(GL_DOUBLE);				// TYPE_DOUBLE
+				res.push_back(GL_FIXED);				// TYPE_FIXED
+				res.push_back(GL_SHORT);				// TYPE_SHORT
+				res.push_back(GL_UNSIGNED_SHORT);		// TYPE_UNSIGNED_SHORT
+				res.push_back(GL_BYTE);					// TYPE_BYTE
+				res.push_back(GL_UNSIGNED_BYTE);		// TYPE_UNSIGNED_BYTE
+				res.push_back(GL_INT);					// TYPE_INT
+				res.push_back(GL_UNSIGNED_INT);			// TYPE_UNSIGNED_INT
+				res.push_back(GL_INT_2_10_10_10_REV);	// TYPE_INT_2_10_10_10
+				res.push_back(GL_UNSIGNED_INT_2_10_10_10_REV);	// TYPE_UNSIGNED_INT_2_10_10_10
+				res.push_back(GL_UNSIGNED_INT_10F_11F_11F_REV);	// TYPE_UNSIGNED_INT_10F_11F_11F
+			}
+			ASSERT_LOG(std::vector<GLenum>::size_type(type) < res.size(), "ConvertRenderVariableType: Unable to find type " << type);
+			return res[type];
+		}
+	}
+
 	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
 	{
 	}
@@ -67,5 +93,59 @@ namespace Graphics
 	void DisplayDeviceOpenGL::swap()
 	{
 		// This is a no-action.
+	}
+
+	void DisplayDeviceOpenGL::render(const Render::RenderablePtr& r)
+	{
+		if(r->Camera()) {
+			/// xxx need to set camera here.
+		}
+		for(auto lp : r->Lights()) {
+			/// xxx need to set lights here.
+		}
+
+		// Need to figure the interaction with shaders.
+		/// XXX Need to create a mapping between attributes and the index value below.
+		for(auto rv : r->RenderVariables()) {
+			for(auto& rvd : rv->VariableDescritionList()) {
+				GLuint index = 0;
+				switch(rvd.GetVertexType()) {
+					case Render::RenderVariableDesc::VERTEX_POSITION:
+					case Render::RenderVariableDesc::VERTEX_COLOR:
+					case Render::RenderVariableDesc::VERTEX_TEXTURE:
+					case Render::RenderVariableDesc::VERTEX_NORMAL:
+					case Render::RenderVariableDesc::VERTEX_UNKNOWN:
+					break;
+				}
+				glVertexAttribPointer(index, 
+					rvd.NumElements(), 
+					ConvertRenderVariableType(rvd.GetVariableType()), 
+					rvd.Normalised(), 
+					rvd.Stride(), 
+					(void*)rvd.Offset());
+			}
+
+			// XXX todo change this to a simple index look-up.
+			GLenum draw_mode = GL_NONE;
+			switch(rv->GetDrawMode()) {
+				case Render::RenderVariable::POINTS:			draw_mode = GL_POINTS; break;
+				case Render::RenderVariable::LINE_STRIP:		draw_mode = GL_LINE_STRIP; break;
+				case Render::RenderVariable::LINE_LOOP:			draw_mode = GL_LINE_LOOP; break;
+				case Render::RenderVariable::LINES:				draw_mode = GL_LINES; break;
+				case Render::RenderVariable::TRIANGLE_STRIP:	draw_mode = GL_TRIANGLE_STRIP; break;
+				case Render::RenderVariable::TRIANGLE_FAN:		draw_mode = GL_TRIANGLE_FAN; break;
+				case Render::RenderVariable::TRIANGLES:			draw_mode = GL_TRIANGLES; break;
+				case Render::RenderVariable::QUAD_STRIP:		draw_mode = GL_QUAD_STRIP; break;
+				case Render::RenderVariable::QUADS:				draw_mode = GL_QUADS; break;
+				case Render::RenderVariable::POLYGON:			draw_mode = GL_POLYGON; break;
+			}
+			if(rv->IsIndexedDraw()) {
+				// XXX
+				//glDrawElements(draw_mode, rv->Count(), rv->IndexType(), rv->Indicies());
+			} else {
+				// XXX we probably need to grab an offset parameter, from rv, instead of the 0 below.
+				glDrawArrays(draw_mode, 0, rv->Count());
+			}
+		}
 	}
 }

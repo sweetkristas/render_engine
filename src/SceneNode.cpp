@@ -73,6 +73,8 @@ namespace Scene
 			}
 		}
 		for(auto o : objects_) {
+			o->SetCamera(camera);
+			o->SetLights(lights);
 			renderer->AddRenderableToQueue(o->Queue(), o->Order(), o);
 		}
 	}

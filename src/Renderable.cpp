@@ -82,4 +82,14 @@ namespace Render
 	{
 		return glm::translate(glm::mat4(1.0f), position_) * glm::toMat4(rotation_) * glm::scale(glm::mat4(1.0f), scale_);
 	}
+
+	void Renderable::SetCamera(const Scene::CameraPtr& camera)
+	{
+		camera_ = camera;
+	}
+
+	void Renderable::SetLights(const Scene::LightPtrList& lights)
+	{
+		lights_ = lights;
+	}
 }

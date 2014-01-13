@@ -25,6 +25,7 @@
 
 #include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
+#include "SceneFwd.hpp"
 
 namespace Render
 {
@@ -53,6 +54,14 @@ namespace Render
 		size_t Order() const { return order_; }
 		void SetOrder(size_t o) { order_ = o; }
 
+		const Scene::CameraPtr& Camera() const { return camera_; }
+		void SetCamera(const Scene::CameraPtr& camera);
+
+		const Scene::LightPtrList& Lights() const { return lights_; }
+		void SetLights(const Scene::LightPtrList& lights);
+
+		const RenderVariableList& RenderVariables() const { return render_vars_; }
+
 		void draw(RenderQueuePtr queue) const;
 	protected:
 		RenderVariableList render_vars_;
@@ -61,6 +70,8 @@ namespace Render
 		glm::vec3 position_;
 		glm::quat rotation_;
 		glm::vec3 scale_;
+		Scene::CameraPtr camera_;
+		Scene::LightPtrList lights_;
 		Renderable(const Renderable&);
 	};
 }
