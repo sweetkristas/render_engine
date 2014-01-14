@@ -84,7 +84,7 @@ namespace Scene
 		void ComputeView();
 		void ComputeProjection();
 
-		virtual void Apply(const Graphics::DisplayDevicePtr& dd) const;
+		virtual void Attach(const Graphics::DisplayDevicePtr& dd);
 	private:
 		// special case handling if LookAt function is called.
 		// Since we then are specifying the position/target/up

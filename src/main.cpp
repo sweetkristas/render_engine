@@ -47,9 +47,15 @@ namespace
 		}
 		virtual ~SquareRenderable() {}
 	protected:
-		void Apply(const Graphics::DisplayDevicePtr& dd) const {}
-		void handle_draw() const {}
+		void Attach(const Graphics::DisplayDevicePtr& dd) {
+			// XXX
+			Graphics::DisplayDeviceDef def;
+			def.SetHint("shader", "simple");
+			def.InitRenderVariables(render_vars_);
+			display_data_ = dd->CreateDisplayDeviceData(def);
+		}
 	private:
+		Graphics::DisplayDeviceDataPtr display_data_;
 		SquareRenderable(const SquareRenderable&);
 		SquareRenderable& operator=(const SquareRenderable&);
 	};

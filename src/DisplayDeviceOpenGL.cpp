@@ -29,6 +29,25 @@
 
 namespace Graphics
 {
+	// These basically get attached to renderable's and we can retreive them during the
+	// rendering process. So we store stuff like shader information and shader variables.
+	class OpenGLDeviceData : public DisplayDeviceData
+	{
+	public:
+		OpenGLDeviceData() {
+		}
+		~OpenGLDeviceData() { 
+		}
+		void SetShader(Shader::ShaderProgramPtr shader) {
+			shader_ = shader;
+		}
+		Shader::ShaderProgramPtr GetShader() const { return shader_; }
+	private:
+		Shader::ShaderProgramPtr shader_;
+		OpenGLDeviceData(const OpenGLDeviceData&);
+	};
+
+
 	namespace 
 	{
 		GLenum ConvertRenderVariableType(Render::RenderVariableDesc::VariableType type)
@@ -93,6 +112,30 @@ namespace Graphics
 	void DisplayDeviceOpenGL::swap()
 	{
 		// This is a no-action.
+	}
+
+	DisplayDeviceDataPtr DisplayDeviceOpenGL::CreateDisplayDeviceData(const DisplayDeviceDef& def)
+	{
+		OpenGLDeviceData* dd = new OpenGLDeviceData();
+		for(auto& hints : def.GetHints()) {
+			if(hints.first == "shader") {
+				// Need to have retrieved more shader data here.
+				dd->SetShader(new Shader::ShaderProgram(hints.second, xx, xx));
+			}
+			// ...
+			// add more hints here if needed.
+		}
+		// XXX If there is no shader hint, we will assume the default system shader -- which we don't have yet.
+
+		// XXX Process vertex info here def.GetVertexInfo()
+		for(auto& vertex_info : def.GetVertexInfo()) {
+			auto shader = dd->GetShader();
+
+			/// XXX the information returned from below needs to be matched with the corresponding render variable
+			// so it can be applied during render -- it may be better if we augment Render variables to do this.
+			shader->GetAttributeIterator(vertex_info);
+		}
+		return DisplayDeviceDataPtr(dd);
 	}
 
 	void DisplayDeviceOpenGL::render(const Render::RenderablePtr& r)

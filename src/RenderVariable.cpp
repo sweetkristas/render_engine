@@ -44,6 +44,30 @@ namespace Render
 		stride_(stride),
 		offset_(offset)
 	{
+		switch(vertex_type_) {
+			case VERTEX_POSITION:	vertex_name_ = "position"; break;
+			case VERTEX_COLOR:		vertex_name_ = "color"; break;
+			case VERTEX_TEXTURE:	vertex_name_ = "texture"; break;
+			case VERTEX_NORMAL:		vertex_name_ = "normal"; break;
+			default:
+				ASSERT_LOG(false, "vertex_type has an unknown value: " << vertex_type_);
+		}
+	}
+
+	RenderVariableDesc::RenderVariableDesc(const std::string& vertex_name, 
+		unsigned num_elements, 
+		VariableType var_type, 
+		bool normalised, 
+		unsigned stride, 
+		unsigned offset)
+		: vertex_type_(VERTEX_UNKNOWN), 
+		vertex_name_(vertex_name),
+		num_elements_(num_elements),
+		var_type_(var_type),
+		normalised_(normalised),
+		stride_(stride),
+		offset_(offset)
+	{
 	}
 
 	RenderVariableDesc::~RenderVariableDesc()
@@ -68,7 +92,6 @@ namespace Render
 		unsigned stride, 
 		unsigned offset)
 	{
-		// XXX
-		ASSERT_LOG(false, "Uninplemented call to AddVariableDescription");
+		desc_list_.push_back(RenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset));
 	}
 }

@@ -494,7 +494,7 @@ namespace Scene
 		}
 	}
 
-	void Camera::Apply(const Graphics::DisplayDevicePtr& dd) const
+	void Camera::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
 		// XXX
 	}

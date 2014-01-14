@@ -28,6 +28,7 @@
     <ClCompile Include="..\src\SceneNode.cpp" />
     <ClCompile Include="..\src\SceneObject.cpp" />
     <ClCompile Include="..\src\SceneParameters.cpp" />
+    <ClCompile Include="..\src\Shaders.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +55,7 @@
     <ClInclude Include="..\src\SceneObject.hpp" />
     <ClInclude Include="..\src\SceneParameters.hpp" />
     <ClInclude Include="..\src\SDLWrapper.hpp" />
+    <ClInclude Include="..\src\Shaders.hpp" />
     <ClInclude Include="..\src\spline.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
     <ClInclude Include="..\src\WindowManagerFwd.hpp" />

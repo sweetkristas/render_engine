@@ -70,16 +70,24 @@ namespace Render
 			bool normalised, 
 			unsigned stride, 
 			unsigned offset);
+		RenderVariableDesc(const std::string& vertex_name, 
+			unsigned num_elements, 
+			VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset);
 		~RenderVariableDesc();
 
 		VertexType GetVertexType() const { return vertex_type_; }
+		const std::string& GetVertexTypeAsString() const { return vertex_name_; }
 		VariableType GetVariableType() const { return var_type_; }
 		unsigned NumElements() const { return num_elements_; }
 		unsigned Stride() const { return stride_; }
 		unsigned Offset() const { return offset_; }
 		bool Normalised() const { return normalised_; }
 	private:
-		VertexType vertex_type_; 
+		VertexType vertex_type_;
+		std::string vertex_name_;
 		unsigned num_elements_;
 		VariableType var_type_;
 		unsigned stride_; 

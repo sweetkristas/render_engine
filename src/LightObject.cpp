@@ -58,7 +58,7 @@ namespace Scene
 	{
 	}
 
-	void Apply(const Graphics::DisplayDevicePtr& dd)
+	void Light::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
 		// XXX
 	}
@@ -161,9 +161,4 @@ namespace Scene
 			res.add("quadratic_attenuation", quadratic_attenuation_);
 		}
 	}*/
-
-	void Light::Apply(const Graphics::DisplayDevicePtr& dd) const
-	{
-		// XXX
-	}
 }

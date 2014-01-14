@@ -24,6 +24,7 @@
 #pragma once
 
 #include "DisplayDevice.hpp"
+#include "Shaders.hpp"
 
 namespace Graphics
 {
@@ -44,6 +45,9 @@ namespace Graphics
 
 		void init(size_t width, size_t height);
 		void print_device_info();
+
+		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) override;
+
 	private:
 		DisplayDeviceOpenGL(const DisplayDeviceOpenGL&);
 	};

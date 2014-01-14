@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -30,6 +31,32 @@
 
 namespace Graphics
 {
+	class DisplayDeviceDef
+	{
+	public:
+		DisplayDeviceDef();
+		~DisplayDeviceDef();
+
+		void SetHint(const std::string& hint_name, const std::string& hint);
+		void InitRenderVariables(const Render::RenderVariableList& rv);
+
+		const std::vector<std::string>& GetVertexInfo() const { return vertex_type_info_; }
+		const std::map<std::string,std::string> GetHints() const { return hints_; }
+	private:
+		std::vector<std::string> vertex_type_info_;
+		std::map<std::string,std::string> hints_;
+	};
+
+	class DisplayDeviceData
+	{
+	public:
+		DisplayDeviceData();
+		virtual ~DisplayDeviceData();
+	private:
+		DisplayDeviceData(const DisplayDeviceData&);
+	};
+	typedef std::shared_ptr<DisplayDeviceData> DisplayDeviceDataPtr;
+
 	class DisplayDevice;
 	typedef std::shared_ptr<DisplayDevice> DisplayDevicePtr;
 
@@ -70,6 +97,8 @@ namespace Graphics
 		virtual void print_device_info() = 0;
 
 		virtual void render(const Render::RenderablePtr& r) = 0;
+
+		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
 		static DisplayDevicePtr factory(const std::string& type);
 	private:
