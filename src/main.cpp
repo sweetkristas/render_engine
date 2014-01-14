@@ -52,6 +52,11 @@ namespace
 			Graphics::DisplayDeviceDef def;
 			def.SetHint("shader", "simple");
 			def.InitRenderVariables(render_vars_);
+#error This needs some attention!
+			// XXX It might be best if we returned a Graphics::DisplayDeviceDef from Attach
+			// Then the parent could call the following function automatically.
+			// we could then move Graphics::DisplayDeviceDataPtr display_data_; into the parent.
+			// Oh -- we're also not calling Attach currently.
 			display_data_ = dd->CreateDisplayDeviceData(def);
 		}
 	private:
