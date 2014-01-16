@@ -62,6 +62,9 @@ namespace Render
 
 		const RenderVariableList& RenderVariables() const { return render_vars_; }
 
+		void SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def);
+		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+
 		void draw(RenderQueuePtr queue) const;
 	protected:
 		RenderVariableList render_vars_;
@@ -72,6 +75,7 @@ namespace Render
 		glm::vec3 scale_;
 		Scene::CameraPtr camera_;
 		Scene::LightPtrList lights_;
+		Graphics::DisplayDeviceDataPtr display_data_;
 		Renderable(const Renderable&);
 	};
 }

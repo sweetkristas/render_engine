@@ -1,10 +1,145 @@
 #include <vector>
 
 #include "asserts.hpp"
+#include "logger.hpp"
 #include "Shaders.hpp"
 
 namespace Shader
 {
+	namespace
+	{
+		const char* const default_vs = 
+			"uniform mat4 u_mvp_matrix;\n"
+			"attribute vec2 a_position;\n"
+			"attribute vec4 a_color;\n"
+			"attribute vec2 a_texcoord;\n"
+			"uniform bool u_use_attrib_color;\n"
+			"varying vec2 v_texcoord;\n"
+			"varying vec4 v_color;\n"
+			"void main()\n"
+			"{\n"
+			"    if(u_use_attrib_color) {\n"
+			"        v_color = a_color;\n"
+			"    }\n"
+			"    v_texcoord = a_texcoord;\n"
+			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
+			"}\n";
+		const char* const default_fs =
+			"uniform sampler2D u_tex_map;\n"
+			"varying vec4 v_color;\n"
+			"varying vec2 v_texcoord;\n"
+			"uniform bool u_use_attrib_color;\n"
+			"uniform bool u_discard;\n"
+			"uniform vec4 u_color;\n"
+			"void main()\n"
+			"{\n"
+			"    vec4 color = texture2D(u_tex_map, v_texcoord);"
+			"    if(u_use_attrib_color) {\n"
+			"        color *= v_color;\n"
+			"    }\n"
+			"    if(u_discard && color[3] == 0.0) {\n"
+			"        discard;\n"
+			"    } else {\n"
+			"        gl_FragColor = color * u_color;\n"
+			"    }\n"
+			"}\n";
+
+		const struct { const char* alt_name; const char* name; } default_uniform_mapping[] =
+		{
+			{"mvp_matrix", "u_mvp_matrix"},
+			{"color", "u_color"},
+			{"discard", "u_discard"},
+			{"use_attrib_color", "u_use_attrib_color"},
+			{"tex_map", "u_tex_map"},
+			{"tex_map0", "u_tex_map"},
+		};
+		const struct { const char* alt_name; const char* name; } default_attribue_mapping[] =
+		{
+			{"position", "a_position"},
+			{"color", "a_color"},
+			{"texcoord", "a_texcoord"},
+		};
+
+		const char* const simple_vs = 
+			"uniform mat4 u_mvp_matrix;\n"
+			"uniform float u_point_size;\n"
+			"attribute vec2 a_position;\n"
+			"attribute vec4 a_color;\n"
+			"uniform bool u_use_attrib_color;\n"
+			"varying vec4 v_color;\n"
+			"void main()\n"
+			"{\n"
+			"    if(u_use_attrib_color) {\n"
+			"        v_color = a_color;\n"
+			"    }\n"
+			"    gl_PointSize = u_point_size;\n"
+			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
+			"}\n";
+		const char* const simple_fs =
+			"varying vec4 v_color;\n"
+			"uniform bool u_use_attrib_color;\n"
+			"uniform bool u_discard;\n"
+			"uniform vec4 u_color;\n"
+			"void main()\n"
+			"{\n"
+			"    vec4 color(1.0,1.0,1.0,1.0);\n"
+			"    if(u_use_attrib_color) {\n"
+			"        color *= v_color;\n"
+			"    }\n"
+			"    if(u_discard && color[3] == 0.0) {\n"
+			"        discard;\n"
+			"    } else {\n"
+			"        gl_FragColor = color * u_color;\n"
+			"    }\n"
+			"}\n";
+
+		const struct { const char* alt_name; const char* name; } simple_uniform_mapping[] =
+		{
+			{"mvp_matrix", "u_mvp_matrix"},
+			{"color", "u_color"},
+			{"discard", "u_discard"},
+			{"point_size", "u_point_size"},
+			{"use_attrib_color", "u_use_attrib_color"},
+		};
+		const struct { const char* alt_name; const char* name; } simple_attribue_mapping[] =
+		{
+			{"position", "a_position"},
+			{"color", "a_color"},
+		};
+
+		typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
+		shader_factory_map& get_shader_factory()
+		{
+			static shader_factory_map res;
+			if(res.empty()) {
+				auto spp = ShaderProgramPtr(new ShaderProgram("default", 
+					ShaderDef("default_vs", default_vs), 
+					ShaderDef("default_fs", default_fs)));
+				res["default"] = spp;
+				for(auto& dum : default_uniform_mapping) {
+					spp->SetAlternateUniformName(dum.name, dum.alt_name);
+				}
+				for(auto& dam : default_attribue_mapping) {
+					spp->SetAlternateAttributeName(dam.name, dam.alt_name);
+				}
+
+				spp = ShaderProgramPtr(new ShaderProgram("simple", 
+					ShaderDef("simple_vs", default_vs), 
+					ShaderDef("simple_fs", default_fs)));
+				res["simple"] = spp;
+				for(auto& sum : simple_uniform_mapping) {
+					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+				}
+				for(auto& sam : simple_attribue_mapping) {
+					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+				}
+
+				// XXX load some default shaders here.
+			}
+			return res;
+		}
+	}
+
 	Shader::Shader(GLenum type, const std::string& name, const std::string& code)
 		: type_(type), shader_(0), name_(name)
 	{
@@ -47,13 +182,17 @@ namespace Shader
 		return true;
 	}
 
-	ShaderProgram::ShaderProgram()
-	{
-	}
-
 	ShaderProgram::ShaderProgram(const std::string& name, const ShaderDef& vs, const ShaderDef& fs)
 	{
 		Init(name, vs, fs);
+	}
+
+	ShaderProgram::~ShaderProgram()
+	{
+		if(object_ != 0) {
+			glDeleteShader(object_);
+			object_ = 0;
+		}
 	}
 
 	void ShaderProgram::Init(const std::string& name, const ShaderDef& vs, const ShaderDef& fs)
@@ -65,31 +204,79 @@ namespace Shader
 		ASSERT_LOG(linked_ok == true, "Error linking program: " << name_);
 	}
 
-	GLuint ShaderProgram::GetAttribute(const std::string& attr) const
+	GLint ShaderProgram::GetAttributeOrDie(const std::string& attr) const
+	{
+		return GetAttributeIterator(attr)->second.location;
+	}
+
+	GLint ShaderProgram::GetUniformOrDie(const std::string& attr) const
+	{
+		return GetUniformIterator(attr)->second.location;
+	}
+
+	GLint ShaderProgram::GetAttribute(const std::string& attr) const
 	{
 		auto it = attribs_.find(attr);
-		ASSERT_LOG(it != attribs_.end(), "Attribute \"" << attr << "\" not found in list.");
+		if(it != attribs_.end()) {
+			return it->second.location;
+		}
+		auto alt_name_it = attribute_alternate_name_map_.find(attr);
+		if(alt_name_it == attribute_alternate_name_map_.end()) {
+			LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			return GLint(-1);
+		}
+		it = attribs_.find(alt_name_it->second);
+		if(it == attribs_.end()) {
+			LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+			return GLint(-1);
+		}
 		return it->second.location;
 	}
 
-	GLuint ShaderProgram::GetUniform(const std::string& attr) const
+	GLint ShaderProgram::GetUniform(const std::string& attr) const
 	{
 		auto it = uniforms_.find(attr);
-		ASSERT_LOG(it != uniforms_.end(), "Uniform \"" << attr << "\" not found in list.");
+		if(it != uniforms_.end()) {
+			return it->second.location;
+		}
+		auto alt_name_it = uniform_alternate_name_map_.find(attr);
+		if(alt_name_it == uniform_alternate_name_map_.end()) {
+			LOG_WARN("Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			return GLint(-1);
+		}
+		it = uniforms_.find(alt_name_it->second);
+		if(it == uniforms_.end()) {
+			LOG_WARN("Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+			return GLint(-1);
+		}
 		return it->second.location;
 	}
 
 	ConstActivesMapIterator ShaderProgram::GetAttributeIterator(const std::string& attr) const
 	{
 		auto it = attribs_.find(attr);
-		ASSERT_LOG(it != attribs_.end(), "Attribute \"" << attr << "\" not found in list.");
+		if(it == attribs_.end()) {
+			auto alt_name_it = attribute_alternate_name_map_.find(attr);
+			ASSERT_LOG(alt_name_it != attribute_alternate_name_map_.end(), 
+				"Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			it = attribs_.find(alt_name_it->second);
+			ASSERT_LOG(it != attribs_.end(), 
+				"Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+		}
 		return it;
 	}
 
 	ConstActivesMapIterator ShaderProgram::GetUniformIterator(const std::string& attr) const
 	{
 		auto it = uniforms_.find(attr);
-		ASSERT_LOG(it != uniforms_.end(), "Uniform \"" << attr << "\" not found in list.");
+		if(it == uniforms_.end()) {
+			auto alt_name_it = uniform_alternate_name_map_.find(attr);
+			ASSERT_LOG(alt_name_it != uniform_alternate_name_map_.end(), 
+				"Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			it = uniforms_.find(alt_name_it->second);
+			ASSERT_LOG(it != uniforms_.end(), 
+				"Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+		}
 		return it;
 	}
 
@@ -233,5 +420,35 @@ namespace Shader
 		default:
 			ASSERT_LOG(false, "Unhandled uniform type: " << it->second.type);
 		}	
+	}
+
+	void ShaderProgram::SetAlternateUniformName(const std::string& name, const std::string& alt_name)
+	{
+		ASSERT_LOG(uniform_alternate_name_map_.find(alt_name) == uniform_alternate_name_map_.end(),
+			"Trying to replace alternative uniform name: " << alt_name << " " << name);
+		uniform_alternate_name_map_[alt_name] = name;
+	}
+
+	void ShaderProgram::SetAlternateAttributeName(const std::string& name, const std::string& alt_name)
+	{
+		ASSERT_LOG(attribute_alternate_name_map_.find(alt_name) == attribute_alternate_name_map_.end(),
+			"Trying to replace alternative attribute name: " << alt_name << " " << name);
+		attribute_alternate_name_map_[alt_name] = name;
+	}
+
+	ShaderProgramPtr ShaderProgram::Factory(const std::string& name)
+	{
+		auto& sf = get_shader_factory();
+		auto it = sf.find(name);
+		ASSERT_LOG(it != sf.end(), "Shader '" << name << "' not found in the list of shaders.");
+		return it->second;
+	}
+
+	ShaderProgramPtr ShaderProgram::DefaultSystemShader()
+	{
+		auto& sf = get_shader_factory();
+		auto it = sf.find("default");
+		ASSERT_LOG(it != sf.end(), "No 'default' shader found in the list of shaders.");
+		return it->second;
 	}
 }

@@ -58,9 +58,11 @@ namespace Scene
 	{
 	}
 
-	void Light::Attach(const Graphics::DisplayDevicePtr& dd)
+	Graphics::DisplayDeviceDef Light::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
+		Graphics::DisplayDeviceDef def;
 		// XXX
+		return def;
 	}
 
 	void Light::SetType(LightType type)

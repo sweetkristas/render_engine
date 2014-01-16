@@ -22,6 +22,8 @@
 */
 
 #include "asserts.hpp"
+#include "CameraObject.hpp"
+#include "LightObject.hpp"
 #include "RenderManager.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
@@ -47,7 +49,11 @@ namespace Scene
 
 	void SceneNode::AttachObject(const SceneObjectPtr& obj)
 	{
+		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
+		auto dd = scene_graph_->DisplayDevice();
+		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		objects_.emplace_back(obj);
+		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
 	void SceneNode::AttachLight(size_t ref, const LightPtr& obj)
@@ -57,11 +63,17 @@ namespace Scene
 			lights_.erase(it);
 		}
 		lights_.emplace(ref,obj);
+		auto dd = scene_graph_->DisplayDevice();
+		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
+		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
 	void SceneNode::AttachCamera(const CameraPtr& obj)
 	{
 		camera_ = obj;
+		auto dd = scene_graph_->DisplayDevice();
+		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
+		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
 	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights)

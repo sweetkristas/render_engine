@@ -210,7 +210,6 @@ namespace Graphics
 			// XXX
 		}
 	private:		
-		DisplayDevicePtr display_;
 		SDL_WindowPtr window_;
 		SDL_GLContext context_;
 		SDL_Renderer* renderer_;

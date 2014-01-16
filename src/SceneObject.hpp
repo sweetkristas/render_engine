@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include "DisplayDevice.hpp"
 #include "Renderable.hpp"
 #include "SceneFwd.hpp"
 
@@ -34,7 +33,7 @@ namespace Scene
 	public:
 		SceneObject(const std::string& name);
 		virtual ~SceneObject();
-		virtual void Attach(const Graphics::DisplayDevicePtr& dd) = 0;
+		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) = 0;
 		size_t Queue() const { return queue_; }
 		void SetQueue(size_t q) { queue_ = q; }
 	private:

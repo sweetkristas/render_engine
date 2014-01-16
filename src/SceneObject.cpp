@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#include "asserts.hpp"
 #include "SceneGraph.hpp"
 #include "SceneObject.hpp"
 
@@ -33,5 +34,11 @@ namespace Scene
 
 	SceneObject::~SceneObject()
 	{
+	}
+
+	void SceneObject::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)
+	{
+		ASSERT_LOG(dd != NULL, "DisplayDevicePtr is null");
+		display_data_ = dd->CreateDisplayDeviceData(def);
 	}
 }

@@ -25,6 +25,7 @@
 
 #include "RenderFwd.hpp"
 #include "SceneFwd.hpp"
+#include "WindowManager.hpp"
 #include "treetree/tree.hpp"
 
 namespace Scene
@@ -37,13 +38,16 @@ namespace Scene
 		SceneGraph(const std::string& name);
 		~SceneGraph();
 		void AttachNode(const SceneNodePtr& parent, SceneNodePtr node);
-		static SceneGraphPtr Create(const std::string& name);
+		static SceneGraphPtr Create(const std::string& name, const Graphics::WindowManagerPtr& wnd);
 		SceneNodePtr CreateNode();
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
 		void RenderScene(const Render::RenderManagerPtr& renderer);
 		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, const CameraPtr& camera, const LightPtrList& lights);
+	
+		Graphics::DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
 	private:
+		Graphics::WindowManagerPtr wnd_;
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;
 		SceneGraph(const SceneGraph&);

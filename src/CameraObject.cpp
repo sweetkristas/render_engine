@@ -494,9 +494,11 @@ namespace Scene
 		}
 	}
 
-	void Camera::Attach(const Graphics::DisplayDevicePtr& dd)
+	Graphics::DisplayDeviceDef Camera::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
+		Graphics::DisplayDeviceDef def;
 		// XXX
+		return def;
 	}
 
 	// Convert from a screen position (assume +ve x to right, +ve y down) to world space.

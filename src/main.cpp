@@ -47,20 +47,13 @@ namespace
 		}
 		virtual ~SquareRenderable() {}
 	protected:
-		void Attach(const Graphics::DisplayDevicePtr& dd) {
-			// XXX
+		Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) {
 			Graphics::DisplayDeviceDef def;
 			def.SetHint("shader", "simple");
 			def.InitRenderVariables(render_vars_);
-#error This needs some attention!
-			// XXX It might be best if we returned a Graphics::DisplayDeviceDef from Attach
-			// Then the parent could call the following function automatically.
-			// we could then move Graphics::DisplayDeviceDataPtr display_data_; into the parent.
-			// Oh -- we're also not calling Attach currently.
-			display_data_ = dd->CreateDisplayDeviceData(def);
+			return def;
 		}
 	private:
-		Graphics::DisplayDeviceDataPtr display_data_;
 		SquareRenderable(const SquareRenderable&);
 		SquareRenderable& operator=(const SquareRenderable&);
 	};
@@ -106,7 +99,7 @@ int main(int argc, char *argv[])
 	main_wnd->enable_vsync(false);
 	main_wnd->create_window(800,600);
 
-	Scene::SceneGraphPtr scene = Scene::SceneGraph::Create("main");
+	Scene::SceneGraphPtr scene = Scene::SceneGraph::Create("main", main_wnd);
 	Scene::SceneNodePtr root = scene->RootNode();
 	auto scenecam = std::make_shared<Scene::Camera>("cam0", 0, 800, 0, 600);
 	scenecam->AttachFrustum(std::make_shared<Scene::Frustum>());

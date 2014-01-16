@@ -25,6 +25,7 @@
 
 #include <string>
 
+#include "DisplayDevice.hpp"
 #include "Renderable.hpp"
 #include "WindowManagerFwd.hpp"
 
@@ -80,6 +81,8 @@ namespace Graphics
 		void set_clear_color(float r, float g, float b, float a=1.0f);
 		// color clear_color() const { return clear_color_; }
 
+		DisplayDevicePtr GetDisplayDevice() { return display_; }
+
 		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 	protected:
 		size_t width_;
@@ -88,6 +91,8 @@ namespace Graphics
 		size_t logical_height_;
 		// XXX repolace the following with a proper color interface.
 		float clear_color_[4];
+
+		DisplayDevicePtr display_;
 
 		virtual void change_fullscreen_mode() = 0;
 		virtual void handle_set_clear_color() = 0;

@@ -38,7 +38,7 @@ namespace Scene
 		explicit Light(const std::string& name, const glm::vec3& position);
 		//explicit Light(const variant& node);
 		virtual ~Light();
-		void Attach(const Graphics::DisplayDevicePtr& dd);
+		Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) override;
 		void SetType(LightType type);
 		void SetPosition(const glm::vec3& position);
 		void SetAmbientColor(const glm::vec4& color);

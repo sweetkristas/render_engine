@@ -45,17 +45,20 @@ namespace Shader
 
 	typedef std::pair<std::string,std::string> ShaderDef;
 
+	class ShaderProgram;
+	typedef std::shared_ptr<ShaderProgram> ShaderProgramPtr;
+
 	class ShaderProgram
 	{
 	public:
-		ShaderProgram();
 		ShaderProgram(const std::string& name, const ShaderDef& va, const ShaderDef& fs);
-		virtual ~ShaderProgram()
-		{}
+		virtual ~ShaderProgram();
 		void Init(const std::string& name, const ShaderDef& vs, const ShaderDef& fs);
 		std::string Name() const { return name_; }
-		GLuint GetAttribute(const std::string& attr) const;
-		GLuint GetUniform(const std::string& attr) const;
+		GLint GetAttributeOrDie(const std::string& attr) const;
+		GLint GetUniformOrDie(const std::string& attr) const;
+		GLint GetAttribute(const std::string& attr) const;
+		GLint GetUniform(const std::string& attr) const;
 		ConstActivesMapIterator GetAttributeIterator(const std::string& attr) const;
 		ConstActivesMapIterator GetUniformIterator(const std::string& attr) const;
 
@@ -63,6 +66,12 @@ namespace Shader
 		void SetUniform(ConstActivesMapIterator it, const GLint*);
 
 		void MakeActive();
+
+		void SetAlternateUniformName(const std::string& name, const std::string& alt_name);
+		void SetAlternateAttributeName(const std::string& name, const std::string& alt_name);
+
+		static ShaderProgramPtr Factory(const std::string& name);
+		static ShaderProgramPtr DefaultSystemShader();
 	protected:
 		bool Link();
 		bool QueryUniforms();
@@ -76,7 +85,9 @@ namespace Shader
 		GLuint object_;
 		ActivesMap attribs_;
 		ActivesMap uniforms_;
+		std::map<std::string, std::string> uniform_alternate_name_map_;
+		std::map<std::string, std::string> attribute_alternate_name_map_;
+		ShaderProgram();
+		ShaderProgram(const ShaderProgram&);
 	};
-
-	typedef std::shared_ptr<ShaderProgram> ShaderProgramPtr;
 }

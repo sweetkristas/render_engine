@@ -117,15 +117,20 @@ namespace Graphics
 	DisplayDeviceDataPtr DisplayDeviceOpenGL::CreateDisplayDeviceData(const DisplayDeviceDef& def)
 	{
 		OpenGLDeviceData* dd = new OpenGLDeviceData();
+		bool use_default_shader = true;
 		for(auto& hints : def.GetHints()) {
 			if(hints.first == "shader") {
 				// Need to have retrieved more shader data here.
-				dd->SetShader(new Shader::ShaderProgram(hints.second, xx, xx));
+				dd->SetShader(Shader::ShaderProgram::Factory(hints.second));
+				use_default_shader = false;
 			}
 			// ...
 			// add more hints here if needed.
 		}
-		// XXX If there is no shader hint, we will assume the default system shader -- which we don't have yet.
+		// If there is no shader hint, we will assume the default system shader.
+		if(use_default_shader) {
+			dd->SetShader(Shader::ShaderProgram::DefaultSystemShader());
+		}
 
 		// XXX Process vertex info here def.GetVertexInfo()
 		for(auto& vertex_info : def.GetVertexInfo()) {
@@ -140,6 +145,10 @@ namespace Graphics
 
 	void DisplayDeviceOpenGL::render(const Render::RenderablePtr& r)
 	{
+		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->GetDisplayData());
+		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
+		dd->GetShader()->MakeActive();
+
 		if(r->Camera()) {
 			/// xxx need to set camera here.
 		}

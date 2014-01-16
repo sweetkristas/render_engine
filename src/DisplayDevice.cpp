@@ -91,4 +91,12 @@ namespace Graphics
 			}
 		}
 	}
+
+	DisplayDeviceData::DisplayDeviceData()
+	{
+	}
+
+	DisplayDeviceData::~DisplayDeviceData()
+	{
+	}
 }
