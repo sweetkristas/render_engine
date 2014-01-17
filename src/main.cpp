@@ -30,12 +30,12 @@ namespace
 		SquareRenderable() : Scene::SceneObject("square") {
 			std::shared_ptr<Render::TypedRenderVariable<vertex_color>> rv = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
 
-			render_vars_.resize(1);
+			render_vars_.resize(4);
 			render_vars_[0] = rv;
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_POSITION, 2, Render::RenderVariableDesc::TYPE_FLOAT, true, sizeof(vertex_color), 0);
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_COLOR, 4, Render::RenderVariableDesc::TYPE_UNSIGNED_BYTE, false, sizeof(vertex_color), sizeof(glm::vec2));
 			render_vars_[0]->SetDrawMode(Render::RenderVariable::TRIANGLE_STRIP);
-
+			
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
 			vertices.emplace_back(glm::vec2(0.0f,1.0f), glm::u8vec4(0,255,0,255));
@@ -43,14 +43,26 @@ namespace
 			vertices.emplace_back(glm::vec2(1.0f,1.0f), glm::u8vec4(255,0,0,255));
 			rv->Update(vertices);
 
+			auto color_urv = std::make_shared<Render::UniformRenderVariable<glm::vec4>>();
+			render_vars_[1] = color_urv;
+			color_urv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_COLOR, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_VEC4);
+			color_urv->Update(glm::vec4(1.0f,1.0f,1.0f,0.5f));
+			auto psrv = std::make_shared<Render::UniformRenderVariable<float>>();
+			render_vars_[2] = psrv;
+			psrv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_POINT_SIZE, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT);
+			psrv->Update(1.0f);
+			auto mvp_rv = std::make_shared<Render::UniformRenderVariable<glm::mat4>>();
+			render_vars_[3] = mvp_rv;
+			mvp_rv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_MODEL, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_MAT4);			
+			mvp_rv->Update(glm::mat4(1.0f));
+
 			SetOrder(0);
 		}
 		virtual ~SquareRenderable() {}
 	protected:
 		Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) {
-			Graphics::DisplayDeviceDef def;
+			Graphics::DisplayDeviceDef def(render_vars_);
 			def.SetHint("shader", "simple");
-			def.InitRenderVariables(render_vars_);
 			return def;
 		}
 	private:

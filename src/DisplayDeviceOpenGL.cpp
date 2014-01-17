@@ -47,6 +47,24 @@ namespace Graphics
 		OpenGLDeviceData(const OpenGLDeviceData&);
 	};
 
+	class RenderVariableDeviceData : public DisplayDeviceData
+	{
+	public:
+		RenderVariableDeviceData() {
+		}
+		~RenderVariableDeviceData() {
+		}
+		RenderVariableDeviceData(const Shader::ConstActivesMapIterator& it)
+			: active_iterator_(it) {
+		}
+
+		void SetActiveMapIterator(const Shader::ConstActivesMapIterator& it) {
+			active_iterator_ = it;
+		}
+		Shader::ConstActivesMapIterator GetActiveMapIterator() const { return active_iterator_; }
+	private:
+		Shader::ConstActivesMapIterator active_iterator_;
+	};
 
 	namespace 
 	{
@@ -132,13 +150,14 @@ namespace Graphics
 			dd->SetShader(Shader::ShaderProgram::DefaultSystemShader());
 		}
 
-		// XXX Process vertex info here def.GetVertexInfo()
-		for(auto& vertex_info : def.GetVertexInfo()) {
-			auto shader = dd->GetShader();
-
-			/// XXX the information returned from below needs to be matched with the corresponding render variable
-			// so it can be applied during render -- it may be better if we augment Render variables to do this.
-			shader->GetAttributeIterator(vertex_info);
+		// XXX Process render variables here
+		for(auto& rv : def.GetRenderVars()) {
+			for(auto& rvd : rv->VariableDescritionList()) {
+				/// XXX the information returned from below needs to be matched with the corresponding render variable
+				// so it can be applied during render -- it may be better if we augment Render variables to do this.
+				auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(rvd.GetVertexTypeAsString()));
+				rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
+			}
 		}
 		return DisplayDeviceDataPtr(dd);
 	}
@@ -160,21 +179,14 @@ namespace Graphics
 		/// XXX Need to create a mapping between attributes and the index value below.
 		for(auto rv : r->RenderVariables()) {
 			for(auto& rvd : rv->VariableDescritionList()) {
-				GLuint index = 0;
-				switch(rvd.GetVertexType()) {
-					case Render::RenderVariableDesc::VERTEX_POSITION:
-					case Render::RenderVariableDesc::VERTEX_COLOR:
-					case Render::RenderVariableDesc::VERTEX_TEXTURE:
-					case Render::RenderVariableDesc::VERTEX_NORMAL:
-					case Render::RenderVariableDesc::VERTEX_UNKNOWN:
-					break;
-				}
-				glVertexAttribPointer(index, 
+				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd.GetDisplayData());
+				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
+				glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
 					rvd.NumElements(), 
 					ConvertRenderVariableType(rvd.GetVariableType()), 
 					rvd.Normalised(), 
 					rvd.Stride(), 
-					(void*)rvd.Offset());
+					(void*)((intptr_t)rv->Value() + (intptr_t) + rvd.Offset()));
 			}
 
 			// XXX todo change this to a simple index look-up.

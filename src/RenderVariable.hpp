@@ -31,6 +31,8 @@
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 
+#include "DisplayDeviceFwd.hpp"
+
 namespace Render
 {
 	class RenderVariable;
@@ -63,6 +65,31 @@ namespace Render
 			TYPE_UNSIGNED_INT_2_10_10_10,
 			TYPE_UNSIGNED_INT_10F_11F_11F,
 		};
+		enum UniformType {
+			UNIFORM_UNKOWN,
+			UNIFORM_COLOR,
+			UNIFORM_POINT_SIZE,
+			UNIFORM_MODEL,
+		};
+		enum UniformVariableType {
+			UNIFORM_TYPE_FLOAT,
+			UNIFORM_TYPE_FLOAT_VEC2,
+			UNIFORM_TYPE_FLOAT_VEC3,
+			UNIFORM_TYPE_FLOAT_VEC4,
+			UNIFORM_TYPE_INT,
+			UNIFORM_TYPE_INT_VEC2,
+			UNIFORM_TYPE_INT_VEC3,
+			UNIFORM_TYPE_INT_VEC4,
+			UNIFORM_TYPE_BOOL,
+			UNIFORM_TYPE_BOOL_VEC2,
+			UNIFORM_TYPE_BOOL_VEC3,
+			UNIFORM_TYPE_BOOL_VEC4,
+			UNIFORM_TYPE_FLOAT_MAT2,
+			UNIFORM_TYPE_FLOAT_MAT3,
+			UNIFORM_TYPE_FLOAT_MAT4,
+			UNIFORM_TYPE_SAMPLER_2D, 
+			UNIFORM_TYPE_SAMPLER_CUBE,
+		};
 
 		RenderVariableDesc(VertexType vertex_type, 
 			unsigned num_elements, 
@@ -76,6 +103,13 @@ namespace Render
 			bool normalised, 
 			unsigned stride, 
 			unsigned offset);
+		RenderVariableDesc(UniformType uniform_type,
+			unsigned num_elements,
+			UniformVariableType uniform_var_type);
+		RenderVariableDesc(const std::string& uniform_name,
+			unsigned num_elements,
+			UniformVariableType uniform_var_type);
+
 		~RenderVariableDesc();
 
 		VertexType GetVertexType() const { return vertex_type_; }
@@ -85,7 +119,16 @@ namespace Render
 		unsigned Stride() const { return stride_; }
 		unsigned Offset() const { return offset_; }
 		bool Normalised() const { return normalised_; }
+
+		void SetDisplayData(const Graphics::DisplayDeviceDataPtr& dd) {
+			display_data_ = dd;
+		}
+		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 	private:
+		enum {
+			DESC_ATTRIB,
+			DESC_UNIFORM,
+		} desc_type_;
 		VertexType vertex_type_;
 		std::string vertex_name_;
 		unsigned num_elements_;
@@ -93,6 +136,11 @@ namespace Render
 		unsigned stride_; 
 		unsigned offset_;
 		bool normalised_;
+
+		std::string uniform_name_;
+		UniformType uniform_type_;
+		UniformVariableType uniform_var_type_;
+		Graphics::DisplayDeviceDataPtr display_data_;
 	};
 
 	typedef std::vector<RenderVariableDesc> RenderVariableDescList;
@@ -114,6 +162,12 @@ namespace Render
 			bool normalised, 
 			unsigned stride, 
 			unsigned offset);
+		void AddVariableDescription(const std::string& uniform_type, 
+			unsigned num_elements,
+			RenderVariableDesc::UniformVariableType uniform_var_type);
+		void AddVariableDescription(RenderVariableDesc::UniformType uniform_type,
+			unsigned num_elements,
+			RenderVariableDesc::UniformVariableType uniform_var_type);
 		
 		void SetIndexedDraw(bool indexed_draw) { indexed_draw_ = indexed_draw; }
 		bool IsIndexedDraw() const { return indexed_draw_; }
@@ -136,7 +190,7 @@ namespace Render
 		void SetDrawMode(DrawMode draw_mode) { draw_mode_ = draw_mode; }
 		DrawMode GetDrawMode() const { return draw_mode_; }
 
-		const RenderVariableDescList& VariableDescritionList() const { return desc_list_; }
+		RenderVariableDescList& VariableDescritionList() { return desc_list_; }
 
 		virtual void* Value() = 0;
 	protected:
@@ -193,5 +247,21 @@ namespace Render
 		void* Value() override { return &value_[0]; }
 	private:
 		std::vector<T> value_;
+	};
+
+	template<typename T>
+	class UniformRenderVariable : public RenderVariable
+	{
+	public:
+		UniformRenderVariable<T>() 
+			: RenderVariable(0, false, true, false) {
+		}
+		virtual ~UniformRenderVariable<T>() {}
+		void Update(const T& value) {
+			value_ = value;
+		}
+		void* Value() override { return &value_; }
+	private:
+		T value_;
 	};
 }

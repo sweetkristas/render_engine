@@ -36,6 +36,7 @@
     <ClInclude Include="..\src\asserts.hpp" />
     <ClInclude Include="..\src\CameraObject.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />
+    <ClInclude Include="..\src\DisplayDeviceFwd.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />

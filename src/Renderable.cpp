@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#include "DisplayDevice.hpp"
 #include "Renderable.hpp"
 
 namespace Render
@@ -92,4 +93,10 @@ namespace Render
 	{
 		lights_ = lights;
 	}
+
+	void Renderable::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)
+	{
+		display_data_ = dd->CreateDisplayDeviceData(def);
+	}
+
 }

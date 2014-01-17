@@ -35,6 +35,7 @@
 
 #include "asserts.hpp"
 #include "CameraObject.hpp"
+#include "DisplayDevice.hpp"
 #include "WindowManager.hpp"
 
 namespace Scene
@@ -496,7 +497,7 @@ namespace Scene
 
 	Graphics::DisplayDeviceDef Camera::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def;
+		Graphics::DisplayDeviceDef def(render_vars_);
 		// XXX
 		return def;
 	}

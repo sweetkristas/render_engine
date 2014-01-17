@@ -70,7 +70,8 @@ namespace Graphics
 		return DisplayDevicePtr();
 	}
 
-	DisplayDeviceDef::DisplayDeviceDef()
+	DisplayDeviceDef::DisplayDeviceDef(const Render::RenderVariableList& rv)
+		: render_vars_(rv)
 	{
 	}
 
@@ -81,15 +82,6 @@ namespace Graphics
 	void DisplayDeviceDef::SetHint(const std::string& hint_name, const std::string& hint)
 	{
 		hints_[hint_name] = hint;
-	}
-
-	void DisplayDeviceDef::InitRenderVariables(const Render::RenderVariableList& render_vars)
-	{
-		for(auto rv : render_vars) {
-			for(auto rvd : rv->VariableDescritionList()) {
-				vertex_type_info_.emplace_back(rvd.GetVertexTypeAsString());
-			}
-		}
 	}
 
 	DisplayDeviceData::DisplayDeviceData()

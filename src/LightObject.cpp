@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#include "DisplayDevice.hpp"
 #include "LightObject.hpp"
 
 namespace Scene
@@ -60,7 +61,7 @@ namespace Scene
 
 	Graphics::DisplayDeviceDef Light::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def;
+		Graphics::DisplayDeviceDef def(render_vars_);
 		// XXX
 		return def;
 	}

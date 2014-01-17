@@ -27,6 +27,7 @@
 #include <memory>
 #include <string>
 
+#include "DisplayDeviceFwd.hpp"
 #include "Renderable.hpp"
 
 namespace Graphics
@@ -34,17 +35,16 @@ namespace Graphics
 	class DisplayDeviceDef
 	{
 	public:
-		DisplayDeviceDef();
+		DisplayDeviceDef(const Render::RenderVariableList& rv);
 		~DisplayDeviceDef();
 
-		void SetHint(const std::string& hint_name, const std::string& hint);
-		void InitRenderVariables(const Render::RenderVariableList& rv);
+		const Render::RenderVariableList& GetRenderVars() const { return render_vars_; }
 
-		const std::vector<std::string>& GetVertexInfo() const { return vertex_type_info_; }
+		void SetHint(const std::string& hint_name, const std::string& hint);
 		const std::map<std::string,std::string> GetHints() const { return hints_; }
 	private:
-		std::vector<std::string> vertex_type_info_;
 		std::map<std::string,std::string> hints_;
+		const Render::RenderVariableList& render_vars_;
 	};
 
 	class DisplayDeviceData
@@ -55,10 +55,6 @@ namespace Graphics
 	private:
 		DisplayDeviceData(const DisplayDeviceData&);
 	};
-	typedef std::shared_ptr<DisplayDeviceData> DisplayDeviceDataPtr;
-
-	class DisplayDevice;
-	typedef std::shared_ptr<DisplayDevice> DisplayDevicePtr;
 
 	class DisplayDevice
 	{

@@ -21,18 +21,17 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "SceneGraph.hpp"
-#include "SceneObject.hpp"
+#pragma once
 
-namespace Scene
+#include <memory>
+
+namespace Graphics
 {
-	SceneObject::SceneObject(const std::string& name)
-		: name_(name), queue_(0)
-	{
-	}
+	class DisplayDeviceDef;
 
-	SceneObject::~SceneObject()
-	{
-	}
+	class DisplayDevice;
+	typedef std::shared_ptr<DisplayDevice> DisplayDevicePtr;
+
+	class DisplayDeviceData;
+	typedef std::shared_ptr<DisplayDeviceData> DisplayDeviceDataPtr;
 }
