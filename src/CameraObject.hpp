@@ -21,6 +21,8 @@
 	   distribution.
 */
 
+#pragma once
+
 #include "Frustum.hpp"
 #include "SceneObject.hpp"
 #include "WindowManagerFwd.hpp"
