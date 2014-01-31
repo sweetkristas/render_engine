@@ -21,15 +21,26 @@
 	   distribution.
 */
 
-#pragma once
-
-#include <memory>
+#include "Surface.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
+	Surface::Surface()
+	{
+	}
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	Surface::~Surface()
+	{
+	}
+
+	SurfaceLock::SurfaceLock(const SurfacePtr& surface)
+		: surface_(surface)
+	{
+		surface_->Lock();
+	}
+
+	SurfaceLock::~SurfaceLock()
+	{
+		surface_->Unlock();
+	}
 }

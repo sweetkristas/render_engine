@@ -23,13 +23,19 @@
 
 #pragma once
 
-#include <memory>
+#include <string>
+#include "Surface.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
+	class Texture
+	{
+	public:
+		Texture(const std::string& filename);
+		Texture(const SurfacePtr& surface);
+		virtual ~Texture();
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	private:
+		Texture();
+	};
 }

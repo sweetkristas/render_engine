@@ -23,13 +23,7 @@
 
 #pragma once
 
-#include <memory>
-
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
 }

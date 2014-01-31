@@ -21,15 +21,9 @@
 	   distribution.
 */
 
-#pragma once
-
-#include <memory>
+#include "TextureSDL.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
 }

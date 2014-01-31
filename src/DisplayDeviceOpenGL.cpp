@@ -26,6 +26,7 @@
 #include "asserts.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 #include "RenderVariable.hpp"
+#include "TextureOpenGL.hpp"
 
 namespace Graphics
 {
@@ -153,10 +154,22 @@ namespace Graphics
 		// XXX Process render variables here
 		for(auto& rv : def.GetRenderVars()) {
 			for(auto& rvd : rv->VariableDescritionList()) {
-				/// XXX the information returned from below needs to be matched with the corresponding render variable
-				// so it can be applied during render -- it may be better if we augment Render variables to do this.
-				auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(rvd.GetVertexTypeAsString()));
-				rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
+				switch(rvd.GetDescription()) {
+					/// XXX the information returned from below needs to be matched with the corresponding render variable
+					// so it can be applied during render -- it may be better if we augment Render variables to do this.
+					case Render::RenderVariableDesc::DESC_ATTRIB: {
+						auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(rvd.GetVertexTypeAsString()));
+						rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
+						break;
+					}
+					case Render::RenderVariableDesc::DESC_UNIFORM: {
+						auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetUniformIterator(rvd.GetUniformTypeAsString()));
+						rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
+						break;
+					}
+					default:
+						ASSERT_LOG(false, "Unrecognised render variable description type: " << rvd.GetDescription());
+				}
 			}
 		}
 		return DisplayDeviceDataPtr(dd);
@@ -181,12 +194,17 @@ namespace Graphics
 			for(auto& rvd : rv->VariableDescritionList()) {
 				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd.GetDisplayData());
 				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
-				glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
-					rvd.NumElements(), 
-					ConvertRenderVariableType(rvd.GetVariableType()), 
-					rvd.Normalised(), 
-					rvd.Stride(), 
-					(void*)((intptr_t)rv->Value() + (intptr_t) + rvd.Offset()));
+				if(rvd.GetDescription() == Render::RenderVariableDesc::DESC_ATTRIB) {
+					glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
+						rvd.NumElements(), 
+						ConvertRenderVariableType(rvd.GetVariableType()), 
+						rvd.Normalised(), 
+						rvd.Stride(), 
+						(void*)((intptr_t)rv->Value() + (intptr_t) + rvd.Offset()));
+				} else {
+					// XXX set uniform
+					//dd->GetShader()->SetUniform(rvdd->GetActiveMapIterator(), rv->Value());
+				}
 			}
 
 			// XXX todo change this to a simple index look-up.
@@ -211,5 +229,10 @@ namespace Graphics
 				glDrawArrays(draw_mode, 0, rv->Count());
 			}
 		}
+	}
+
+	TexturePtr CreateTexture(const SurfacePtr& surface)
+	{
+		return TexturePtr(new OpenGLTexture(surface));
 	}
 }

@@ -25,6 +25,7 @@
 
 #include "DisplayDevice.hpp"
 #include "Shaders.hpp"
+#include "Texture.hpp"
 
 namespace Graphics
 {
@@ -42,6 +43,8 @@ namespace Graphics
 		void set_clear_color(float r, float g, float b, float a);
 
 		void render(const Render::RenderablePtr& r) override;
+
+		TexturePtr CreateTexture(const SurfacePtr& surface) override;
 
 		void init(size_t width, size_t height);
 		void print_device_info();

@@ -21,15 +21,19 @@
 	   distribution.
 */
 
-#pragma once
-
-#include <memory>
+#include "TextureOpenGL.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
+	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface)
+		: Texture(surface)
+	{
+		glGenTextures(1, &texture_id_);
+	}
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	OpenGLTexture::~OpenGLTexture()
+	{
+		glDeleteTextures(1, &texture_id_);
+	}
+
 }

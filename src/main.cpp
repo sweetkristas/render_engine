@@ -30,7 +30,7 @@ namespace
 		SquareRenderable() : Scene::SceneObject("square") {
 			std::shared_ptr<Render::TypedRenderVariable<vertex_color>> rv = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
 
-			render_vars_.resize(4);
+			render_vars_.resize(3);
 			render_vars_[0] = rv;
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_POSITION, 2, Render::RenderVariableDesc::TYPE_FLOAT, true, sizeof(vertex_color), 0);
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_COLOR, 4, Render::RenderVariableDesc::TYPE_UNSIGNED_BYTE, false, sizeof(vertex_color), sizeof(glm::vec2));
@@ -47,14 +47,16 @@ namespace
 			render_vars_[1] = color_urv;
 			color_urv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_COLOR, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_VEC4);
 			color_urv->Update(glm::vec4(1.0f,1.0f,1.0f,0.5f));
-			auto psrv = std::make_shared<Render::UniformRenderVariable<float>>();
-			render_vars_[2] = psrv;
-			psrv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_POINT_SIZE, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT);
-			psrv->Update(1.0f);
-			auto mvp_rv = std::make_shared<Render::UniformRenderVariable<glm::mat4>>();
-			render_vars_[3] = mvp_rv;
-			mvp_rv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_MODEL, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_MAT4);			
-			mvp_rv->Update(glm::mat4(1.0f));
+
+			auto use_acolor = std::make_shared<Render::UniformRenderVariable<bool>>();
+			render_vars_[2] = use_acolor;
+			use_acolor->AddVariableDescription("use_attrib_color", 1, Render::RenderVariableDesc::UNIFORM_TYPE_BOOL);
+			use_acolor->Update(true);
+			
+			//auto psrv = std::make_shared<Render::UniformRenderVariable<float>>();
+			//render_vars_[2] = psrv;
+			//psrv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_POINT_SIZE, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT);
+			//psrv->Update(1.0f);
 
 			SetOrder(0);
 		}

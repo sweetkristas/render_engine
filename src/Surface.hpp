@@ -23,13 +23,46 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+
+#include "WindowManagerFwd.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
+	class Surface
+	{
+	public:
+		virtual ~Surface();
+		virtual void* Pixels() = 0;
+		virtual size_t width() = 0;
+		virtual size_t height() = 0;
+		virtual size_t bits_per_pixel() = 0;
+		virtual size_t bytes_per_pixel() = 0;
+		virtual size_t row_pitch() = 0;
+		virtual uint32_t red_mask() = 0;
+		virtual uint32_t green_mask() = 0;
+		virtual uint32_t blue_mask() = 0;
+		virtual uint32_t alpha_mask() = 0;
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
+
+		virtual bool SetClipRect(int x, int y, size_t width, size_t height) = 0;
+		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
+		//virtual bool SetClipRect(const rect& r) = 0;
+		//virtual const rect& GetClipRect() = 0;
+	protected:
+		Surface();
+	private:
+	};
+
+	class SurfaceLock
+	{
+	public:
+		SurfaceLock(const SurfacePtr& surface);
+		~SurfaceLock();
+	private:
+		SurfacePtr surface_;
+	};
 }

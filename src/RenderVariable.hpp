@@ -90,6 +90,10 @@ namespace Render
 			UNIFORM_TYPE_SAMPLER_2D, 
 			UNIFORM_TYPE_SAMPLER_CUBE,
 		};
+		enum DescriptionType {
+			DESC_ATTRIB,
+			DESC_UNIFORM,
+		};
 
 		RenderVariableDesc(VertexType vertex_type, 
 			unsigned num_elements, 
@@ -112,6 +116,8 @@ namespace Render
 
 		~RenderVariableDesc();
 
+		DescriptionType GetDescription() const { return desc_type_; }
+
 		VertexType GetVertexType() const { return vertex_type_; }
 		const std::string& GetVertexTypeAsString() const { return vertex_name_; }
 		VariableType GetVariableType() const { return var_type_; }
@@ -124,11 +130,9 @@ namespace Render
 			display_data_ = dd;
 		}
 		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+		const std::string& GetUniformTypeAsString() const { return uniform_name_; }
 	private:
-		enum {
-			DESC_ATTRIB,
-			DESC_UNIFORM,
-		} desc_type_;
+		DescriptionType desc_type_;
 		VertexType vertex_type_;
 		std::string vertex_name_;
 		unsigned num_elements_;

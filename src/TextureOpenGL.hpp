@@ -23,13 +23,19 @@
 
 #pragma once
 
-#include <memory>
+#include <GL/glew.h>
+
+#include "Texture.hpp"
 
 namespace Graphics
 {
-	class Surface;
-	typedef std::shared_ptr<Surface> SurfacePtr;
-
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	class OpenGLTexture : public Texture
+	{
+	public:
+		OpenGLTexture(const std::string& filename);
+		OpenGLTexture(const SurfacePtr& surface);
+		virtual ~OpenGLTexture();
+	private:
+		GLuint texture_id_;
+	};
 }

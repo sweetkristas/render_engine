@@ -52,6 +52,23 @@ namespace Graphics
 
 		virtual void Render(const Render::RenderablePtr& r) = 0;
 
+		virtual SurfacePtr CreateSurface(size_t width, 
+			size_t height, 
+			size_t bpp, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask) = 0;
+		virtual SurfacePtr CreateSurface(size_t width, 
+			size_t height, 
+			size_t bpp, 
+			size_t row_pitch, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask, 
+			void* pixels) = 0;
+
 		virtual void swap() = 0;
 
 		void map_mouse_position(size_t* x, size_t* y);

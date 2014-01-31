@@ -29,6 +29,11 @@
     <ClCompile Include="..\src\SceneObject.cpp" />
     <ClCompile Include="..\src\SceneParameters.cpp" />
     <ClCompile Include="..\src\Shaders.cpp" />
+    <ClCompile Include="..\src\Surface.cpp" />
+    <ClCompile Include="..\src\SurfaceSDL.cpp" />
+    <ClCompile Include="..\src\Texture.cpp" />
+    <ClCompile Include="..\src\TextureOpenGL.cpp" />
+    <ClCompile Include="..\src\TextureSDL.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +63,11 @@
     <ClInclude Include="..\src\SDLWrapper.hpp" />
     <ClInclude Include="..\src\Shaders.hpp" />
     <ClInclude Include="..\src\spline.hpp" />
+    <ClInclude Include="..\src\Surface.hpp" />
+    <ClInclude Include="..\src\SurfaceSDL.hpp" />
+    <ClInclude Include="..\src\Texture.hpp" />
+    <ClInclude Include="..\src\TextureOpenGL.hpp" />
+    <ClInclude Include="..\src\TextureSDL.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
     <ClInclude Include="..\src\WindowManagerFwd.hpp" />
   </ItemGroup>

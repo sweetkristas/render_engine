@@ -94,6 +94,8 @@ namespace Graphics
 
 		virtual void render(const Render::RenderablePtr& r) = 0;
 
+		virtual TexturePtr CreateTexture(const SurfacePtr& surface) = 0;
+
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
 		static DisplayDevicePtr factory(const std::string& type);

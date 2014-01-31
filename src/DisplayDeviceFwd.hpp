@@ -34,4 +34,7 @@ namespace Graphics
 
 	class DisplayDeviceData;
 	typedef std::shared_ptr<DisplayDeviceData> DisplayDeviceDataPtr;
+
+	class Texture;
+	typedef std::shared_ptr<Texture> TexturePtr;
 }

@@ -27,6 +27,7 @@
 #include "asserts.hpp"
 #include "DisplayDevice.hpp"
 #include "logger.hpp"
+#include "SurfaceSDL.hpp"
 #include "SDL.h"
 #include "WindowManager.hpp"
 
@@ -64,7 +65,7 @@ namespace Graphics
 			destroy_window();
 		}
 
-		void create_window(size_t width, size_t height) {
+		void create_window(size_t width, size_t height) override {
 			logical_width_ = width_ = width;
 			logical_height_ = height_ = height;
 
@@ -158,11 +159,11 @@ namespace Graphics
 			swap();
 		}
 
-		void destroy_window() {
+		void destroy_window() override {
 			window_.reset();
 		}
 
-		void swap() {
+		void swap() override {
 			// This is a little bit hacky -- ideally the display device should swap buffers.
 			// But SDL provides a device independent way of doing it which is really nice.
 			// So we use that.
@@ -174,34 +175,53 @@ namespace Graphics
 			}
 		}
 
-		void set_window_icon(const std::string& name) {
+		void set_window_icon(const std::string& name) override {
 			// XXX SDL_SetWindowIcon(window_.get(), wm_icon.get());
 		}
 		
-		bool set_window_size(size_t width, size_t height) {
+		bool set_window_size(size_t width, size_t height) override {
 			// XXX
 			return false;
 		}
 
-		bool auto_window_size(size_t& width, size_t& height) {
+		bool auto_window_size(size_t& width, size_t& height) override {
 			// XXX
 			return false;
 		}
 
-		void handle_set_clear_color()
-		{
+		SurfacePtr CreateSurface(size_t width, 
+			size_t height, 
+			size_t bpp, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask) override {
+			return SurfacePtr(new SurfaceSDL(width, height, bpp, rmask, gmask, bmask, amask));
+		}
+		SurfacePtr CreateSurface(size_t width, 
+			size_t height, 
+			size_t bpp, 
+			size_t row_pitch, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask, 
+			void* pixels) override {
+			return SurfacePtr(new SurfaceSDL(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels));
+		}
+
+		void handle_set_clear_color() {
 			if(display_ != NULL) {
 				display_->set_clear_color(clear_color_[0],clear_color_[1],clear_color_[2],clear_color_[3]);
 			}
 		}
 
-		void set_window_title(const std::string& title) {
+		void set_window_title(const std::string& title) override {
 			ASSERT_LOG(window_ != NULL, "Window is null");
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 
-		virtual void Render(const Render::RenderablePtr& r)
-		{
+		virtual void Render(const Render::RenderablePtr& r) override {
 			ASSERT_LOG(display_ != NULL, "No display to render to.");
 			display_->render(r);
 		}
