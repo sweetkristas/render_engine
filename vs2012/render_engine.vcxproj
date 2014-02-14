@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\CameraObject.cpp" />
+    <ClCompile Include="..\src\Color.cpp" />
     <ClCompile Include="..\src\DisplayDevice.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
@@ -34,12 +35,17 @@
     <ClCompile Include="..\src\Texture.cpp" />
     <ClCompile Include="..\src\TextureOpenGL.cpp" />
     <ClCompile Include="..\src\TextureSDL.cpp" />
+    <ClCompile Include="..\src\VGraph.cpp" />
+    <ClCompile Include="..\src\VGraphCairo.cpp" />
+    <ClCompile Include="..\src\VGraphOpenGL.cpp" />
+    <ClCompile Include="..\src\VGraphOpenGLFixed.cpp" />
     <ClCompile Include="..\src\WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\treetree\tree.hpp" />
     <ClInclude Include="..\src\asserts.hpp" />
     <ClInclude Include="..\src\CameraObject.hpp" />
+    <ClInclude Include="..\src\Color.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />
     <ClInclude Include="..\src\DisplayDeviceFwd.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
@@ -68,10 +74,16 @@
     <ClInclude Include="..\src\Texture.hpp" />
     <ClInclude Include="..\src\TextureOpenGL.hpp" />
     <ClInclude Include="..\src\TextureSDL.hpp" />
+    <ClInclude Include="..\src\VGraph.hpp" />
+    <ClInclude Include="..\src\VGraphCairo.hpp" />
+    <ClInclude Include="..\src\VGraphFwd.hpp" />
+    <ClInclude Include="..\src\VGraphOpenGL.hpp" />
+    <ClInclude Include="..\src\VGraphOpenGLFixed.hpp" />
     <ClInclude Include="..\src\WindowManager.hpp" />
     <ClInclude Include="..\src\WindowManagerFwd.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="..\..\cairo\external\x86\lib\cairo-static.lib" />
     <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
     <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
     <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
@@ -119,7 +131,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\cairo\external\x86\include;C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
