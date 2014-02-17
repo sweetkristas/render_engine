@@ -231,7 +231,7 @@ namespace Graphics
 		}
 	}
 
-	TexturePtr CreateTexture(const SurfacePtr& surface)
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface)
 	{
 		return TexturePtr(new OpenGLTexture(surface));
 	}

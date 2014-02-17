@@ -25,6 +25,12 @@
 
 namespace Graphics
 {
+	OpenGLTexture::OpenGLTexture(const std::string& filename)
+		: Texture(filename)
+	{
+
+	}
+
 	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface)
 		: Texture(surface)
 	{

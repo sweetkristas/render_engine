@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "Color.hpp"
+#include "WindowManagerFwd.hpp"
 #include "VGraphFwd.hpp"
 
 #ifndef M_PI
@@ -150,6 +151,8 @@ namespace Graphics
 
 			virtual void GetCurrentPoint(double& x, double& y) = 0;
 			virtual bool HasCurrentPoint() = 0;
+
+			virtual void Render(const WindowManagerPtr& wnd) = 0;
 		private:
 			Context(const Context&);
 		};

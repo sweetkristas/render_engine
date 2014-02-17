@@ -13,6 +13,7 @@
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "WindowManager.hpp"
+#include "VGraph.hpp"
 
 namespace
 {	
@@ -130,6 +131,10 @@ int main(int argc, char *argv[])
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
+	Graphics::Context canvas;
+	canvas.SetSourceColor(0.0, 1.0, 0.0);
+	canvas.Paint();
+
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
@@ -143,6 +148,9 @@ int main(int argc, char *argv[])
 
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
+
+		canvas.Render(main_wnd);
+
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

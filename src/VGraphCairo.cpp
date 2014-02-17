@@ -27,6 +27,7 @@
 #include "asserts.hpp"
 #include "logger.hpp"
 #include "VGraphCairo.hpp"
+#include "WindowManager.hpp"
 
 namespace Graphics
 {
@@ -275,5 +276,10 @@ namespace Graphics
 			return cairo_has_current_point(context_);
 		}
 
+		void CairoContext::Render(const WindowManagerPtr& wnd)
+		{
+			// XXX
+			// render to texture then draw that to wnd
+		}
 	}
 }

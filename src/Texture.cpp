@@ -25,4 +25,18 @@
 
 namespace Graphics
 {
+	Texture::Texture(const std::string& filename)
+	{
+		// XXX
+	}
+
+	Texture::Texture(const SurfacePtr& surface)
+	{
+		// XXX
+	}
+	
+	Texture::~Texture()
+	{
+		// XXX
+	}
 }
