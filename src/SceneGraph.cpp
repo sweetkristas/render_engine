@@ -118,6 +118,6 @@ namespace Scene
 		CameraPtr camera;
 		LightPtrList lights;
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
-		RenderSceneHelper(renderer, graph_.begin(), camera, lights);
+		RenderSceneHelper(renderer, it, camera, lights);
 	}
 }

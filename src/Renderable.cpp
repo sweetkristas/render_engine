@@ -79,7 +79,7 @@ namespace Render
 		scale_ = scale;
 	}
 
-	const glm::mat4& Renderable::ModelMatrix() const 
+	glm::mat4 Renderable::ModelMatrix() const 
 	{
 		return glm::translate(glm::mat4(1.0f), position_) * glm::toMat4(rotation_) * glm::scale(glm::mat4(1.0f), scale_);
 	}

@@ -126,7 +126,7 @@ namespace Graphics
 			virtual double GetMiterLimit() const = 0;
 
 			virtual void SetDashStyle(const std::vector<double>& dashes, const double offset=0) = 0;
-			virtual const std::vector<double>& GetDashStyle() = 0;
+			virtual const std::vector<double> GetDashStyle() const = 0;
 			virtual void SetDashOffset(double offset) = 0;
 			virtual double GetDashOffset() const = 0;
 				

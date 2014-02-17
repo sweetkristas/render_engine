@@ -65,7 +65,7 @@ namespace Graphics
 			virtual double GetMiterLimit() const override;
 
 			virtual void SetDashStyle(const std::vector<double>& dashes, const double offset=0) override;
-			virtual const std::vector<double>& GetDashStyle() override;
+			virtual const std::vector<double> GetDashStyle() const override;
 			virtual void SetDashOffset(double offset) override;
 			virtual double GetDashOffset() const override;
 				

@@ -1,0 +1,36 @@
+#
+# This file contains lists of object files for our build targets.
+# Please keep every file in separate lines to make diff and patching easier.
+#
+
+# Game engine
+objects = \
+	src/CameraObject.o \
+	src/Color.o \
+	src/DisplayDevice.o \
+	src/DisplayDeviceOpenGL.o \
+	src/DisplayDeviceOpenGLFixed.o \
+	src/DisplayDeviceSDL.o \
+	src/Frustum.o \
+	src/LightObject.o \
+	src/logger.o \
+	src/main.o \
+	src/Renderable.o \
+	src/RenderManager.o \
+	src/RenderQueue.o \
+	src/RenderVariable.o \
+	src/SceneGraph.o \
+	src/SceneNode.o \
+	src/SceneObject.o \
+	src/SceneParameters.o \
+	src/Shaders.o \
+	src/Surface.o \
+	src/SurfaceSDL.o \
+	src/Texture.o \
+	src/TextureOpenGL.o \
+	src/TextureSDL.o \
+	src/VGraph.o \
+	src/VGraphCairo.o \
+	src/VGraphOpenGL.o \
+	src/VGraphOpenGLFixed.o \
+	src/WindowManager.o

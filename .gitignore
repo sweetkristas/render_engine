@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# compiler dependency tracking
+*.d
+
 vs2012/Debug
 vs2012/Release
 render_engine.sdf

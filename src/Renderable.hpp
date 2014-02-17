@@ -49,7 +49,7 @@ namespace Render
 		void SetScale(const glm::vec3& scale);
 		const glm::vec3& Scale() const { return scale_; }
 
-		const glm::mat4& ModelMatrix() const;
+		glm::mat4 ModelMatrix() const;
 
 		size_t Order() const { return order_; }
 		void SetOrder(size_t o) { order_ = o; }
