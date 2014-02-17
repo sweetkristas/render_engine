@@ -83,7 +83,7 @@
     <ClInclude Include="..\src\WindowManagerFwd.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\cairo\external\x86\lib\cairo-static.lib" />
+    <Library Include="..\..\cairo\external\x86\lib\cairo.lib" />
     <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
     <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
     <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />

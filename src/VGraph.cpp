@@ -21,7 +21,11 @@
 	   distribution.
 */
 
+#include "asserts.hpp"
 #include "VGraph.hpp"
+#include "VGraphCairo.hpp"
+#include "VGraphOpenGL.hpp"
+#include "VGraphOpenGLFixed.hpp"
 
 namespace Graphics
 {
@@ -33,6 +37,22 @@ namespace Graphics
 
 		Context::~Context()
 		{
+		}
+
+		ContextPtr Context::CreateInstance(const std::string& hint, int width, int height)
+		{
+			if(hint == "cairo") {
+				return ContextPtr(new CairoContext(width, height));
+			} else if(hint == "opengl") {
+				// XXX
+				// return ContextPtr(new OpenGLContext(width, height));
+			} else if(hint == "opengl-fixed") {
+				// XXX
+				// return ContextPtr(new OpenGLFixedContext(width, height));
+			} else {
+				ASSERT_LOG(false, "Unrecognised hint to create vector graphics instance: " << hint);
+			}
+			return ContextPtr();
 		}
 	}
 }

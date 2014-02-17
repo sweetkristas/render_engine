@@ -213,7 +213,7 @@ namespace Graphics
 
 		bool CairoContext::InFill(const double x, const double y)
 		{
-			return cairo_in_fill(context_, x, y);
+			return cairo_in_fill(context_, x, y) ? true : false;
 		}
 
 
@@ -233,7 +233,7 @@ namespace Graphics
 
 		bool CairoContext::InStroke(const double x, const double y)
 		{
-			return cairo_in_stroke(context_, x, y);
+			return cairo_in_stroke(context_, x, y) ? true : false;
 		}
 
 
@@ -253,7 +253,7 @@ namespace Graphics
 
 		bool CairoContext::InClip(const double x, const double y)
 		{
-			return cairo_in_clip(context_, x, y);
+			return cairo_in_clip(context_, x, y) ? true : false;
 		}
 
 		void CairoContext::ClipReset()
@@ -273,7 +273,7 @@ namespace Graphics
 
 		bool CairoContext::HasCurrentPoint()
 		{
-			return cairo_has_current_point(context_);
+			return cairo_has_current_point(context_) ? true : false;
 		}
 
 		void CairoContext::Render(const WindowManagerPtr& wnd)

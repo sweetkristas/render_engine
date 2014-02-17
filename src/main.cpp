@@ -131,9 +131,9 @@ int main(int argc, char *argv[])
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
-	Graphics::Context canvas;
-	canvas.SetSourceColor(0.0, 1.0, 0.0);
-	canvas.Paint();
+	auto canvas = Graphics::Vector::Context::CreateInstance("cairo", 512, 512);
+	canvas->SetSourceColor(0.0, 1.0, 0.0);
+	canvas->Paint();
 
 	SDL_Event e;
 	bool done = false;
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 
-		canvas.Render(main_wnd);
+		canvas->Render(main_wnd);
 
 
 		double t1 = timer.check();

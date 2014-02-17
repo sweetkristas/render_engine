@@ -34,5 +34,8 @@ namespace Graphics
 
 		class Path;
 		typedef std::shared_ptr<Path> PathPtr;
+
+		class Context;
+		typedef std::shared_ptr<Context> ContextPtr;
 	}
 }

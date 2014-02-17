@@ -89,6 +89,8 @@ namespace Graphics
 
 			virtual void GetCurrentPoint(double& x, double& y) override;
 			virtual bool HasCurrentPoint() override;
+
+			virtual void Render(const WindowManagerPtr& wnd) override;
 		private:
 			cairo_t* context_;
 			cairo_surface_t* surface_;

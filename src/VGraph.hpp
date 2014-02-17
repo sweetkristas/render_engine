@@ -96,7 +96,6 @@ namespace Graphics
 		class Context
 		{
 		public:
-			Context();
 			virtual ~Context();
 				
 			virtual void Save() = 0;
@@ -153,6 +152,10 @@ namespace Graphics
 			virtual bool HasCurrentPoint() = 0;
 
 			virtual void Render(const WindowManagerPtr& wnd) = 0;
+
+			static ContextPtr CreateInstance(const std::string& hint, int width, int height);
+		protected:
+			Context();
 		private:
 			Context(const Context&);
 		};
