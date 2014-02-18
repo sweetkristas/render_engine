@@ -23,19 +23,25 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include "Surface.hpp"
+#include "variant.hpp"
 
 namespace Graphics
 {
 	class Texture
 	{
 	public:
+		Texture(const variant& node);
 		Texture(const std::string& filename);
-		Texture(const SurfacePtr& surface);
+		Texture(const SurfacePtr& surface, const variant& node);
 		virtual ~Texture();
 
+		virtual void Update(int x, int y, int width, int height, int stride, void* pixels) = 0;
 	private:
 		Texture();
 	};
+
+	typedef std::shared_ptr<Texture> TexturePtr;
 }

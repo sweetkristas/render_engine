@@ -35,6 +35,8 @@ namespace Graphics
 		OpenGLTexture(const std::string& filename);
 		OpenGLTexture(const SurfacePtr& surface);
 		virtual ~OpenGLTexture();
+
+		void Update(int x, int y, int width, int height, int stride, void* pixels) override;
 	private:
 		GLuint texture_id_;
 	};

@@ -33,7 +33,8 @@ namespace Graphics
 {
 	namespace Vector
 	{
-		CairoContext::CairoContext(int width, int height)
+		CairoContext::CairoContext(const WindowManagerPtr& wnd, int width, int height)
+			: Context(width, height)
 		{
 			surface_ = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 			auto status = cairo_surface_status(surface_);
@@ -42,6 +43,53 @@ namespace Graphics
 			context_ = cairo_create(surface_);
 			status = cairo_status(context_);
 			ASSERT_LOG(status == CAIRO_STATUS_SUCCESS, "Unable to create cairo instance: " << cairo_status_to_string(status));
+
+			int w = cairo_image_surface_get_width(surface_);
+			int h = cairo_image_surface_get_height(surface_);
+			auto fmt = cairo_image_surface_get_format(surface_);
+			int stride = cairo_image_surface_get_stride(surface_);
+			size_t bpp;
+			size_t rmask, gmask, bmask, amask;
+			switch(fmt) {
+				case CAIRO_FORMAT_ARGB32:
+					rmask = 0x00ff0000;
+					gmask = 0x0000ff00;
+					bmask = 0x000000ff;
+					amask = 0xff000000;
+					bpp = 32;
+					break;
+				case CAIRO_FORMAT_RGB24:
+					rmask = 0x00ff0000;
+					gmask = 0x0000ff00;
+					bmask = 0x000000ff;
+					amask = 0x00000000;
+					bpp = 32;
+					break;
+				case CAIRO_FORMAT_A8:
+					ASSERT_LOG(false, "CAIRO_FORMAT_A8 unsupported at this time");
+					break;
+				case CAIRO_FORMAT_A1:
+					ASSERT_LOG(false, "CAIRO_FORMAT_A1 unsupported at this time");
+					break;
+				case CAIRO_FORMAT_RGB16_565:
+					rmask = 0x0000f800;
+					gmask = 0x000007e0;
+					bmask = 0x0000001f;
+					amask = 0x00000000;
+					bpp = 16;
+					break;
+				case CAIRO_FORMAT_RGB30:
+					rmask = 0x3ff00000;
+					gmask = 0x000ffc00;
+					bmask = 0x000003ff;
+					amask = 0x00000000;
+					bpp = 30;
+					break;
+				default:
+					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
+			}
+			auto surf = wnd->CreateSurface(w, h, bpp, stride, rmask, gmask, bmask, amask, cairo_image_surface_get_data(surface_));
+			tex_ = wnd->GetDisplayDevice()->CreateTexture(surf);
 		}
 
 		CairoContext::~CairoContext()
@@ -278,8 +326,12 @@ namespace Graphics
 
 		void CairoContext::Render(const WindowManagerPtr& wnd)
 		{
-			// XXX
+			// XXX we should move this to a one off thing when creating the
+			// texture then just stream it here. (even better only stream on change).
 			// render to texture then draw that to wnd
+			
+			tex_->Update(0, 0, width(), height(), cairo_image_surface_get_stride(surface_), cairo_image_surface_get_data(surface_));
+			wnd->BlitTexture(tex_, 0, 0, width(), height());
 		}
 	}
 }

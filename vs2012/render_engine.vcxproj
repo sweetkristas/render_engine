@@ -17,7 +17,9 @@
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
+    <ClCompile Include="..\src\filesystem.cpp" />
     <ClCompile Include="..\src\Frustum.cpp" />
+    <ClCompile Include="..\src\json.cpp" />
     <ClCompile Include="..\src\LightObject.cpp" />
     <ClCompile Include="..\src\logger.cpp" />
     <ClCompile Include="..\src\main.cpp" />
@@ -35,6 +37,7 @@
     <ClCompile Include="..\src\Texture.cpp" />
     <ClCompile Include="..\src\TextureOpenGL.cpp" />
     <ClCompile Include="..\src\TextureSDL.cpp" />
+    <ClCompile Include="..\src\variant.cpp" />
     <ClCompile Include="..\src\VGraph.cpp" />
     <ClCompile Include="..\src\VGraphCairo.cpp" />
     <ClCompile Include="..\src\VGraphOpenGL.cpp" />
@@ -51,7 +54,10 @@
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
+    <ClInclude Include="..\src\filesystem.hpp" />
+    <ClInclude Include="..\src\formatter.hpp" />
     <ClInclude Include="..\src\Frustum.hpp" />
+    <ClInclude Include="..\src\json.hpp" />
     <ClInclude Include="..\src\LightObject.hpp" />
     <ClInclude Include="..\src\logger.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
@@ -74,6 +80,7 @@
     <ClInclude Include="..\src\Texture.hpp" />
     <ClInclude Include="..\src\TextureOpenGL.hpp" />
     <ClInclude Include="..\src\TextureSDL.hpp" />
+    <ClInclude Include="..\src\variant.hpp" />
     <ClInclude Include="..\src\VGraph.hpp" />
     <ClInclude Include="..\src\VGraphCairo.hpp" />
     <ClInclude Include="..\src\VGraphFwd.hpp" />

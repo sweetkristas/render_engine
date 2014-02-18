@@ -96,7 +96,11 @@ namespace Graphics
 		class Context
 		{
 		public:
+			Context(int width, int height);
 			virtual ~Context();
+
+			int width() const { return width_; }
+			int height() const { return height_; }
 				
 			virtual void Save() = 0;
 			virtual void Restore() = 0;
@@ -153,10 +157,13 @@ namespace Graphics
 
 			virtual void Render(const WindowManagerPtr& wnd) = 0;
 
-			static ContextPtr CreateInstance(const std::string& hint, int width, int height);
+			static ContextPtr CreateInstance(const std::string& hint, const WindowManagerPtr& wnd, int width, int height);
 		protected:
 			Context();
 		private:
+			int width_;
+			int height_;
+
 			Context(const Context&);
 		};
 	}

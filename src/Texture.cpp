@@ -25,12 +25,16 @@
 
 namespace Graphics
 {
+	Texture::Texture(const variant& node)
+	{
+	}
+
 	Texture::Texture(const std::string& filename)
 	{
 		// XXX
 	}
 
-	Texture::Texture(const SurfacePtr& surface)
+	Texture::Texture(const SurfacePtr& surface, const variant& node)
 	{
 		// XXX
 	}

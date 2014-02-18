@@ -25,6 +25,7 @@
 
 #include <cairo/cairo.h>
 
+#include "Texture.hpp"
 #include "VGraph.hpp"
 
 namespace Graphics
@@ -34,7 +35,7 @@ namespace Graphics
 		class CairoContext : public Context
 		{
 		public:
-			CairoContext(int width, int height);
+			CairoContext(const WindowManagerPtr& wnd, int width, int height);
 			virtual ~CairoContext();
 
 			virtual void Save() override;
@@ -94,6 +95,8 @@ namespace Graphics
 		private:
 			cairo_t* context_;
 			cairo_surface_t* surface_;
+
+			TexturePtr tex_;
 		};
 	}
 }

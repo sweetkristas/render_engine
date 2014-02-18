@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
-	auto canvas = Graphics::Vector::Context::CreateInstance("cairo", 512, 512);
+	auto canvas = Graphics::Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
 	canvas->SetSourceColor(0.0, 1.0, 0.0);
 	canvas->Paint();
 

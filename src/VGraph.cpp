@@ -35,20 +35,25 @@ namespace Graphics
 		{
 		}
 
+		Context::Context(int width, int height)
+			: width_(width), height_(height)
+		{
+		}
+
 		Context::~Context()
 		{
 		}
 
-		ContextPtr Context::CreateInstance(const std::string& hint, int width, int height)
+		ContextPtr Context::CreateInstance(const std::string& hint, const WindowManagerPtr& wnd, int width, int height)
 		{
 			if(hint == "cairo") {
-				return ContextPtr(new CairoContext(width, height));
+				return ContextPtr(new CairoContext(wnd, width, height));
 			} else if(hint == "opengl") {
 				// XXX
-				// return ContextPtr(new OpenGLContext(width, height));
+				// return ContextPtr(new OpenGLContext(wnd, width, height));
 			} else if(hint == "opengl-fixed") {
 				// XXX
-				// return ContextPtr(new OpenGLFixedContext(width, height));
+				// return ContextPtr(new OpenGLFixedContext(wnd, width, height));
 			} else {
 				ASSERT_LOG(false, "Unrecognised hint to create vector graphics instance: " << hint);
 			}

@@ -27,6 +27,7 @@
 
 #include "DisplayDevice.hpp"
 #include "Renderable.hpp"
+#include "Texture.hpp"
 #include "WindowManagerFwd.hpp"
 
 namespace Graphics
@@ -99,6 +100,8 @@ namespace Graphics
 		// color clear_color() const { return clear_color_; }
 
 		DisplayDevicePtr GetDisplayDevice() { return display_; }
+
+		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
 
 		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 	protected:
