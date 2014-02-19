@@ -28,14 +28,20 @@ namespace Graphics
 	/// XXXXX we need a way to specify texture wrap and min/mag filtering
 	// for textures based on a variant type.
 
+	OpenGLTexture::OpenGLTexture(const variant& node)
+		: Texture(node)
+	{
+		// XXX
+	}
+
 	OpenGLTexture::OpenGLTexture(const std::string& filename)
 		: Texture(filename)
 	{
 		// XXX
 	}
 
-	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface)
-		: Texture(surface)
+	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, const variant& node)
+		: Texture(surface, node)
 	{
 		glGenTextures(1, &texture_id_);
 		glBindTexture(GL_TEXTURE_2D, texture_id_);

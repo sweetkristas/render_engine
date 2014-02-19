@@ -313,6 +313,13 @@ namespace Graphics
 		handle_set_clear_color();
 	}
 
+	void WindowManager::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
+	{
+		ASSERT_LOG(display_ != NULL, "No display to blit to.");
+		display_->BlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
+
+	}
+
 	WindowManagerPtr WindowManager::factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)
 	{
 		// We really only support one sub-class of the window manager

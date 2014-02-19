@@ -62,8 +62,10 @@ namespace Shader
 		ConstActivesMapIterator GetAttributeIterator(const std::string& attr) const;
 		ConstActivesMapIterator GetUniformIterator(const std::string& attr) const;
 
-		void SetUniform(ConstActivesMapIterator it, const GLfloat*);
-		void SetUniform(ConstActivesMapIterator it, const GLint*);
+		void SetActives();
+
+		void SetUniformValue(ConstActivesMapIterator it, const GLfloat*);
+		void SetUniformValue(ConstActivesMapIterator it, const GLint*);
 
 		void MakeActive();
 
@@ -72,6 +74,13 @@ namespace Shader
 
 		static ShaderProgramPtr Factory(const std::string& name);
 		static ShaderProgramPtr DefaultSystemShader();
+
+		ConstActivesMapIterator GetColorUniform() const { return u_color_; }
+		ConstActivesMapIterator GetMvpUniform() const { return u_mvp_; }
+		ConstActivesMapIterator GetColorAttribute() const { return a_color_; }
+		ConstActivesMapIterator GetVertexAttribute() const { return a_vertex_; }
+		ConstActivesMapIterator GetTexcoordAttribute() const { return a_texcoord_; }
+
 	protected:
 		bool Link();
 		bool QueryUniforms();
@@ -87,6 +96,14 @@ namespace Shader
 		ActivesMap uniforms_;
 		std::map<std::string, std::string> uniform_alternate_name_map_;
 		std::map<std::string, std::string> attribute_alternate_name_map_;
+
+		// Store for common attributes and uniforms
+		ConstActivesMapIterator u_mvp_;
+		ConstActivesMapIterator u_color_;
+		ConstActivesMapIterator a_vertex_;
+		ConstActivesMapIterator a_texcoord_;
+		ConstActivesMapIterator a_color_;
+
 		ShaderProgram();
 		ShaderProgram(const ShaderProgram&);
 	};

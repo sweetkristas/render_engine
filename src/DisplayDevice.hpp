@@ -29,6 +29,7 @@
 
 #include "DisplayDeviceFwd.hpp"
 #include "Renderable.hpp"
+#include "variant.hpp"
 
 namespace Graphics
 {
@@ -94,7 +95,8 @@ namespace Graphics
 
 		virtual void render(const Render::RenderablePtr& r) = 0;
 
-		virtual TexturePtr CreateTexture(const SurfacePtr& surface) = 0;
+		virtual TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) = 0;
+		virtual void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 

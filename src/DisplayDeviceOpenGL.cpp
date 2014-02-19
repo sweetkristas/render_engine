@@ -231,8 +231,52 @@ namespace Graphics
 		}
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface)
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, const variant& node)
 	{
-		return TexturePtr(new OpenGLTexture(surface));
+		return TexturePtr(new OpenGLTexture(surface, node));
+	}
+
+	void DisplayDeviceOpenGL::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
+	{
+		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
+		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
+		texture->Bind();
+
+		const float tx1 = float(srcx) / texture->Width();
+		const float ty1 = float(srcy) / texture->Height();
+		const float tx2 = srcw == 0 ? 1.0f : float(srcx + srcw) / texture->Width();
+		const float ty2 = srch == 0 ? 1.0f : float(srcy + srch) / texture->Height();
+		const float uv_coords[] = {
+			tx1, ty1,
+			tx1, ty2,
+			tx2, ty1,
+			tx2, ty2,
+		};
+
+		const float vx1 = float(dstx);
+		const float vy1 = float(dstx);
+		const float vx2 = float(dstx + dstw);
+		const float vy2 = float(dsty + dsth);
+		const float vtx_coords[] = {
+			vx1, vy1,
+			vx2, vy1,
+			vx1, vy2,
+			vx2, vy2,
+		};
+
+		glm::mat4 model = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f));
+		glm::mat4 mvp = /* projection * view * */ model;
+
+		auto shader = Shader::ShaderProgram::DefaultSystemShader();
+		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(mvp));
+		glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
+		glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vtx_coords);
+		glEnableVertexAttribArray(shader->GetTexcoordAttribute()->second.location);
+		glVertexAttribPointer(shader->GetTexcoordAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, uv_coords);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		glDisableVertexAttribArray(shader->GetTexcoordAttribute()->second.location);
+		glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
 	}
 }

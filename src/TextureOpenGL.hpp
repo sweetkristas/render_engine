@@ -32,12 +32,20 @@ namespace Graphics
 	class OpenGLTexture : public Texture
 	{
 	public:
+		OpenGLTexture(const variant& node);
 		OpenGLTexture(const std::string& filename);
-		OpenGLTexture(const SurfacePtr& surface);
+		OpenGLTexture(const SurfacePtr& surface, const variant& node);
 		virtual ~OpenGLTexture();
+
+		void Bind(int n=0) { glActiveTexture(GL_TEXTURE0 + n); glBindTexture(GL_TEXTURE_2D, texture_id_); }
+
+		int Width() const { return width_; }
+		int Height() const { return height_; }
 
 		void Update(int x, int y, int width, int height, int stride, void* pixels) override;
 	private:
+		int width_;
+		int height_;
 		GLuint texture_id_;
 	};
 }

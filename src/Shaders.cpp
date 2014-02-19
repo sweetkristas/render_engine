@@ -122,6 +122,7 @@ namespace Shader
 				for(auto& dam : default_attribue_mapping) {
 					spp->SetAlternateAttributeName(dam.name, dam.alt_name);
 				}
+				spp->SetActives();
 
 				spp = ShaderProgramPtr(new ShaderProgram("simple", 
 					ShaderDef("simple_vs", default_vs), 
@@ -133,6 +134,7 @@ namespace Shader
 				for(auto& sam : simple_attribue_mapping) {
 					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
 				}
+				spp->SetActives();
 
 				// XXX load some default shaders here.
 			}
@@ -222,12 +224,12 @@ namespace Shader
 		}
 		auto alt_name_it = attribute_alternate_name_map_.find(attr);
 		if(alt_name_it == attribute_alternate_name_map_.end()) {
-			LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			return GLint(-1);
 		}
 		it = attribs_.find(alt_name_it->second);
 		if(it == attribs_.end()) {
-			LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+			LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 			return GLint(-1);
 		}
 		return it->second.location;
@@ -241,12 +243,12 @@ namespace Shader
 		}
 		auto alt_name_it = uniform_alternate_name_map_.find(attr);
 		if(alt_name_it == uniform_alternate_name_map_.end()) {
-			LOG_WARN("Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+			LOG_WARN("Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			return GLint(-1);
 		}
 		it = uniforms_.find(alt_name_it->second);
 		if(it == uniforms_.end()) {
-			LOG_WARN("Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+			LOG_WARN("Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 			return GLint(-1);
 		}
 		return it->second.location;
@@ -258,10 +260,10 @@ namespace Shader
 		if(it == attribs_.end()) {
 			auto alt_name_it = attribute_alternate_name_map_.find(attr);
 			ASSERT_LOG(alt_name_it != attribute_alternate_name_map_.end(), 
-				"Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+				"Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			it = attribs_.find(alt_name_it->second);
 			ASSERT_LOG(it != attribs_.end(), 
-				"Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+				"Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 		}
 		return it;
 	}
@@ -272,10 +274,10 @@ namespace Shader
 		if(it == uniforms_.end()) {
 			auto alt_name_it = uniform_alternate_name_map_.find(attr);
 			ASSERT_LOG(alt_name_it != uniform_alternate_name_map_.end(), 
-				"Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader.");
+				"Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			it = uniforms_.find(alt_name_it->second);
 			ASSERT_LOG(it != uniforms_.end(), 
-				"Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr);
+				"Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 		}
 		return it;
 	}
@@ -356,7 +358,7 @@ namespace Shader
 		glUseProgram(object_);
 	}
 
-	void ShaderProgram::SetUniform(ConstActivesMapIterator it, const GLint* value)
+	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint* value)
 	{
 		const Actives& u = it->second;
 		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
@@ -384,7 +386,7 @@ namespace Shader
 		}
 	}
 
-	void ShaderProgram::SetUniform(ConstActivesMapIterator it, const GLfloat* value)
+	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLfloat* value)
 	{
 		const Actives& u = it->second;
 		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
@@ -434,6 +436,26 @@ namespace Shader
 		ASSERT_LOG(attribute_alternate_name_map_.find(alt_name) == attribute_alternate_name_map_.end(),
 			"Trying to replace alternative attribute name: " << alt_name << " " << name);
 		attribute_alternate_name_map_[alt_name] = name;
+	}
+
+	void ShaderProgram::SetActives()
+	{
+		// Cache some frequently used uniforms.
+		if(GetUniform("mvp_matrix") != -1) {
+			u_mvp_ = GetUniformIterator("mvp_matrix");
+		}
+		if(GetUniform("color") != -1) {
+			u_color_ = GetUniformIterator("color");
+		}
+		if(GetAttribute("position") != -1) {
+			a_vertex_ = GetAttributeIterator("position");
+		}
+		if(GetAttribute("texcoord") != -1) {
+			a_texcoord_ = GetAttributeIterator("texcoord");
+		}
+		if(GetAttribute("color") != -1) {
+			a_color_ = GetAttributeIterator("color");
+		}
 	}
 
 	ShaderProgramPtr ShaderProgram::Factory(const std::string& name)
