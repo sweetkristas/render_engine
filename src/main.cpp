@@ -85,6 +85,39 @@ void recurse_tree(const the::tree<int>& xt, the::tree<int>::pre_iterator& it)
 }
 
 
+#include "Shaders.hpp"
+void gl_test()
+{
+	const float w = 800.0f;
+	const float h = 600.0f;
+	const float vcoords[] = {
+		0.0f, 0.0f,
+		0.0f,    h,
+		   w, 0.0f,
+		   w,    h,
+	};
+
+	auto shader = Shader::ShaderProgram::Factory("simple");
+	shader->MakeActive();
+
+	glm::mat4 pmat = glm::ortho(0.0f, 512.0f, 512.0f, 0.0f);
+	shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
+	shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(0.0f,1.0f,0.0f,1.0f)));
+	
+	int value = 0;
+	shader->SetUniformValue(shader->GetUniformIterator("discard"), &value);
+	const float point_size = 1.0f;
+	shader->SetUniformValue(shader->GetUniformIterator("point_size"), &point_size);
+
+	glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
+	glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vcoords);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
+}
+
+
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
@@ -123,9 +156,9 @@ int main(int argc, char *argv[])
 	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 	root->AttachLight(0, sunlight);
 
-	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	square->SetPosition(0.5f, 0.5f);
-	root->AttachObject(square);
+	//SquareRenderablePtr square(std::make_shared<SquareRenderable>());
+	//square->SetPosition(0.5f, 0.5f);
+	//root->AttachObject(square);
 
 	auto rman = std::make_shared<Render::RenderManager>();
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
@@ -134,6 +167,7 @@ int main(int argc, char *argv[])
 	auto canvas = Graphics::Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
 	canvas->SetSourceColor(0.0, 1.0, 0.0);
 	canvas->Paint();
+	canvas->Fill();
 
 	SDL_Event e;
 	bool done = false;
@@ -146,8 +180,10 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		scene->RenderScene(rman);
-		rman->Render(main_wnd);
+
+		//gl_test();
+		//scene->RenderScene(rman);
+		//rman->Render(main_wnd);
 
 		canvas->Render(main_wnd);
 

@@ -265,10 +265,16 @@ namespace Graphics
 		};
 
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f));
-		glm::mat4 mvp = /* projection * view * */ model;
+		glm::mat4 pmat = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f);
+		glm::mat4 mvp = pmat * /* view * */ model;
 
 		auto shader = Shader::ShaderProgram::DefaultSystemShader();
+		shader->MakeActive();
 		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(mvp));
+		shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(1.0f,1.0f,1.0f,1.0f)));
+		int value = 0;
+		shader->SetUniformValue(shader->GetUniformIterator("discard"), &value);
+		shader->SetUniformValue(shader->GetUniformIterator("tex_map"), &value);
 		glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
 		glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vtx_coords);
 		glEnableVertexAttribArray(shader->GetTexcoordAttribute()->second.location);

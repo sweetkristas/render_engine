@@ -11,32 +11,21 @@ namespace Shader
 		const char* const default_vs = 
 			"uniform mat4 u_mvp_matrix;\n"
 			"attribute vec2 a_position;\n"
-			"attribute vec4 a_color;\n"
 			"attribute vec2 a_texcoord;\n"
-			"uniform bool u_use_attrib_color;\n"
 			"varying vec2 v_texcoord;\n"
-			"varying vec4 v_color;\n"
 			"void main()\n"
 			"{\n"
-			"    if(u_use_attrib_color) {\n"
-			"        v_color = a_color;\n"
-			"    }\n"
 			"    v_texcoord = a_texcoord;\n"
 			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
 			"}\n";
 		const char* const default_fs =
 			"uniform sampler2D u_tex_map;\n"
-			"varying vec4 v_color;\n"
 			"varying vec2 v_texcoord;\n"
-			"uniform bool u_use_attrib_color;\n"
 			"uniform bool u_discard;\n"
 			"uniform vec4 u_color;\n"
 			"void main()\n"
 			"{\n"
 			"    vec4 color = texture2D(u_tex_map, v_texcoord);"
-			"    if(u_use_attrib_color) {\n"
-			"        color *= v_color;\n"
-			"    }\n"
 			"    if(u_discard && color[3] == 0.0) {\n"
 			"        discard;\n"
 			"    } else {\n"
@@ -49,14 +38,12 @@ namespace Shader
 			{"mvp_matrix", "u_mvp_matrix"},
 			{"color", "u_color"},
 			{"discard", "u_discard"},
-			{"use_attrib_color", "u_use_attrib_color"},
 			{"tex_map", "u_tex_map"},
 			{"tex_map0", "u_tex_map"},
 		};
 		const struct { const char* alt_name; const char* name; } default_attribue_mapping[] =
 		{
 			{"position", "a_position"},
-			{"color", "a_color"},
 			{"texcoord", "a_texcoord"},
 		};
 
@@ -64,32 +51,19 @@ namespace Shader
 			"uniform mat4 u_mvp_matrix;\n"
 			"uniform float u_point_size;\n"
 			"attribute vec2 a_position;\n"
-			"attribute vec4 a_color;\n"
-			"uniform bool u_use_attrib_color;\n"
-			"varying vec4 v_color;\n"
 			"void main()\n"
 			"{\n"
-			"    if(u_use_attrib_color) {\n"
-			"        v_color = a_color;\n"
-			"    }\n"
 			"    gl_PointSize = u_point_size;\n"
 			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
 			"}\n";
 		const char* const simple_fs =
-			"varying vec4 v_color;\n"
-			"uniform bool u_use_attrib_color;\n"
 			"uniform bool u_discard;\n"
 			"uniform vec4 u_color;\n"
 			"void main()\n"
 			"{\n"
-			"    vec4 color(1.0,1.0,1.0,1.0);\n"
-			"    if(u_use_attrib_color) {\n"
-			"        color *= v_color;\n"
-			"    }\n"
-			"    if(u_discard && color[3] == 0.0) {\n"
+			"    gl_FragColor = u_color;\n"
+			"    if(u_discard && gl_FragColor[3] == 0.0) {\n"
 			"        discard;\n"
-			"    } else {\n"
-			"        gl_FragColor = color * u_color;\n"
 			"    }\n"
 			"}\n";
 
@@ -99,12 +73,10 @@ namespace Shader
 			{"color", "u_color"},
 			{"discard", "u_discard"},
 			{"point_size", "u_point_size"},
-			{"use_attrib_color", "u_use_attrib_color"},
 		};
 		const struct { const char* alt_name; const char* name; } simple_attribue_mapping[] =
 		{
 			{"position", "a_position"},
-			{"color", "a_color"},
 		};
 
 		typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
@@ -125,8 +97,8 @@ namespace Shader
 				spp->SetActives();
 
 				spp = ShaderProgramPtr(new ShaderProgram("simple", 
-					ShaderDef("simple_vs", default_vs), 
-					ShaderDef("simple_fs", default_fs)));
+					ShaderDef("simple_vs", simple_vs), 
+					ShaderDef("simple_fs", simple_fs)));
 				res["simple"] = spp;
 				for(auto& sum : simple_uniform_mapping) {
 					spp->SetAlternateUniformName(sum.name, sum.alt_name);
@@ -185,6 +157,7 @@ namespace Shader
 	}
 
 	ShaderProgram::ShaderProgram(const std::string& name, const ShaderDef& vs, const ShaderDef& fs)
+		: object_(0)
 	{
 		Init(name, vs, fs);
 	}
@@ -309,7 +282,6 @@ namespace Shader
 			object_ = 0;
 			return false;
 		}
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		return QueryUniforms() && QueryAttributes();
 	}
 
@@ -453,8 +425,8 @@ namespace Shader
 		if(GetAttribute("texcoord") != -1) {
 			a_texcoord_ = GetAttributeIterator("texcoord");
 		}
-		if(GetAttribute("color") != -1) {
-			a_color_ = GetAttributeIterator("color");
+		if(GetAttribute("a_color") != -1) {
+			a_color_ = GetAttributeIterator("a_color");
 		}
 	}
 

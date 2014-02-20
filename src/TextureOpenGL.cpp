@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#include "asserts.hpp"
 #include "TextureOpenGL.hpp"
 
 namespace Graphics
@@ -32,20 +33,24 @@ namespace Graphics
 		: Texture(node)
 	{
 		// XXX
+		ASSERT_LOG(false, "writeme");
 	}
 
 	OpenGLTexture::OpenGLTexture(const std::string& filename)
 		: Texture(filename)
 	{
 		// XXX
+		ASSERT_LOG(false, "writeme");
 	}
 
 	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, const variant& node)
-		: Texture(surface, node)
+		: Texture(surface, node), width_(surface->width()), height_(surface->height())
 	{
 		glGenTextures(1, &texture_id_);
 		glBindTexture(GL_TEXTURE_2D, texture_id_);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width(), Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
