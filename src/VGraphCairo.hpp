@@ -32,6 +32,8 @@ namespace Graphics
 {
 	namespace Vector
 	{
+		class CairoPath;
+
 		class CairoContext : public Context
 		{
 		public:
@@ -92,11 +94,23 @@ namespace Graphics
 			virtual bool HasCurrentPoint() override;
 
 			virtual void Render(const WindowManagerPtr& wnd) override;
+
+			virtual PathPtr NewPath() override;
+			virtual void AddPath(const PathPtr& path) override;
+			virtual void AddSubPath(const PathPtr& path) override;
+		
+		protected:
+			cairo_t* GetContext() { return context_; }
+			cairo_surface_t* GetSurface() { return surface_; }
 		private:
 			cairo_t* context_;
 			cairo_surface_t* surface_;
 
+			std::vector<PathPtr> path_list_;
+
 			TexturePtr tex_;
+
+			friend class CairoPath;
 		};
 	}
 }

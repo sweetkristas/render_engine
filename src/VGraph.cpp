@@ -59,5 +59,10 @@ namespace Graphics
 			}
 			return ContextPtr();
 		}
+
+		PathPtr Context::NewPath()
+		{
+			return PathPtr();
+		}
 	}
 }

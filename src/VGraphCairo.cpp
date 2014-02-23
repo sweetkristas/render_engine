@@ -33,6 +33,106 @@ namespace Graphics
 {
 	namespace Vector
 	{
+		// XXX change this to generate and store a list of commands
+		class CairoPath : public Path
+		{
+		public:
+			CairoPath(CairoContext* context) : context_(context) {
+				ASSERT_LOG(context_ != NULL, "Passed an null context");
+			}
+			virtual ~CairoPath() {
+			}
+			virtual void MoveTo(const double x, const double y, const bool relative=false) override {
+				if(relative) {
+					cairo_rel_move_to(context_->GetContext(), x, y);
+				} else {
+					cairo_move_to(context_->GetContext(), x, y);
+				}
+			}
+			virtual void LineTo(const double x, const double y, const bool relative=false) override	{
+				if(relative) {
+					cairo_rel_line_to(context_->GetContext(), x, y);
+				} else {
+					cairo_line_to(context_->GetContext(), x, y);
+				}
+			}
+
+			// Helper function equivalent to drawing an arc between 0.0 and 2*M_PI
+			virtual void Circle(const double x, const double y, const double r) override {
+				cairo_arc(context_->GetContext(), x, y, r, 0, 2*M_PI);
+			}
+			virtual void Line(const double x1, const double y1, const double x2, const double y2) override {
+				cairo_move_to(context_->GetContext(), x1, y1);
+				cairo_line_to(context_->GetContext(), x2, y2);
+				cairo_close_path(context_->GetContext());
+			}
+			virtual void Rectangle(const double x, const double y, const double width, const double height) override {
+				cairo_move_to(context_->GetContext(), x, y);
+				cairo_rel_line_to(context_->GetContext(), width, 0);
+				cairo_rel_line_to(context_->GetContext(), 0, height);
+				cairo_rel_line_to(context_->GetContext(), -width, 0);
+				cairo_close_path(context_->GetContext());
+			}
+
+			virtual void Arc(const double cx, const double cy, const double radius, const double start_angle, const double end_angle, bool negative=false) override {
+				if(negative) {
+					cairo_arc_negative(context_->GetContext(), cx, cy, radius, start_angle, end_angle);
+				} else {
+					cairo_arc(context_->GetContext(), cx, cy, radius, start_angle, end_angle);
+				}
+			}
+				
+			// Adds a Cubic Bézier curve to the current path from the current position to the end position
+			// (ex,ey) using the control points (x1,y1) and (x2,y2)
+			// If relative is true then the curve is drawn with all positions relative to the current point.
+			virtual void CubicCurveTo(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) override {
+				if(relative) {
+					cairo_rel_curve_to(context_->GetContext(), x1, y1, x2, y2, ex, ey);
+				} else {
+					cairo_curve_to(context_->GetContext(), x1, y1, x2, y2, ex, ey);
+				}
+			}
+			// Adds a Quadratic Bézier curve to the current path from the current position to the end position
+			// (ex,ey) using the control point (x1,y1)
+			// If relative is true then the curve is drawn with all positions relative to the current point.
+			virtual void QuadraticCurveTo(const double x1, const double y1, const double ex, const double ey, bool relative=false) override {
+				ASSERT_LOG(context_->HasCurrentPoint(), "No current point defined.");
+				double cx, cy;
+				cairo_get_current_point(context_->GetContext(), &cx, &cy);
+
+				double nx1 = x1;
+				double ny1 = y1;
+				double nex = ex;
+				double ney = ey;
+				if(relative) {
+					nx1 += cx;
+					ny1 += cy;
+					nex += cx;
+					ney += cy;
+				}
+
+				double cp1x = cx + (2.0*(nx1-cx))/3.0;
+				double cp1y = cy + (2.0*(ny1-cy))/3.0;
+				double cp2x = nex + (2.0*(nx1-nex))/3.0;
+				double cp2y = ney + (2.0*(ny1-ney))/3.0;
+
+				cairo_curve_to(context_->GetContext(), cp1x, cp1y, cp2x, cp2y, ex, ey);
+			}
+
+			//virtual void GlyphPath(const std::vector<Glyph>& g);
+			//virtual void TextPath(const std::string& s);
+
+			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) override {
+				cairo_path_extents(context_->GetContext(), &x1, &y1, &x2, &y2);
+			}
+
+			virtual void ClosePath() override {
+				cairo_close_path(context_->GetContext());
+			}
+		private:
+			CairoContext* context_;
+		};
+
 		CairoContext::CairoContext(const WindowManagerPtr& wnd, int width, int height)
 			: Context(width, height)
 		{
@@ -322,6 +422,19 @@ namespace Graphics
 		bool CairoContext::HasCurrentPoint()
 		{
 			return cairo_has_current_point(context_) ? true : false;
+		}
+
+		PathPtr CairoContext::NewPath()
+		{
+			return PathPtr(new CairoPath(this));
+		}
+
+		void CairoContext::AddPath(const PathPtr& path)
+		{
+		}
+
+		void CairoContext::AddSubPath(const PathPtr& path)
+		{
 		}
 
 		void CairoContext::Render(const WindowManagerPtr& wnd)

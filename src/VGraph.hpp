@@ -157,6 +157,10 @@ namespace Graphics
 
 			virtual void Render(const WindowManagerPtr& wnd) = 0;
 
+			virtual PathPtr NewPath() = 0;
+			virtual void AddPath(const PathPtr& path) = 0;
+			virtual void AddSubPath(const PathPtr& path) = 0;
+
 			static ContextPtr CreateInstance(const std::string& hint, const WindowManagerPtr& wnd, int width, int height);
 		protected:
 			Context();
