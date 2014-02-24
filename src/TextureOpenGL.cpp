@@ -44,13 +44,30 @@ namespace Graphics
 	}
 
 	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, const variant& node)
-		: Texture(surface, node), width_(surface->width()), height_(surface->height())
+		: Texture(surface, node), width_(surface->width()), height_(surface->height()),
+		format_(GL_RGBA),
+		internal_format_(GL_RGBA),
+		type_(GL_UNSIGNED_BYTE)
 	{
 		glGenTextures(1, &texture_id_);
 		glBindTexture(GL_TEXTURE_2D, texture_id_);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width(), Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		// Need to change the format/internalFormat/type depending on the 
+		// data we now about the surface.
+
+		//auto fmt = surface->GetFormat();
+		//switch(fmt->GetPixelFormat()) {
+		//	case Surface::PIXELFORMAT_ARGB8888:
+				format_ = GL_BGRA;
+				internal_format_ = GL_RGBA8;
+				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
+		//		break;
+		//	default:
+		//		ASSERT_LOG(false, "Unrecognised pixel format: " << fmt->GetPixelFormat());
+		//}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, internal_format_, Width(), Height(), 0, format_, type_, 0);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -69,10 +86,7 @@ namespace Graphics
 	void OpenGLTexture::Update(int x, int y, int width, int height, int stride, void* pixels)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture_id_);
-		// XXX GL_UNSIGNED_BYTE may not be correct here?
-		// May need to use GL_BGRA &  GL_UNSIGNED_INT_8_8_8_8_REV if input format is
-		// ARGB
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA,  GL_UNSIGNED_BYTE, pixels);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, format_, type_, pixels);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }

@@ -30,6 +30,16 @@
 
 namespace Graphics
 {
+	class PixelFormat
+	{
+	public:
+		enum {
+			PIXELFORMAT_ARGB8888,
+			PIXELFORMAT_RGBA8888,
+		};
+	private:
+	};
+
 	class Surface
 	{
 	public:

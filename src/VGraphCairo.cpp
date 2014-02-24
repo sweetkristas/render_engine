@@ -33,78 +33,172 @@ namespace Graphics
 {
 	namespace Vector
 	{
-		// XXX change this to generate and store a list of commands
-		class CairoPath : public Path
+		enum InstructionType {
+			INS_UNKNOWN,
+			INS_CLOSE_PATH,
+			INS_MOVE_TO,
+			INS_LINE_TO,
+			INS_CURVE_TO,
+			INS_QUAD_CURVE_TO,
+			INS_ARC,
+			INS_TEXT_PATH,
+		};
+
+		class PathInstruction
 		{
 		public:
-			CairoPath(CairoContext* context) : context_(context) {
-				ASSERT_LOG(context_ != NULL, "Passed an null context");
-			}
-			virtual ~CairoPath() {
-			}
-			virtual void MoveTo(const double x, const double y, const bool relative=false) override {
-				if(relative) {
-					cairo_rel_move_to(context_->GetContext(), x, y);
-				} else {
-					cairo_move_to(context_->GetContext(), x, y);
-				}
-			}
-			virtual void LineTo(const double x, const double y, const bool relative=false) override	{
-				if(relative) {
-					cairo_rel_line_to(context_->GetContext(), x, y);
-				} else {
-					cairo_line_to(context_->GetContext(), x, y);
-				}
-			}
+			virtual ~PathInstruction() {}
+			InstructionType GetType() const { return InstructionType(instruction_type_); }
+			virtual void Execute(cairo_t* context) = 0;
+			virtual std::string AsString() const = 0;
+		protected:
+			PathInstruction() {}
+		private:
+			enum {
+				instruction_type_ = INS_UNKNOWN
+			};
+			PathInstruction(const PathInstruction&);
+		};
+		typedef std::shared_ptr<PathInstruction> PathInstructionPtr;
 
-			// Helper function equivalent to drawing an arc between 0.0 and 2*M_PI
-			virtual void Circle(const double x, const double y, const double r) override {
-				cairo_arc(context_->GetContext(), x, y, r, 0, 2*M_PI);
+		class ClosePathInstruction : public PathInstruction
+		{
+		public:
+			ClosePathInstruction() {}
+			virtual ~ClosePathInstruction() {}
+			void Execute(cairo_t* context) override {
+				cairo_close_path(context);
 			}
-			virtual void Line(const double x1, const double y1, const double x2, const double y2) override {
-				cairo_move_to(context_->GetContext(), x1, y1);
-				cairo_line_to(context_->GetContext(), x2, y2);
-				cairo_close_path(context_->GetContext());
-			}
-			virtual void Rectangle(const double x, const double y, const double width, const double height) override {
-				cairo_move_to(context_->GetContext(), x, y);
-				cairo_rel_line_to(context_->GetContext(), width, 0);
-				cairo_rel_line_to(context_->GetContext(), 0, height);
-				cairo_rel_line_to(context_->GetContext(), -width, 0);
-				cairo_close_path(context_->GetContext());
-			}
+			std::string AsString() const override { return "close_path"; }
+		private:
+			enum {
+				instruction_type_ = INS_CLOSE_PATH
+			};
+		};
 
-			virtual void Arc(const double cx, const double cy, const double radius, const double start_angle, const double end_angle, bool negative=false) override {
-				if(negative) {
-					cairo_arc_negative(context_->GetContext(), cx, cy, radius, start_angle, end_angle);
+		class MoveToInstruction : public PathInstruction
+		{
+		public:
+			MoveToInstruction(const double x, const double y, bool relative=false) 
+				: x_(x), y_(y), relative_(relative) {
+			}
+			virtual ~MoveToInstruction() {}
+			void Execute(cairo_t* context) override {
+				if(relative_) {
+					cairo_rel_move_to(context, x_, y_);
 				} else {
-					cairo_arc(context_->GetContext(), cx, cy, radius, start_angle, end_angle);
+					cairo_move_to(context, x_, y_);
 				}
 			}
-				
-			// Adds a Cubic Bézier curve to the current path from the current position to the end position
-			// (ex,ey) using the control points (x1,y1) and (x2,y2)
-			// If relative is true then the curve is drawn with all positions relative to the current point.
-			virtual void CubicCurveTo(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) override {
-				if(relative) {
-					cairo_rel_curve_to(context_->GetContext(), x1, y1, x2, y2, ex, ey);
+			std::string AsString() const override { return "move_to"; }
+		private:
+			enum {
+				instruction_type_ = INS_MOVE_TO
+			};
+			double x_;
+			double y_;
+			bool relative_;
+		};
+
+		class LineToInstruction : public PathInstruction
+		{
+		public:
+			LineToInstruction(const double x, const double y, bool relative=false) 
+				: x_(x), y_(y), relative_(relative) {
+			}
+			virtual ~LineToInstruction() {}
+			void Execute(cairo_t* context) override {
+				if(relative_) {
+					cairo_rel_line_to(context, x_, y_);
 				} else {
-					cairo_curve_to(context_->GetContext(), x1, y1, x2, y2, ex, ey);
+					cairo_line_to(context, x_, y_);
 				}
 			}
-			// Adds a Quadratic Bézier curve to the current path from the current position to the end position
-			// (ex,ey) using the control point (x1,y1)
-			// If relative is true then the curve is drawn with all positions relative to the current point.
-			virtual void QuadraticCurveTo(const double x1, const double y1, const double ex, const double ey, bool relative=false) override {
-				ASSERT_LOG(context_->HasCurrentPoint(), "No current point defined.");
+			std::string AsString() const override { return "line_to"; }
+		private:
+			enum {
+				instruction_type_ = INS_LINE_TO
+			};
+			double x_;
+			double y_;
+			bool relative_;
+		};
+
+		class ArcInstruction : public PathInstruction
+		{
+		public:
+			ArcInstruction(const double x, const double y, const double radius, const double start_angle, const double end_angle, bool negative=false) 
+				: x_(x), y_(y), radius_(radius), start_angle_(start_angle), end_angle_(end_angle), negative_(negative) {
+			}
+			virtual ~ArcInstruction() {}
+			void Execute(cairo_t* context) override {
+				if(negative_) {
+					cairo_arc_negative(context, x_, y_, radius_, start_angle_, end_angle_);
+				} else {
+					cairo_arc(context, x_, y_, radius_, start_angle_, end_angle_);
+				}
+			}
+			std::string AsString() const override { return "arc"; }
+		private:
+			enum {
+				instruction_type_ = INS_ARC
+			};
+			double x_;
+			double y_;
+			double radius_;
+			double start_angle_;
+			double end_angle_;
+			bool negative_;
+		};
+
+		class CubicCurveInstruction : public PathInstruction
+		{
+		public:
+			CubicCurveInstruction(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) 
+				: cp_x1_(x1), cp_y1_(y1), cp_x2_(x2), cp_y2_(y2), ex_(ex), ey_(ey), relative_(relative) {
+			}
+			virtual ~CubicCurveInstruction() {}
+			void Execute(cairo_t* context) override {
+				if(relative_) {
+					cairo_rel_curve_to(context, cp_x1_, cp_y1_, cp_x2_, cp_y2_, ex_, ey_);
+				} else {
+					cairo_curve_to(context, cp_x1_, cp_y1_, cp_x2_, cp_y2_, ex_, ey_);
+				}
+			}
+			std::string AsString() const override { return "cubic_bézier"; }
+		private:
+			enum {
+				instruction_type_ = INS_CURVE_TO
+			};
+			// control point 1
+			double cp_x1_;
+			double cp_y1_;
+			// control point 2
+			double cp_x2_;
+			double cp_y2_;
+			// end point
+			double ex_;
+			double ey_;
+			bool relative_;
+		};
+
+		class QuadraticCurveInstruction : public PathInstruction
+		{
+		public:
+			QuadraticCurveInstruction(const double x1, const double y1, const double ex, const double ey, bool relative=false) 
+				: cp_x1_(x1), cp_y1_(y1), ex_(ex), ey_(ey), relative_(relative) {
+			}
+			virtual ~QuadraticCurveInstruction() {}
+			void Execute(cairo_t* context) override {
+				ASSERT_LOG(cairo_has_current_point(context) != 0, "No current point defined.");
 				double cx, cy;
-				cairo_get_current_point(context_->GetContext(), &cx, &cy);
+				cairo_get_current_point(context, &cx, &cy);
 
-				double nx1 = x1;
-				double ny1 = y1;
-				double nex = ex;
-				double ney = ey;
-				if(relative) {
+				double nx1 = cp_x1_;
+				double ny1 = cp_y1_;
+				double nex = ex_;
+				double ney = ey_;
+				if(relative_) {
 					nx1 += cx;
 					ny1 += cy;
 					nex += cx;
@@ -116,21 +210,107 @@ namespace Graphics
 				double cp2x = nex + (2.0*(nx1-nex))/3.0;
 				double cp2y = ney + (2.0*(ny1-ney))/3.0;
 
-				cairo_curve_to(context_->GetContext(), cp1x, cp1y, cp2x, cp2y, ex, ey);
+				cairo_curve_to(context, cp1x, cp1y, cp2x, cp2y, nex, ney);
+			}
+			std::string AsString() const override { return "quadratic_bézier"; }
+		private:
+			enum {
+				instruction_type_ = INS_QUAD_CURVE_TO
+			};
+			// control point 1
+			double cp_x1_;
+			double cp_y1_;
+			// end point
+			double ex_;
+			double ey_;
+			bool relative_;
+		};
+
+		class TextPathInstruction : public PathInstruction
+		{
+		public:
+			TextPathInstruction(const std::string& text) : text_(text) {
+			}
+			virtual ~TextPathInstruction() {
+			}
+			void Execute(cairo_t* context) override {
+				cairo_text_path(context, text_.c_str());
+			}
+			std::string AsString() const override { return "text_path"; }
+		private:
+			std::string text_;
+		};
+
+		// XXX change this to generate and store a list of commands
+		class CairoPath : public Path
+		{
+		public:
+			CairoPath(CairoContext* context) : context_(context) {
+				ASSERT_LOG(context_ != NULL, "Passed an null context");
+			}
+			virtual ~CairoPath() {
+			}
+			virtual void MoveTo(const double x, const double y, const bool relative=false) override {
+				path_instructions_.emplace_back(new MoveToInstruction(x, y, relative));
+			}
+			virtual void LineTo(const double x, const double y, const bool relative=false) override	{
+				path_instructions_.emplace_back(new LineToInstruction(x, y, relative));
+			}
+
+			// Helper function equivalent to drawing an arc between 0.0 and 2*M_PI
+			virtual void Circle(const double x, const double y, const double r) override {
+				path_instructions_.emplace_back(new ArcInstruction(x, y, r, 0.0, 2.0*M_PI));
+			}
+			virtual void Line(const double x1, const double y1, const double x2, const double y2) override {
+				path_instructions_.emplace_back(new MoveToInstruction(x1, y1));
+				path_instructions_.emplace_back(new LineToInstruction(x2, y2));
+				path_instructions_.emplace_back(new ClosePathInstruction());
+			}
+			virtual void Rectangle(const double x, const double y, const double width, const double height) override {
+				path_instructions_.emplace_back(new MoveToInstruction(x, y));
+				path_instructions_.emplace_back(new LineToInstruction(width, 0));
+				path_instructions_.emplace_back(new LineToInstruction(0, height));
+				path_instructions_.emplace_back(new LineToInstruction(-width, 0));
+				path_instructions_.emplace_back(new ClosePathInstruction());
+			}
+
+			virtual void Arc(const double cx, const double cy, const double radius, const double start_angle, const double end_angle, bool negative=false) override {
+				path_instructions_.emplace_back(new ArcInstruction(cx, cy, radius, start_angle, end_angle, negative));
+			}
+				
+			// Adds a Cubic Bézier curve to the current path from the current position to the end position
+			// (ex,ey) using the control points (x1,y1) and (x2,y2)
+			// If relative is true then the curve is drawn with all positions relative to the current point.
+			virtual void CubicCurveTo(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) override {
+				path_instructions_.emplace_back(new CubicCurveInstruction(x1, y1, x2, y2, ex, ey, relative));
+			}
+			// Adds a Quadratic Bézier curve to the current path from the current position to the end position
+			// (ex,ey) using the control point (x1,y1)
+			// If relative is true then the curve is drawn with all positions relative to the current point.
+			virtual void QuadraticCurveTo(const double x1, const double y1, const double ex, const double ey, bool relative=false) override {
+				path_instructions_.emplace_back(new QuadraticCurveInstruction(x1, y1, ex, ey, relative));
 			}
 
 			//virtual void GlyphPath(const std::vector<Glyph>& g);
-			//virtual void TextPath(const std::string& s);
-
-			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) override {
-				cairo_path_extents(context_->GetContext(), &x1, &y1, &x2, &y2);
+			virtual void TextPath(const std::string& s) {
+				path_instructions_.emplace_back(new TextPathInstruction(s));
 			}
 
 			virtual void ClosePath() override {
-				cairo_close_path(context_->GetContext());
+				path_instructions_.emplace_back(new ClosePathInstruction());
+			}
+
+			void Execute(cairo_t* context) {
+				std::cerr << "Executing path:";
+				for(auto ins : path_instructions_) {
+					std::cerr << " " << ins->AsString();
+					ins->Execute(context);
+				}
+				std::cerr << std::endl;
 			}
 		private:
 			CairoContext* context_;
+			std::vector<PathInstructionPtr> path_instructions_;
 		};
 
 		CairoContext::CairoContext(const WindowManagerPtr& wnd, int width, int height)
@@ -431,20 +611,28 @@ namespace Graphics
 
 		void CairoContext::AddPath(const PathPtr& path)
 		{
+			auto cpath = std::dynamic_pointer_cast<CairoPath>(path);
+			ASSERT_LOG(cpath != NULL, "Couldn't convert path to appropriate type CairoPath");
+			cpath->Execute(context_);
 		}
 
 		void CairoContext::AddSubPath(const PathPtr& path)
 		{
+			auto cpath = std::dynamic_pointer_cast<CairoPath>(path);
+			ASSERT_LOG(cpath != NULL, "Couldn't convert path to appropriate type CairoPath");
+			cairo_new_sub_path(context_);
+			cpath->Execute(context_);
 		}
 
 		void CairoContext::Render(const WindowManagerPtr& wnd)
 		{
-			// XXX we should move this to a one off thing when creating the
-			// texture then just stream it here. (even better only stream on change).
-			// render to texture then draw that to wnd
-			
 			tex_->Update(0, 0, width(), height(), cairo_image_surface_get_stride(surface_), cairo_image_surface_get_data(surface_));
 			wnd->BlitTexture(tex_, 0, 0, width(), height());
+		}
+
+		void CairoContext::PathExtents(double& x1, double& y1, double& x2, double& y2) 
+		{
+			cairo_path_extents(context_, &x1, &y1, &x2, &y2);
 		}
 	}
 }

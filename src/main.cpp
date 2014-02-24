@@ -168,6 +168,19 @@ int main(int argc, char *argv[])
 	canvas->SetSourceColor(0.0, 1.0, 0.0);
 	canvas->Paint();
 	canvas->Fill();
+	auto path = canvas->NewPath();
+	path->Circle(256, 256, 100);
+	canvas->AddPath(path);
+	canvas->SetSourceColor(0.0, 0.0, 1.0);
+	canvas->Fill();
+	auto text = canvas->NewPath();
+	text->MoveTo(10, 10);
+	text->TextPath("ABCDabcde");
+	canvas->AddPath(text);
+	canvas->Fill();
+
+	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
+
 
 	SDL_Event e;
 	bool done = false;

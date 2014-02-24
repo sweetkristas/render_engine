@@ -47,5 +47,9 @@ namespace Graphics
 		int width_;
 		int height_;
 		GLuint texture_id_;
+
+		GLenum format_;
+		GLenum internal_format_;
+		GLenum type_;
 	};
 }

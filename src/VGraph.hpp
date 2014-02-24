@@ -84,9 +84,7 @@ namespace Graphics
 			virtual void QuadraticCurveTo(const double x1, const double y1, const double ex, const double ey, bool relative=false) = 0;
 
 			//virtual void GlyphPath(const std::vector<Glyph>& g);
-			//virtual void TextPath(const std::string& s);
-
-			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) = 0;
+			virtual void TextPath(const std::string& s) = 0;
 
 			virtual void ClosePath() = 0;
 		private:
@@ -160,6 +158,8 @@ namespace Graphics
 			virtual PathPtr NewPath() = 0;
 			virtual void AddPath(const PathPtr& path) = 0;
 			virtual void AddSubPath(const PathPtr& path) = 0;
+
+			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) = 0;
 
 			static ContextPtr CreateInstance(const std::string& hint, const WindowManagerPtr& wnd, int width, int height);
 		protected:

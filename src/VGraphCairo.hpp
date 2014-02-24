@@ -95,6 +95,8 @@ namespace Graphics
 
 			virtual void Render(const WindowManagerPtr& wnd) override;
 
+			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) override;
+
 			virtual PathPtr NewPath() override;
 			virtual void AddPath(const PathPtr& path) override;
 			virtual void AddSubPath(const PathPtr& path) override;
