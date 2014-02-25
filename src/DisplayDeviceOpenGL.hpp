@@ -44,7 +44,9 @@ namespace Graphics
 
 		void render(const Render::RenderablePtr& r) override;
 
-		TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) override;
+		TexturePtr CreateTexture(const SurfacePtr& surface, 
+			Texture::TextureType type, 
+			int mipmap_levels) override;
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) override;
 
 		void init(size_t width, size_t height);

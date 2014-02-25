@@ -35,20 +35,21 @@ namespace Graphics
 		Color(const double r, const double g, const double b, const double a=1.0);
 		Color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a=255);
 
-		double r() const { return red_; }
-		double g() const { return green_; }
-		double b() const { return blue_; }
-		double a() const { return alpha_; }
+		double r() const { return color_[0]; }
+		double g() const { return color_[1]; }
+		double b() const { return color_[2]; }
+		double a() const { return color_[3]; }
 
-		double red() const { return red_; }
-		double green() const { return green_; }
-		double blue() const { return blue_; }
-		double alpha() const { return alpha_; }
+		double red() const { return color_[0]; }
+		double green() const { return color_[1]; }
+		double blue() const { return color_[2]; }
+		double alpha() const { return color_[3]; }
 		
+		const float* AsFloatVector() const {
+			return color_;
+		}
+
 	private:
-		double red_;
-		double green_;
-		double blue_;
-		double alpha_;
+		float color_[4];
 	};
 }

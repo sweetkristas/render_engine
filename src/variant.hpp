@@ -68,6 +68,8 @@ public:
 	const variant& operator[](const variant& v) const;
 	const variant& operator[](const std::string& key) const;
 
+	size_t num_elements() const;
+
 	bool has_key(const variant& v) const;
 	bool has_key(const std::string& key) const;
 			

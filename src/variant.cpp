@@ -303,6 +303,26 @@ bool variant::operator==(const variant& n) const
 	return false;
 }
 
+size_t variant::num_elements() const
+{
+	if(type_ == VARIANT_TYPE_NULL){
+		return 0;
+	} else if(type_ == VARIANT_TYPE_BOOL) {
+		return 1;
+	} else if(type_ == VARIANT_TYPE_INTEGER) {
+		return 1;
+	} else if(type_ == VARIANT_TYPE_FLOAT) {
+		return 1;
+	} else if (type_ == VARIANT_TYPE_LIST) {
+		return l_.size();
+	} else if (type_ == VARIANT_TYPE_STRING) {
+		return s_.size();
+	} else if (type_ == VARIANT_TYPE_MAP) {
+		return m_.size();
+	}
+	return 0;
+}
+
 bool variant::operator!=(const variant& n) const
 {
 	return !operator==(n);

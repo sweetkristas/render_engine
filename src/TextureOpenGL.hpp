@@ -33,17 +33,25 @@ namespace Graphics
 	{
 	public:
 		OpenGLTexture(const variant& node);
-		OpenGLTexture(const std::string& filename);
-		OpenGLTexture(const SurfacePtr& surface, const variant& node);
+		OpenGLTexture(const std::string& filename, 
+			TextureType type=TextureType::TEXTURE_2D, 
+			int mipmap_levels=0);
+		OpenGLTexture(const SurfacePtr& surface, 
+			TextureType type=TextureType::TEXTURE_2D, 
+			int mipmap_levels=0);
 		virtual ~OpenGLTexture();
 
-		void Bind(int n=0) { glActiveTexture(GL_TEXTURE0 + n); glBindTexture(GL_TEXTURE_2D, texture_id_); }
+		void Bind(int n=0);
 
 		int Width() const { return width_; }
 		int Height() const { return height_; }
 
+		virtual void Init() override;
+
 		void Update(int x, int y, int width, int height, int stride, void* pixels) override;
 	private:
+		void CreateTexture();
+
 		int width_;
 		int height_;
 		GLuint texture_id_;

@@ -231,9 +231,9 @@ namespace Graphics
 		}
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, const variant& node)
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, Texture::TextureType type, int mipmap_levels)
 	{
-		return TexturePtr(new OpenGLTexture(surface, node));
+		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 
 	void DisplayDeviceOpenGL::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)

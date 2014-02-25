@@ -369,7 +369,7 @@ namespace Graphics
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
 			auto surf = wnd->CreateSurface(w, h, bpp, stride, rmask, gmask, bmask, amask, cairo_image_surface_get_data(surface_));
-			tex_ = wnd->GetDisplayDevice()->CreateTexture(surf, variant());
+			tex_ = wnd->GetDisplayDevice()->CreateTexture(surf);
 		}
 
 		CairoContext::~CairoContext()
