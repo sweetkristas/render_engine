@@ -130,6 +130,12 @@ namespace Graphics
 		//	default:
 		//		ASSERT_LOG(false, "Unrecognised pixel format: " << fmt->GetPixelFormat());
 		//}
+
+
+		/// XXX Need to fill the image here. Or at least do it optionally.
+		// Use glTexImage1D and glTexImage3D ????? as needed.
+		glTexImage2D(GetGLTextureType(GetType()), 0, internal_format_, Width(), Height(), 0, format_, type_, 0);
+		// If we are using a cubic texture 		
 	}
 
 	void OpenGLTexture::Init()
@@ -137,11 +143,6 @@ namespace Graphics
 		GLenum type = GetGLTextureType(GetType());
 
 		glBindTexture(type, texture_id_);
-
-		/// XXX Need to fill the image here. Or at least do it optionally.
-		// Use glTexImage1D and glTexImage3D ????? as needed.
-		glTexImage2D(type, 0, internal_format_, Width(), Height(), 0, format_, type_, 0);
-		// If we are using a cubic texture 		
 
 		glTexParameteri(type, GL_TEXTURE_WRAP_S, GetGLAddressMode(GetAddressModeU()));
 		if(GetAddressModeU() == AddressMode::BORDER) {
