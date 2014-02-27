@@ -32,7 +32,7 @@ namespace Graphics
 		uint32_t rmask, 
 		uint32_t gmask, 
 		uint32_t bmask, 
-		uint32_t amask) 
+		uint32_t amask) : has_data_(false)
 	{
 		surface_ = SDL_CreateRGBSurface(0, width, height, bpp, rmask, gmask, bmask, amask);
 		ASSERT_LOG(surface_ != NULL, "Error creating surface: " << SDL_GetError());
@@ -46,7 +46,7 @@ namespace Graphics
 		uint32_t gmask, 
 		uint32_t bmask, 
 		uint32_t amask, 
-		void* pixels)
+		void* pixels) : has_data_(true)
 	{
 		ASSERT_LOG(pixels != NULL, "NULL value for pixels while creating surface.");
 		surface_ = SDL_CreateRGBSurfaceFrom(pixels, width, height, bpp, row_pitch, rmask, gmask, bmask, amask);
@@ -67,6 +67,10 @@ namespace Graphics
 		if(SDL_MUSTLOCK(surface_) && !surface_->locked) {
 			ASSERT_LOG(false, "Surface is marked as needing to be locked but is not locked on Pixels access.");
 		}
+		// Kind of a kludge, since someone could use this for a read not just a write.
+		// XXXX Maybe a better scenario, would be to have a WritePixels() function that
+		// takes a source pixel format and the data then converts and writes it.
+		has_data_ = true;
 		return surface_->pixels;
 	}
 
@@ -89,20 +93,20 @@ namespace Graphics
 
 	}
 
-	/*bool SurfaceSDL::SetClipRect(const rect& r)
+	bool SurfaceSDL::SetClipRect(const rect& r)
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null");
-		SDL_Rect r = r.AsSDLRect();
-		return SDL_SetClipRect(surface_, &r);
-	}*/
+		SDL_Rect sr = r.sdl_rect();
+		return SDL_SetClipRect(surface_, &sr);
+	}
 
-	/*const rect& SurfaceSDL::GetClipRect()
+	const rect& SurfaceSDL::GetClipRect()
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null");
-		SDL_Rect r;
-		SDL_GetClipRect(surface_, &r);
-		return rect(r);
-	}*/
+		SDL_Rect sr;
+		SDL_GetClipRect(surface_, &sr);
+		return rect(sr);
+	}
 
 	void SurfaceSDL::Lock() 
 	{

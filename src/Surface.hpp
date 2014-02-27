@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "Geometry.hpp"
 #include "WindowManagerFwd.hpp"
 
 namespace Graphics
@@ -58,10 +59,12 @@ namespace Graphics
 		virtual void Lock() = 0;
 		virtual void Unlock() = 0;
 
+		virtual bool HasData() const = 0;
+
 		virtual bool SetClipRect(int x, int y, size_t width, size_t height) = 0;
 		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
-		//virtual bool SetClipRect(const rect& r) = 0;
-		//virtual const rect& GetClipRect() = 0;
+		virtual bool SetClipRect(const rect& r) = 0;
+		virtual const rect& GetClipRect() = 0;
 	protected:
 		Surface();
 	private:

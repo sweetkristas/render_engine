@@ -92,15 +92,23 @@ namespace Graphics
 			return surface_->format->Amask;
 		}
 
+		virtual bool HasData() const override {
+			if(surface_ == NULL) {
+				return false;
+			}
+			return has_data_;
+		}
+
 		bool SetClipRect(int x, int y, size_t width, size_t height) override;
 		void GetClipRect(int& x, int& y, size_t& width, size_t& height) override;
-		//bool SetClipRect(const rect& r) override;
-		//const rect& GetClipRect() override;
+		bool SetClipRect(const rect& r) override;
+		const rect& GetClipRect() override;
 
 		void Lock() override;
 		void Unlock() override;
 	private:
 		SDL_Surface* surface_;
+		bool has_data_;
 		SurfaceSDL();
 	};
 }
