@@ -22,10 +22,21 @@
 */
 
 #include <algorithm>
+#include <regex>
 #include "Geometry.hpp"
 
 namespace Geometry
 {
+	namespace
+	{
+		std::vector<std::string> split(const std::string& input, const std::string& re) {
+			// passing -1 as the submatch index parameter performs splitting
+			std::regex regex(re);
+			std::sregex_token_iterator first(input.begin(), input.end(), regex, -1), last;
+			return std::vector<std::string>(first, last);
+		}	
+	}
+
 	template<typename T>
 	Point<T>::Point(const std::vector<T>& v)
 		: x(0), y(0)
@@ -80,6 +91,62 @@ namespace Geometry
 	Rect<T>::Rect(const SDL_Rect& r)
 		: Rect(r.x, r.y, r.w, r.h)
 	{
+	}
+
+	template<typename T>
+	Rect<T>::Rect(const std::vector<T>& v)
+	{
+		switch(v.size()) {
+			case 2:
+				*this = Rect<T>::FromCoordinates(v[0], v[1], v[0], v[1]);
+				break;
+			case 3:
+				*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[1]);
+				break;
+			case 4:
+				*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[3]);
+				break;
+			default:
+				*this = Rect<T>();
+				break;
+		}
+	}
+
+	template<typename T>
+	Rect<T>::Rect(const variant& v)
+	{
+		ASSERT_LOG(false, "No template specialisation for Rect<T>(const varaint&)");
+	}
+
+	template<typename T>
+	Rect<T>::Rect(const std::string& str)
+	{
+		if(str.empty()) {
+			*this = Rect<T>();
+			return;
+		}
+
+		T items[4];
+		int num_items = 0;
+		std::vector<std::string> buf = split(str, ",| |;");
+		for(int n = 0; n != 4 && n != buf.size(); ++n) {
+			items[num_items++] = boost::lexical_cast<T>(buf[n]);
+		}
+
+		switch(num_items) {
+			case 2:
+				*this = Rect<T>::FromCoordinates(items[0], items[1], T(1), T(1));
+				break;
+			case 3:
+				*this = Rect<T>::FromCoordinates(items[0], items[1], items[2], T(1));
+				break;
+			case 4:
+				*this = Rect<T>::FromCoordinates(items[0], items[1], items[2], items[3]);
+				break;
+			default:
+				*this = Rect<T>();
+				break;
+		}
 	}
 
 }

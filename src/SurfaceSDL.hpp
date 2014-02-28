@@ -48,7 +48,7 @@ namespace Graphics
 			uint32_t bmask, 
 			uint32_t amask);
 		virtual ~SurfaceSDL();
-		void* Pixels() override;
+		const void* Pixels() const override;
 		size_t width() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->w;

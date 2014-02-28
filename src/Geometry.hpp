@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include "asserts.hpp"
+#include "variant.hpp"
 #include "SDL.h"
 
 namespace Geometry
@@ -55,9 +57,9 @@ namespace Geometry
 	public:
 		explicit Rect(T x=0, T y=0, T w=0, T h=0);
 		explicit Rect(const SDL_Rect& r);
-		//explicit Rect(const std::vector<T>& v);
-		//explicit Rect(const std::string& s);
-		//explicit Rect(const variant& v);
+		explicit Rect(const std::vector<T>& v);
+		explicit Rect(const std::string& s);
+		explicit Rect(const variant& v);
 		static Rect FromCoordinates(T x1, T y1, T x2, T y2);
 		static Rect from_coordinates(T x1, T y1, T x2, T y2) {
 			return FromCoordinates(x1,y1,x2,y2);
@@ -75,16 +77,16 @@ namespace Geometry
 
 		bool empty() const { return w() == 0 || h() == 0; }
 
-		const Point& top_left() const { return top_left_; }
-		const Point& bottom_right() const { return bottom_right_; }
+		const Point<T>& top_left() const { return top_left_; }
+		const Point<T>& bottom_right() const { return bottom_right_; }
 
-		void operator+=(const Point& p) {
+		void operator+=(const Point<T>& p) {
 			top_left_.x += p.x;
 			top_left_.y += p.y;
 			bottom_right_.x += p.x;
 			bottom_right_.y += p.y;
 		}
-		void operator-=(const Point& p) {
+		void operator-=(const Point<T>& p) {
 			top_left_.x -= p.x;
 			top_left_.y -= p.y;
 			bottom_right_.x -= p.x;
@@ -96,9 +98,57 @@ namespace Geometry
 			return r;
 		}
 	private:
-		Point top_left_;
-		Point bottom_right_;
+		Point<T> top_left_;
+		Point<T> bottom_right_;
 	};
+
+	template<>
+	Rect<int>::Rect(const variant& v)
+	{
+		if(v.is_list()) {
+			std::vector<int> vec;
+			for(size_t n = 0; n != v.num_elements(); ++n) {
+				vec.push_back(int(v.as_int()));
+			}
+			*this = Rect<int>::Rect(vec);
+			return;
+		} else if(v.is_map()) {
+			ASSERT_LOG((v.has_key("x") && v.has_key("y") && v.has_key("w") && v.has_key("h"))
+				|| v.has_key("x1") && v.has_key("y1") && v.has_key("x2") && v.has_key("y2"), 
+				"map must have 'x','y','w','h' or 'x1','y1','x2','y2' attributes.");
+			if(v.has_key("x")) {
+				*this = Rect<int>(int(v["x"].as_int()),int(v["y"].as_int()),int(v["w"].as_int()),int(v["h"].as_int()));
+			} else {
+				*this = Rect<int>::FromCoordinates(int(v["x1"].as_int()),int(v["y1"].as_int()),int(v["x2"].as_int()),int(v["y2"].as_int()));
+			}
+		} else {
+			ASSERT_LOG(false, "Creating a rect from a variant must be list or map");
+		}
+	}
+
+	template<>
+	Rect<float>::Rect(const variant& v)
+	{
+		if(v.is_list()) {
+			std::vector<float> vec;
+			for(size_t n = 0; n != v.num_elements(); ++n) {
+				vec.push_back(float(v.as_float()));
+			}
+			*this = Rect<float>::Rect(vec);
+			return;
+		} else if(v.is_map()) {
+			ASSERT_LOG((v.has_key("x") && v.has_key("y") && v.has_key("w") && v.has_key("h"))
+				|| v.has_key("x1") && v.has_key("y1") && v.has_key("x2") && v.has_key("y2"), 
+				"map must have 'x','y','w','h' or 'x1','y1','x2','y2' attributes.");
+			if(v.has_key("x")) {
+				*this = Rect<float>(v["x"].as_float(),v["y"].as_float(),v["w"].as_float(),v["h"].as_float());
+			} else {
+				*this = Rect<float>::FromCoordinates(v["x1"].as_float(),v["y1"].as_float(),v["x2"].as_float(),v["y2"].as_float());
+			}
+		} else {
+			ASSERT_LOG(false, "Creating a rect from a variant must be list or map");
+		}
+	}
 }
 
 typedef Geometry::Point<int> point;

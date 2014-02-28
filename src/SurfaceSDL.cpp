@@ -59,7 +59,7 @@ namespace Graphics
 		SDL_FreeSurface(surface_);
 	}
 
-	void* SurfaceSDL::Pixels()
+	const void* SurfaceSDL::Pixels() const
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null");
 		// technically surface_->locked is an internal implementation detail.
@@ -70,7 +70,6 @@ namespace Graphics
 		// Kind of a kludge, since someone could use this for a read not just a write.
 		// XXXX Maybe a better scenario, would be to have a WritePixels() function that
 		// takes a source pixel format and the data then converts and writes it.
-		has_data_ = true;
 		return surface_->pixels;
 	}
 

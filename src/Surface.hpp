@@ -35,17 +35,59 @@ namespace Graphics
 	{
 	public:
 		enum {
-			PIXELFORMAT_ARGB8888,
-			PIXELFORMAT_RGBA8888,
+			PIXEL_FORMAT_UNKNOWN,
+			PIXEL_FORMAT_L8,
+			PIXEL_FORMAT_BYTE_L = PIXEL_FORMAT_L8,
+			PIXEL_FORMAT_L16,
+			PIXEL_FORMAT_SHORT_L = PIXEL_FORMAT_L16,
+			PIXEL_FORMAT_A8,
+			PIXEL_FORMAT_BYTE_A = PIXEL_FORMAT_A8,
+			PIXEL_FORMAT_A4L4,
+			PIXEL_FORMAT_BYTE_LA,
+			PIXEL_FORMAT_R5G6B5,
+			PIXEL_FORMAT_B5G6R5,
+			PIXEL_FORMAT_R3G3B2,
+			PIXEL_FORMAT_A4R4G4B4,
+			PIXEL_FORMAT_A1R5G5B5,
+			PIXEL_FORMAT_R8G8B8,
+			PIXEL_FORMAT_B8G8R8,
+			PIXEL_FORMAT_A8R8G8B8,
+			PIXEL_FORMAT_A8B8G8R8,
+			PIXEL_FORMAT_B8G8R8A8,
+			PIXEL_FORMAT_R8G8B8A8,
+			PIXEL_FORMAT_BYTE_RGB = PIXEL_FORMAT_B8G8R8,
+			PIXEL_FORMAT_BYTE_BGR = PIXEL_FORMAT_R8G8B8,
+			PIXEL_FORMAT_BYTE_BGRA = PIXEL_FORMAT_A8R8G8B8,
+			PIXEL_FORMAT_BYTE_RGBA = PIXEL_FORMAT_A8B8G8R8,
+			PIXEL_FORMAT_A2R10G10B10,
+			PIXEL_FORMAT_A2B10G10R10,
+			// 8bits red
+			PIXEL_FORMAT_R8,
+			// 16 bits, 8 bits read, 8 bits green
+			PIXEL_FORMAT_RG8,
+
+			// 4:2:2 YCbCr
+			PIXEL_FORMAT_YV12,
+			//! Number of pixel formats currently defined
+			PIXEL_FORMAT_COUNT
 		};
 	private:
+		size_t bits_red_;
+		size_t bits_green_;
+		size_t bits_blue_;
+		size_t bits_alpha_;
+
+		size_t shift_red_;
+		size_t shift_green_;
+		size_t shift_blue_;
+		size_t shift_alpha_;
 	};
 
 	class Surface
 	{
 	public:
 		virtual ~Surface();
-		virtual void* Pixels() = 0;
+		virtual const void* Pixels() const = 0;
 		virtual size_t width() = 0;
 		virtual size_t height() = 0;
 		virtual size_t bits_per_pixel() = 0;
