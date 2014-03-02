@@ -37,7 +37,7 @@ namespace Geometry
 		}	
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Point<T>::Point(const std::vector<T>& v)
 		: x(0), y(0)
 	{
@@ -49,25 +49,25 @@ namespace Geometry
 		}
 	}
 
-	template<typename T>
+	template<typename T> inline
 	bool operator==(const Point<T>& a, const Point<T>& b)
 	{
 		return a.x == b.y && a.y == b.y;
 	}
 
-	template<typename T>
+	template<typename T> inline
 	bool operator!=(const Point<T>& a, const Point<T>& b)
 	{
 		return !operator==(a, b);
 	}
 	
-	template<typename T>
+	template<typename T> inline
 	bool operator<(const Point<T>& a, const Point<T>& b)
 	{
 		return a.x < b.x || a.x == b.x && a.y < b.y;
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T> Rect<T>::FromCoordinates(T x1, T y1, T x2, T y2)
 	{
 		if(x1 > x2+1) {
@@ -80,20 +80,21 @@ namespace Geometry
 	return Rect(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1);
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T>::Rect(T x, T y, T w, T h)
 	  : top_left_(std::min(x, x+w), std::min(y, y+h)),
 		bottom_right_(std::max(x, x+w), std::max(y, y+h))
 	{
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T>::Rect(const SDL_Rect& r)
-		: Rect(r.x, r.y, r.w, r.h)
+	  : top_left_(std::min(T(r.x), T(r.x)+T(r.w)), std::min(T(r.y), T(r.y)+T(r.h))),
+		bottom_right_(std::max(T(r.x), T(r.x)+T(r.w)), std::max(T(r.y), T(r.y)+T(r.h)))
 	{
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T>::Rect(const std::vector<T>& v)
 	{
 		switch(v.size()) {
@@ -112,13 +113,13 @@ namespace Geometry
 		}
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T>::Rect(const variant& v)
 	{
 		ASSERT_LOG(false, "No template specialisation for Rect<T>(const varaint&)");
 	}
 
-	template<typename T>
+	template<typename T> inline
 	Rect<T>::Rect(const std::string& str)
 	{
 		if(str.empty()) {

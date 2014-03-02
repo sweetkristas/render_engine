@@ -44,19 +44,19 @@ namespace Geometry
 		};
 	};
 
-	template<typename T>
+	template<typename T> inline
 	bool operator==(const Point<T>& a, const Point<T>& b);
-	template<typename T>
+	template<typename T> inline
 	bool operator!=(const Point<T>& a, const Point<T>& b);
-	template<typename T>
+	template<typename T> inline
 	bool operator<(const Point<T>& a, const Point<T>& b);
 
 	template<typename T>
 	class Rect
 	{
 	public:
-		explicit Rect(T x=0, T y=0, T w=0, T h=0);
-		explicit Rect(const SDL_Rect& r);
+		inline explicit Rect(T x=0, T y=0, T w=0, T h=0);
+		inline explicit Rect(const SDL_Rect& r);
 		explicit Rect(const std::vector<T>& v);
 		explicit Rect(const std::string& s);
 		explicit Rect(const variant& v);
@@ -102,7 +102,7 @@ namespace Geometry
 		Point<T> bottom_right_;
 	};
 
-	template<>
+	template<> inline 
 	Rect<int>::Rect(const variant& v)
 	{
 		if(v.is_list()) {
@@ -126,7 +126,7 @@ namespace Geometry
 		}
 	}
 
-	template<>
+	template<> inline 
 	Rect<float>::Rect(const variant& v)
 	{
 		if(v.is_list()) {
@@ -150,6 +150,8 @@ namespace Geometry
 		}
 	}
 }
+
+#include "Geometry.inl"
 
 typedef Geometry::Point<int> point;
 typedef Geometry::Point<float> pointf;
