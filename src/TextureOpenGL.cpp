@@ -161,9 +161,9 @@ namespace Graphics
 			}
 		}
 		
-		ASSERT_LOG(GetFilteringMin() == Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
-		ASSERT_LOG(GetFilteringMax() == Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
-		ASSERT_LOG(GetFilteringMip() == Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
+		ASSERT_LOG(GetFilteringMin() != Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
+		ASSERT_LOG(GetFilteringMax() != Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
+		ASSERT_LOG(GetFilteringMip() != Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
 
 		if(GetFilteringMin() == Filtering::POINT) {
 			switch(GetFilteringMip()) {
