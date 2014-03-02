@@ -71,16 +71,28 @@ namespace Graphics
 			//! Number of pixel formats currently defined
 			PIXEL_FORMAT_COUNT
 		};
+		bool IsYuvPlanar() const { return yuv_planar_; }
+		bool IsYuvPacked() const { return yuv_packed_; }
+		bool IsRGB() const { return rgba_; }
 	private:
-		size_t bits_red_;
-		size_t bits_green_;
-		size_t bits_blue_;
-		size_t bits_alpha_;
+		int bits_red_;
+		int bits_green_;
+		int bits_blue_;
+		int bits_alpha_;
 
-		size_t shift_red_;
-		size_t shift_green_;
-		size_t shift_blue_;
-		size_t shift_alpha_;
+		int shift_red_;
+		int shift_green_;
+		int shift_blue_;
+		int shift_alpha_;
+
+		size_t mask_red_;
+		size_t mask_green_;
+		size_t mask_blue_;
+		size_t mask_alpha_;
+
+		bool rgba_;
+		bool yuv_planar_;
+		bool yuv_packed_;
 	};
 
 	class Surface
