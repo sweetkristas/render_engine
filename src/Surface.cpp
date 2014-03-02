@@ -33,6 +33,16 @@ namespace Graphics
 	{
 	}
 
+	PixelFormatPtr Surface::GetPixelFormat()
+	{
+		return pf_;
+	}
+
+	void Surface::SetPixelFormat(PixelFormatPtr pf)
+	{
+		pf_ = pf;
+	}
+
 	SurfaceLock::SurfaceLock(const SurfacePtr& surface)
 		: surface_(surface)
 	{
@@ -42,5 +52,13 @@ namespace Graphics
 	SurfaceLock::~SurfaceLock()
 	{
 		surface_->Unlock();
+	}
+
+	PixelFormat::PixelFormat()
+	{
+	}
+
+	PixelFormat::~PixelFormat()
+	{
 	}
 }

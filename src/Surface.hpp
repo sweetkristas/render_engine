@@ -34,66 +34,42 @@ namespace Graphics
 	class PixelFormat
 	{
 	public:
-		enum {
-			PIXEL_FORMAT_UNKNOWN,
-			PIXEL_FORMAT_L8,
-			PIXEL_FORMAT_BYTE_L = PIXEL_FORMAT_L8,
-			PIXEL_FORMAT_L16,
-			PIXEL_FORMAT_SHORT_L = PIXEL_FORMAT_L16,
-			PIXEL_FORMAT_A8,
-			PIXEL_FORMAT_BYTE_A = PIXEL_FORMAT_A8,
-			PIXEL_FORMAT_A4L4,
-			PIXEL_FORMAT_BYTE_LA,
-			PIXEL_FORMAT_R5G6B5,
-			PIXEL_FORMAT_B5G6R5,
-			PIXEL_FORMAT_R3G3B2,
-			PIXEL_FORMAT_A4R4G4B4,
-			PIXEL_FORMAT_A1R5G5B5,
-			PIXEL_FORMAT_R8G8B8,
-			PIXEL_FORMAT_B8G8R8,
-			PIXEL_FORMAT_A8R8G8B8,
-			PIXEL_FORMAT_A8B8G8R8,
-			PIXEL_FORMAT_B8G8R8A8,
-			PIXEL_FORMAT_R8G8B8A8,
-			PIXEL_FORMAT_BYTE_RGB = PIXEL_FORMAT_B8G8R8,
-			PIXEL_FORMAT_BYTE_BGR = PIXEL_FORMAT_R8G8B8,
-			PIXEL_FORMAT_BYTE_BGRA = PIXEL_FORMAT_A8R8G8B8,
-			PIXEL_FORMAT_BYTE_RGBA = PIXEL_FORMAT_A8B8G8R8,
-			PIXEL_FORMAT_A2R10G10B10,
-			PIXEL_FORMAT_A2B10G10R10,
-			// 8bits red
-			PIXEL_FORMAT_R8,
-			// 16 bits, 8 bits read, 8 bits green
-			PIXEL_FORMAT_RG8,
+		PixelFormat();
+		virtual ~PixelFormat();
 
-			// 4:2:2 YCbCr
-			PIXEL_FORMAT_YV12,
-			//! Number of pixel formats currently defined
-			PIXEL_FORMAT_COUNT
-		};
-		bool IsYuvPlanar() const { return yuv_planar_; }
-		bool IsYuvPacked() const { return yuv_packed_; }
-		bool IsRGB() const { return rgba_; }
+		virtual uint8_t BitsPerPixel() const = 0;
+		virtual uint8_t BytesPerPixel() const = 0;
+
+		virtual bool IsYuvPlanar() const = 0;
+		virtual bool IsYuvPacked() const = 0;
+		virtual bool YuvHeightReversed() const = 0;
+		virtual bool IsInterlaced() const = 0;
+		
+		virtual bool IsRGB() const = 0;
+		virtual bool HasRedChannel() const = 0;
+		virtual bool HasGreenChannel() const = 0;
+		virtual bool HasBlueChannel() const = 0;
+		virtual bool HasAlphaChannel() const = 0;
+		virtual bool HasLuminance() const = 0;
+
+		virtual uint32_t RedMask() const = 0;
+		virtual uint32_t GreenMask() const = 0;
+		virtual uint32_t BlueMask() const = 0;
+		virtual uint32_t AlphaMask() const = 0;
+		virtual uint32_t LuminanceMask() const = 0;
+
+		virtual uint8_t RedBits() const = 0;
+		virtual uint8_t GreenBits() const = 0;
+		virtual uint8_t BlueBits() const = 0;
+		virtual uint8_t AlphaBits() const = 0;
+		virtual uint8_t LuminanceBits() const = 0;
+
+		virtual bool HasPalette() const = 0;
 	private:
-		int bits_red_;
-		int bits_green_;
-		int bits_blue_;
-		int bits_alpha_;
-
-		int shift_red_;
-		int shift_green_;
-		int shift_blue_;
-		int shift_alpha_;
-
-		size_t mask_red_;
-		size_t mask_green_;
-		size_t mask_blue_;
-		size_t mask_alpha_;
-
-		bool rgba_;
-		bool yuv_planar_;
-		bool yuv_packed_;
+		PixelFormat(const PixelFormat&);
 	};
+
+	typedef std::shared_ptr<PixelFormat> PixelFormatPtr;
 
 	class Surface
 	{
@@ -102,26 +78,41 @@ namespace Graphics
 		virtual const void* Pixels() const = 0;
 		virtual size_t width() = 0;
 		virtual size_t height() = 0;
-		virtual size_t bits_per_pixel() = 0;
-		virtual size_t bytes_per_pixel() = 0;
 		virtual size_t row_pitch() = 0;
-		virtual uint32_t red_mask() = 0;
-		virtual uint32_t green_mask() = 0;
-		virtual uint32_t blue_mask() = 0;
-		virtual uint32_t alpha_mask() = 0;
+
+		virtual void WritePixels(size_t bpp, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask,
+			const void* pixels) = 0;
+		virtual void WritePixels(const void* pixels) = 0;
+
+		PixelFormatPtr GetPixelFormat();
 
 		virtual void Lock() = 0;
 		virtual void Unlock() = 0;
 
 		virtual bool HasData() const = 0;
 
+		enum BlendMode {
+			BLEND_MODE_NONE,
+			BLEND_MODE_BLEND,
+			BLEND_MODE_ADD,
+			BLEND_MODE_MODULATE,
+		};
+		virtual void SetBlendMode(BlendMode bm) = 0;
+		virtual BlendMode GetBlendMode() const = 0;
+
 		virtual bool SetClipRect(int x, int y, size_t width, size_t height) = 0;
 		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
 		virtual bool SetClipRect(const rect& r) = 0;
-		virtual const rect& GetClipRect() = 0;
+		virtual const rect GetClipRect() = 0;
 	protected:
 		Surface();
+		void SetPixelFormat(PixelFormatPtr pf);
 	private:
+		PixelFormatPtr pf_;
 	};
 
 	class SurfaceLock

@@ -28,6 +28,45 @@
 
 namespace Graphics
 {
+	class SDLPixelFormat : public PixelFormat
+	{
+	public:
+		SDLPixelFormat(const SDL_PixelFormat* pf);
+		virtual ~SDLPixelFormat();
+
+		uint8_t BitsPerPixel() const override;
+		uint8_t BytesPerPixel() const override;
+
+		bool IsYuvPlanar() const override;
+		bool IsYuvPacked() const override;
+		bool YuvHeightReversed() const override;
+		bool IsInterlaced() const override;
+		
+		bool IsRGB() const override;
+		bool HasRedChannel() const override;
+		bool HasGreenChannel() const override;
+		bool HasBlueChannel() const override;
+		bool HasAlphaChannel() const override;
+		bool HasLuminance() const override;
+
+		uint32_t RedMask() const override;
+		uint32_t GreenMask() const override;
+		uint32_t BlueMask() const override;
+		uint32_t AlphaMask() const override;
+		uint32_t LuminanceMask() const override;
+
+		uint8_t RedBits() const override;
+		uint8_t GreenBits() const override;
+		uint8_t BlueBits() const override;
+		uint8_t AlphaBits() const override;
+		uint8_t LuminanceBits() const override;
+
+		bool HasPalette() const override;
+	private:
+		const SDL_PixelFormat* pf_;
+	};
+
+
 	class SurfaceSDL : public Surface
 	{
 	public:
@@ -49,6 +88,13 @@ namespace Graphics
 			uint32_t amask);
 		virtual ~SurfaceSDL();
 		const void* Pixels() const override;
+		void WritePixels(size_t bpp, 
+			uint32_t rmask, 
+			uint32_t gmask, 
+			uint32_t bmask, 
+			uint32_t amask,
+			const void* pixels) override;
+		void WritePixels(const void* pixels) override;
 		size_t width() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->w;
@@ -57,39 +103,9 @@ namespace Graphics
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->h;
 		}
-		size_t bits_per_pixel() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->BitsPerPixel;
-		}
-		size_t bytes_per_pixel() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->BytesPerPixel;
-		}
 		size_t row_pitch() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->pitch;
-		}
-		uint32_t red_mask() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->Rmask;
-		}
-		uint32_t green_mask() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->Gmask;
-		}
-		uint32_t blue_mask() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->Bmask;
-		}
-		uint32_t alpha_mask() override {
-			ASSERT_LOG(surface_ != NULL, "surface_ is null");
-			ASSERT_LOG(surface_->format != NULL, "surface_->format is null");
-			return surface_->format->Amask;
 		}
 
 		virtual bool HasData() const override {
@@ -99,10 +115,13 @@ namespace Graphics
 			return has_data_;
 		}
 
+		void SetBlendMode(BlendMode bm) override;
+		BlendMode GetBlendMode() const override;
+
 		bool SetClipRect(int x, int y, size_t width, size_t height) override;
 		void GetClipRect(int& x, int& y, size_t& width, size_t& height) override;
 		bool SetClipRect(const rect& r) override;
-		const rect& GetClipRect() override;
+		const rect GetClipRect() override;
 
 		void Lock() override;
 		void Unlock() override;
