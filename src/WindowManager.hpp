@@ -69,6 +69,7 @@ namespace Graphics
 			uint32_t bmask, 
 			uint32_t amask, 
 			void* pixels) = 0;
+		virtual SurfacePtr CreateSurface(const std::string& filename) = 0;
 
 		virtual void swap() = 0;
 
@@ -100,6 +101,11 @@ namespace Graphics
 		// color clear_color() const { return clear_color_; }
 
 		DisplayDevicePtr GetDisplayDevice() { return display_; }
+
+		TexturePtr CreateTexture(const variant& node);
+		TexturePtr CreateTexture(const std::string& filename, 
+			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
+			int mipmap_levels=0);
 
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
 

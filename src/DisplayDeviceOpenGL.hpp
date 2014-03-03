@@ -44,6 +44,7 @@ namespace Graphics
 
 		void render(const Render::RenderablePtr& r) override;
 
+		TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node);
 		TexturePtr CreateTexture(const SurfacePtr& surface, 
 			Texture::TextureType type, 
 			int mipmap_levels) override;

@@ -32,10 +32,7 @@ namespace Graphics
 	class OpenGLTexture : public Texture
 	{
 	public:
-		OpenGLTexture(const variant& node);
-		OpenGLTexture(const std::string& filename, 
-			TextureType type=TextureType::TEXTURE_2D, 
-			int mipmap_levels=0);
+		OpenGLTexture(const SurfacePtr& surface, const variant& node);
 		OpenGLTexture(const SurfacePtr& surface, 
 			TextureType type=TextureType::TEXTURE_2D, 
 			int mipmap_levels=0);

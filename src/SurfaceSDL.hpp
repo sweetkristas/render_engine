@@ -86,6 +86,7 @@ namespace Graphics
 			uint32_t gmask, 
 			uint32_t bmask, 
 			uint32_t amask);
+		SurfaceSDL(SDL_Surface* surface);
 		virtual ~SurfaceSDL();
 		const void* Pixels() const override;
 		void WritePixels(size_t bpp, 

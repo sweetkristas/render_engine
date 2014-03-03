@@ -26,11 +26,12 @@
 
 namespace Graphics
 {
-	Texture::Texture(const variant& node)
+	Texture::Texture(const SurfacePtr& surface, const variant& node)
 		: type_(TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
-		lod_bias_(0.0f)
+		lod_bias_(0.0f),
+		surface_(surface)
 	{
 		InternalInit();
 		if(node.has_key("type")) {
@@ -136,20 +137,12 @@ namespace Graphics
 		}
 	}
 
-	Texture::Texture(const std::string& filename, TextureType type, int mipmap_levels)
-		: type_(type), 
-		mipmaps_(mipmap_levels), 
-		max_anisotropy_(1),
-		lod_bias_(0.0f)
-	{
-		InternalInit();
-	}
-
 	Texture::Texture(const SurfacePtr& surface, TextureType type, int mipmap_levels)
 		: type_(type), 
 		mipmaps_(mipmap_levels), 
 		max_anisotropy_(1),
-		lod_bias_(0.0f)
+		lod_bias_(0.0f),
+		surface_(surface)
 	{
 		InternalInit();
 	}

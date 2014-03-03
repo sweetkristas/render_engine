@@ -29,6 +29,7 @@
 #include "logger.hpp"
 #include "SurfaceSDL.hpp"
 #include "SDL.h"
+#include "SDL_image.h"
 #include "WindowManager.hpp"
 
 namespace Graphics
@@ -207,7 +208,16 @@ namespace Graphics
 			uint32_t bmask, 
 			uint32_t amask, 
 			void* pixels) override {
+			// XXX feed into surface cache. 
+			// will need to update cache if pixels change.
 			return SurfacePtr(new SurfaceSDL(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels));
+		}
+
+		SurfacePtr CreateSurface(const std::string& filename) override {
+			// XXX Here is were we can abstract image loading and provide an
+			// image cache.
+			// return SurfacePtr(WindowManager::LoadImage(filename));
+			return SurfacePtr(new SurfaceSDL(IMG_Load(filename.c_str())));
 		}
 
 		void handle_set_clear_color() {
@@ -318,6 +328,21 @@ namespace Graphics
 		ASSERT_LOG(display_ != NULL, "No display to blit to.");
 		display_->BlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
 
+	}
+
+	// XXX we should be able to create a texture without an associated surface,
+	// since we can call Texture::Update(...) subsequently.
+	TexturePtr WindowManager::CreateTexture(const variant& node)
+	{
+		ASSERT_LOG(node.has_key("image") && node["image"].is_string(), "Must have 'image' attribute that is a string when specifying textures.");
+		auto surface = CreateSurface(node["image"].as_string());
+		return display_->CreateTexture(surface, node);
+	}
+
+	TexturePtr WindowManager::CreateTexture(const std::string& filename, Texture::TextureType type, int mipmap_levels)
+	{
+		auto surface = CreateSurface(filename);
+		return display_->CreateTexture(surface, type, mipmap_levels);
 	}
 
 	WindowManagerPtr WindowManager::factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)

@@ -55,6 +55,13 @@ namespace Graphics
 		SetPixelFormat(PixelFormatPtr(new SDLPixelFormat(surface_->format)));
 	}
 
+	SurfaceSDL::SurfaceSDL(SDL_Surface* surface)
+		: surface_(surface)
+	{
+		ASSERT_LOG(surface_ != NULL, "Error creating surface: " << SDL_GetError());
+		SetPixelFormat(PixelFormatPtr(new SDLPixelFormat(surface_->format)));
+	}
+
 	SurfaceSDL::~SurfaceSDL()
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null in destructor");

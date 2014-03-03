@@ -53,33 +53,14 @@ namespace Graphics
 		}
 	}
 
-	OpenGLTexture::OpenGLTexture(const variant& node)
-		: Texture(node)
-	{
-		ASSERT_LOG(false, "Create OpenGL surface from filename.");
-
-		ASSERT_LOG(node.has_key("image"), "Texture must have 'image' attribute.");
-		ASSERT_LOG(node["image"].is_string() || node["image"].is_list(), "'image' attribute must be list of strings or string. Found: " << node["image"].type_as_string());
-		// Create surface from filename
-		// XXX
-		ASSERT_LOG(false, "Create OpenGL surface from filename.");
-
-		CreateTexture();
-		Init();
-	}
-
-	OpenGLTexture::OpenGLTexture(const std::string& filename, TextureType type,  int mipmap_levels)
-		: Texture(filename, type, mipmap_levels),
-		width_(-1), 
-		height_(-1),
+	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, const variant& node)
+		: Texture(surface, node),
+		width_(surface->width()), 
+		height_(surface->height()),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE)
 	{
-		// Create surface from filename
-		// XXX
-		ASSERT_LOG(false, "Create OpenGL surface from filename.");
-
 		CreateTexture();
 		Init();
 	}
@@ -120,17 +101,28 @@ namespace Graphics
 		// Need to change the format/internalFormat/type depending on the 
 		// data we now about the surface.
 
-		//auto fmt = surface->GetFormat();
-		//switch(fmt->GetPixelFormat()) {
-		//	case Surface::PIXELFORMAT_ARGB8888:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
-		//		break;
-		//	default:
-		//		ASSERT_LOG(false, "Unrecognised pixel format: " << fmt->GetPixelFormat());
-		//}
-
+		auto fmt = GetSurface()->GetPixelFormat();
+		if(fmt->IsRGB()) {
+			if(fmt->RedBits() == 8 
+				&& fmt->BlueBits() == 8 
+				&& fmt->GreenBits() == 8 
+				&& fmt->AlphaBits() == 8) {
+				if(fmt->AlphaMask() == 0xff000000) {
+					format_ = GL_BGRA;
+					internal_format_ = GL_RGBA8;
+					type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
+				} else {
+					format_ = GL_BGRA;
+					internal_format_ = GL_RGBA8;
+					type_ = GL_UNSIGNED_INT_8_8_8_8;
+				}
+			} else {
+				ASSERT_LOG(false, "unprocessed pixel format" /* << *fmt*/);
+			}
+			// XXX todo			
+		} else {
+			ASSERT_LOG(false, "unprocessed non-RGB pixel format" /* << *fmt*/);
+		}
 
 		/// XXX Need to fill the image here. Or at least do it optionally.
 		// Use glTexImage1D and glTexImage3D ????? as needed.

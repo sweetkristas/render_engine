@@ -231,6 +231,11 @@ namespace Graphics
 		}
 	}
 
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, const variant& node)
+	{
+		return TexturePtr(new OpenGLTexture(surface, node));
+	}
+
 	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, Texture::TextureType type, int mipmap_levels)
 	{
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
@@ -273,6 +278,7 @@ namespace Graphics
 		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(mvp));
 		shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(1.0f,1.0f,1.0f,1.0f)));
 		int value = 0;
+		// XXX the following two lines are only temporary, obviously.
 		shader->SetUniformValue(shader->GetUniformIterator("discard"), &value);
 		shader->SetUniformValue(shader->GetUniformIterator("tex_map"), &value);
 		glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);

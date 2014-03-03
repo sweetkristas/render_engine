@@ -96,6 +96,7 @@ namespace Graphics
 
 		virtual void render(const Render::RenderablePtr& r) = 0;
 
+		virtual TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) = 0;
 		virtual TexturePtr CreateTexture(const SurfacePtr& surface, 
 			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
 			int mipmap_levels=0) = 0;

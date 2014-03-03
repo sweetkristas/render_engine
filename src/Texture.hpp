@@ -52,10 +52,7 @@ namespace Graphics
 			LINEAR,
 			ANISOTROPIC,
 		};
-		Texture(const variant& node);
-		Texture(const std::string& filename, 
-			TextureType type=TextureType::TEXTURE_2D, 
-			int mipmap_levels=0);
+		Texture(const SurfacePtr& surface, const variant& node);
 		Texture(const SurfacePtr& surface, 
 			TextureType type=TextureType::TEXTURE_2D, 
 			int mipmap_levels=0);
@@ -84,6 +81,8 @@ namespace Graphics
 		virtual void Init() = 0;
 
 		virtual void Update(int x, int y, int width, int height, int stride, void* pixels) = 0;
+	protected:
+		const SurfacePtr& GetSurface() const { return surface_; }
 	private:
 		TextureType type_;
 		int mipmaps_;
@@ -93,6 +92,7 @@ namespace Graphics
 		int max_anisotropy_;
 		float lod_bias_;
 		Texture();
+		SurfacePtr surface_;
 	};
 
 	typedef std::shared_ptr<Texture> TexturePtr;
