@@ -31,7 +31,7 @@ namespace
 		SquareRenderable() : Scene::SceneObject("square") {
 			std::shared_ptr<Render::TypedRenderVariable<vertex_color>> rv = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
 
-			render_vars_.resize(3);
+			render_vars_.resize(2);
 			render_vars_[0] = rv;
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_POSITION, 2, Render::RenderVariableDesc::TYPE_FLOAT, true, sizeof(vertex_color), 0);
 			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_COLOR, 4, Render::RenderVariableDesc::TYPE_UNSIGNED_BYTE, false, sizeof(vertex_color), sizeof(glm::vec2));
@@ -47,12 +47,7 @@ namespace
 			auto color_urv = std::make_shared<Render::UniformRenderVariable<glm::vec4>>();
 			render_vars_[1] = color_urv;
 			color_urv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_COLOR, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_VEC4);
-			color_urv->Update(glm::vec4(1.0f,1.0f,1.0f,0.5f));
-
-			auto use_acolor = std::make_shared<Render::UniformRenderVariable<bool>>();
-			render_vars_[2] = use_acolor;
-			use_acolor->AddVariableDescription("use_attrib_color", 1, Render::RenderVariableDesc::UNIFORM_TYPE_BOOL);
-			use_acolor->Update(true);
+			color_urv->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 			
 			//auto psrv = std::make_shared<Render::UniformRenderVariable<float>>();
 			//render_vars_[2] = psrv;
@@ -65,7 +60,7 @@ namespace
 	protected:
 		Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) {
 			Graphics::DisplayDeviceDef def(render_vars_);
-			def.SetHint("shader", "simple");
+			def.SetHint("shader", "attr_color_shader");
 			return def;
 		}
 	private:
@@ -156,9 +151,9 @@ int main(int argc, char *argv[])
 	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 	root->AttachLight(0, sunlight);
 
-	//SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	//square->SetPosition(0.5f, 0.5f);
-	//root->AttachObject(square);
+	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
+	square->SetPosition(0.5f, 0.5f);
+	root->AttachObject(square);
 
 	auto rman = std::make_shared<Render::RenderManager>();
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
@@ -194,11 +189,11 @@ int main(int argc, char *argv[])
 		}
 
 
-		//gl_test();
-		//scene->RenderScene(rman);
-		//rman->Render(main_wnd);
+		gl_test();
+		scene->RenderScene(rman);
+		rman->Render(main_wnd);
 
-		canvas->Render(main_wnd);
+		//canvas->Render(main_wnd);
 
 
 		double t1 = timer.check();

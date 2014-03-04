@@ -330,10 +330,30 @@ namespace Graphics
 
 	}
 
-	// XXX we should be able to create a texture without an associated surface,
-	// since we can call Texture::Update(...) subsequently.
+	TexturePtr WindowManager::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	{
+		ASSERT_LOG(display_ != NULL, "No display to create texture.");
+		return display_->CreateTexture(width, 0, fmt);
+	}
+
+	// Let's you create a texture which doesn't have an attached surface. 
+	// Useful if you are calling Update() on the texture to update the contents.
+	// Texture is created with streaming in mind.
+	TexturePtr WindowManager::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
+	{
+		ASSERT_LOG(display_ != NULL, "No display to create texture.");
+		return display_->CreateTexture(width, height, fmt, type);
+	}
+
+	TexturePtr WindowManager::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	{
+		ASSERT_LOG(display_ != NULL, "No display to create texture.");
+		return display_->CreateTexture(width, height, depth, fmt);
+	}
+
 	TexturePtr WindowManager::CreateTexture(const variant& node)
 	{
+		ASSERT_LOG(display_ != NULL, "No display to create texture.");
 		ASSERT_LOG(node.has_key("image") && node["image"].is_string(), "Must have 'image' attribute that is a string when specifying textures.");
 		auto surface = CreateSurface(node["image"].as_string());
 		return display_->CreateTexture(surface, node);
@@ -341,6 +361,7 @@ namespace Graphics
 
 	TexturePtr WindowManager::CreateTexture(const std::string& filename, Texture::TextureType type, int mipmap_levels)
 	{
+		ASSERT_LOG(display_ != NULL, "No display to create texture.");
 		auto surface = CreateSurface(filename);
 		return display_->CreateTexture(surface, type, mipmap_levels);
 	}

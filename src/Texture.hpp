@@ -56,6 +56,10 @@ namespace Graphics
 		Texture(const SurfacePtr& surface, 
 			TextureType type=TextureType::TEXTURE_2D, 
 			int mipmap_levels=0);
+		Texture(unsigned width, 
+			unsigned height, 
+			PixelFormat::PixelFormatConstant fmt, 
+			Texture::TextureType type);
 		virtual ~Texture();
 
 		void SetAddressModes(AddressMode u, AddressMode v=AddressMode::WRAP, AddressMode w=AddressMode::WRAP);
@@ -80,7 +84,9 @@ namespace Graphics
 
 		virtual void Init() = 0;
 
-		virtual void Update(int x, int y, int width, int height, int stride, void* pixels) = 0;
+		virtual void Update(int x, unsigned width, void* pixels) = 0;
+		virtual void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) = 0;
+		virtual void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) = 0;
 	protected:
 		const SurfacePtr& GetSurface() const { return surface_; }
 	private:

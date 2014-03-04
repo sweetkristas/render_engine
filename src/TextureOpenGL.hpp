@@ -36,22 +36,38 @@ namespace Graphics
 		OpenGLTexture(const SurfacePtr& surface, 
 			TextureType type=TextureType::TEXTURE_2D, 
 			int mipmap_levels=0);
+		OpenGLTexture(unsigned width, 
+			unsigned height, 			
+			PixelFormat::PixelFormatConstant fmt, 
+			Texture::TextureType type=TextureType::TEXTURE_2D,
+			unsigned depth=0);
 		virtual ~OpenGLTexture();
 
 		void Bind(int n=0);
 
-		int Width() const { return width_; }
-		int Height() const { return height_; }
+		unsigned Width() const { return width_; }
+		unsigned Height() const { return height_; }
+		unsigned Depth() const { return depth_; }
 
 		virtual void Init() override;
 
-		void Update(int x, int y, int width, int height, int stride, void* pixels) override;
+		void Update(int x, unsigned width, void* pixels) override;
+		void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) override;
+		void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
 	private:
-		void CreateTexture();
+		void CreateTexture(const PixelFormat::PixelFormatConstant& fmt);
 
-		int width_;
-		int height_;
-		GLuint texture_id_;
+		unsigned width_;
+		unsigned height_;
+		unsigned depth_;
+		// For YUV family textures we need two more texture id's
+		// since we hold them in seperate textures, for everything
+		// else we just use the first one.
+		GLuint texture_id_[3];
+
+		PixelFormat::PixelFormatConstant pixel_format_;
+		// Set for YUV style textures;
+		bool is_yuv_planar_;
 
 		GLenum format_;
 		GLenum internal_format_;

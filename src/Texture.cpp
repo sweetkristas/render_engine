@@ -147,6 +147,15 @@ namespace Graphics
 		InternalInit();
 	}
 
+	Texture::Texture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
+		: type_(type), 
+		mipmaps_(0), 
+		max_anisotropy_(1),
+		lod_bias_(0.0f)
+	{
+		InternalInit();
+	}
+
 	void Texture::InternalInit()
 	{
 		for(auto& am : address_mode_) {

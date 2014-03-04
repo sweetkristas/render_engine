@@ -79,11 +79,49 @@ namespace Shader
 			{"position", "a_position"},
 		};
 
+		const char* const attr_color_vs = 
+			"uniform mat4 u_mvp_matrix;\n"
+			"uniform float u_point_size;\n"
+			"attribute vec2 a_position;\n"
+			"attribute vec4 a_color;\n"
+			"varying vec4 v_color;\n"
+			"void main()\n"
+			"{\n"
+			"	 v_color = a_color;\n"
+			"    gl_PointSize = u_point_size;\n"
+			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
+			"}\n";
+		const char* const attr_color_fs =
+			"uniform bool u_discard;\n"
+			"uniform vec4 u_color;\n"
+			"varying vec4 v_color;\n"
+			"void main()\n"
+			"{\n"
+			"    gl_FragColor = v_color * u_color;\n"
+			"    if(u_discard && gl_FragColor[3] == 0.0) {\n"
+			"        discard;\n"
+			"    }\n"
+			"}\n";
+
+		const struct { const char* alt_name; const char* name; } attr_color_uniform_mapping[] =
+		{
+			{"mvp_matrix", "u_mvp_matrix"},
+			{"color", "u_color"},
+			{"discard", "u_discard"},
+			{"point_size", "u_point_size"},
+		};
+		const struct { const char* alt_name; const char* name; } attr_color_attribue_mapping[] =
+		{
+			{"position", "a_position"},
+			{"color", "a_color"},
+		};
+
 		typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
 		shader_factory_map& get_shader_factory()
 		{
 			static shader_factory_map res;
 			if(res.empty()) {
+				// XXX this is ugly and prone to introducing bugs.
 				auto spp = ShaderProgramPtr(new ShaderProgram("default", 
 					ShaderDef("default_vs", default_vs), 
 					ShaderDef("default_fs", default_fs)));
@@ -108,6 +146,17 @@ namespace Shader
 				}
 				spp->SetActives();
 
+				spp = ShaderProgramPtr(new ShaderProgram("attr_color_shader", 
+					ShaderDef("attr_color_vs", attr_color_vs), 
+					ShaderDef("attr_color_fs", attr_color_fs)));
+				res["attr_color_shader"] = spp;
+				for(auto& sum : attr_color_uniform_mapping) {
+					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+				}
+				for(auto& sam : attr_color_attribue_mapping) {
+					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+				}
+				spp->SetActives();
 				// XXX load some default shaders here.
 			}
 			return res;

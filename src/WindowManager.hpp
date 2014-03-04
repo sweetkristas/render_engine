@@ -106,6 +106,9 @@ namespace Graphics
 		TexturePtr CreateTexture(const std::string& filename, 
 			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
 			int mipmap_levels=0);
+		TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt);
+		TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TextureType::TEXTURE_2D);
+		TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt);
 
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
 

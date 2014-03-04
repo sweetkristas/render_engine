@@ -61,6 +61,8 @@ namespace Graphics
 		uint8_t AlphaBits() const override;
 		uint8_t LuminanceBits() const override;
 
+		PixelFormatConstant GetConstant() const override;
+
 		bool HasPalette() const override;
 	private:
 		const SDL_PixelFormat* pf_;

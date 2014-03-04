@@ -179,7 +179,8 @@ namespace Graphics
 	{
 		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->GetDisplayData());
 		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
-		dd->GetShader()->MakeActive();
+		auto shader = dd->GetShader();
+		shader->MakeActive();
 
 		if(r->Camera()) {
 			/// xxx need to set camera here.
@@ -187,6 +188,11 @@ namespace Graphics
 		for(auto lp : r->Lights()) {
 			/// xxx need to set lights here.
 		}
+
+		glm::mat4 pmat = glm::ortho(0.0f, 2.0f, 2.0f, 0.0f) /***/ /* view * *//*r->ModelMatrix()*/;
+		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
+
+		std::vector<GLuint> enabled_attribs;
 
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
@@ -201,6 +207,8 @@ namespace Graphics
 						rvd.Normalised(), 
 						rvd.Stride(), 
 						(void*)((intptr_t)rv->Value() + (intptr_t) + rvd.Offset()));
+					glEnableVertexAttribArray(rvdd->GetActiveMapIterator()->second.location);
+					enabled_attribs.emplace_back(rvdd->GetActiveMapIterator()->second.location);
 				} else {
 					// XXX set uniform
 					//dd->GetShader()->SetUniform(rvdd->GetActiveMapIterator(), rv->Value());
@@ -228,6 +236,10 @@ namespace Graphics
 				// XXX we probably need to grab an offset parameter, from rv, instead of the 0 below.
 				glDrawArrays(draw_mode, 0, rv->Count());
 			}
+
+			for(auto attrib : enabled_attribs) {
+				glDisableVertexAttribArray(attrib);
+			}
 		}
 	}
 
@@ -239,6 +251,21 @@ namespace Graphics
 	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, Texture::TextureType type, int mipmap_levels)
 	{
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
+	}
+
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	{
+		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::TEXTURE_1D));
+	}
+
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
+	{
+		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_2D));
+	}
+	
+	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	{
+		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_3D, depth));
 	}
 
 	void DisplayDeviceOpenGL::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
