@@ -66,6 +66,7 @@ namespace Shader
 
 		void SetUniformValue(ConstActivesMapIterator it, const GLfloat*);
 		void SetUniformValue(ConstActivesMapIterator it, const GLint*);
+		void SetUniformValue(ConstActivesMapIterator it, const void*);
 
 		void MakeActive();
 

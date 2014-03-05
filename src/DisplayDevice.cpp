@@ -70,8 +70,8 @@ namespace Graphics
 		return DisplayDevicePtr();
 	}
 
-	DisplayDeviceDef::DisplayDeviceDef(const Render::RenderVariableList& rv)
-		: render_vars_(rv)
+	DisplayDeviceDef::DisplayDeviceDef(const Render::RenderVariableList& arv, const Render::RenderVariableList& urv)
+		: attrib_render_vars_(arv), uniform_render_vars_(urv)
 	{
 	}
 
@@ -80,6 +80,12 @@ namespace Graphics
 	}
 
 	void DisplayDeviceDef::SetHint(const std::string& hint_name, const std::string& hint)
+	{
+		HintList hint_list(1,hint);
+		hints_.insert(std::make_pair(hint_name, hint_list));
+	}
+
+	void DisplayDeviceDef::SetHint(const std::string& hint_name, const HintList& hint)
 	{
 		hints_[hint_name] = hint;
 	}

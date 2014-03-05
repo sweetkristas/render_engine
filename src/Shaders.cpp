@@ -379,6 +379,63 @@ namespace Shader
 		glUseProgram(object_);
 	}
 
+	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const void* value)
+	{
+		const Actives& u = it->second;
+		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
+		switch(u.type) {
+		case GL_INT:
+		case GL_BOOL:
+		case GL_SAMPLER_2D:
+		case GL_SAMPLER_CUBE:	
+			glUniform1i(u.location, *(GLint*)value); 
+			break;
+		case GL_INT_VEC2:	
+		case GL_BOOL_VEC2:	
+			glUniform2i(u.location, ((GLint*)value)[0], ((GLint*)value)[1]); 
+			break;
+		case GL_INT_VEC3:	
+		case GL_BOOL_VEC3:	
+			glUniform3iv(u.location, u.num_elements, (GLint*)value); 
+			break;
+		case GL_INT_VEC4: 	
+		case GL_BOOL_VEC4:
+			glUniform4iv(u.location, u.num_elements, (GLint*)value); 
+			break;
+
+		case GL_FLOAT: {
+			glUniform1f(u.location, *(GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_VEC2: {
+			glUniform2fv(u.location, u.num_elements, (GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_VEC3: {
+			glUniform3fv(u.location, u.num_elements, (GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_VEC4: {
+			glUniform4fv(u.location, u.num_elements, (GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_MAT2:	{
+			glUniformMatrix2fv(u.location, u.num_elements, GL_FALSE, (GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_MAT3: {
+			glUniformMatrix3fv(u.location, u.num_elements, GL_FALSE, (GLfloat*)value);
+			break;
+		}
+		case GL_FLOAT_MAT4: {
+			glUniformMatrix4fv(u.location, u.num_elements, GL_FALSE, (GLfloat*)value);
+			break;
+		}
+		default:
+			ASSERT_LOG(false, "Unhandled uniform type: " << it->second.type);
+		}
+	}
+
 	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint* value)
 	{
 		const Actives& u = it->second;

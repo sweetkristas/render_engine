@@ -61,7 +61,7 @@ namespace Scene
 
 	Graphics::DisplayDeviceDef Light::Attach(const Graphics::DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def(render_vars_);
+		Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 		// XXX
 		return def;
 	}

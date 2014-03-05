@@ -24,6 +24,8 @@
 #include <GL/glew.h>
 
 #include "asserts.hpp"
+#include "CameraObject.hpp"
+#include "LightObject.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 #include "RenderVariable.hpp"
 #include "TextureOpenGL.hpp"
@@ -69,7 +71,7 @@ namespace Graphics
 
 	namespace 
 	{
-		GLenum ConvertRenderVariableType(Render::RenderVariableDesc::VariableType type)
+		GLenum ConvertRenderVariableType(Render::AttributeRenderVariableDesc::VariableType type)
 		{
 			static std::vector<GLenum> res;
 			if(res.empty()) {
@@ -90,6 +92,26 @@ namespace Graphics
 			}
 			ASSERT_LOG(std::vector<GLenum>::size_type(type) < res.size(), "ConvertRenderVariableType: Unable to find type " << type);
 			return res[type];
+		}
+
+		GLenum ConvertDrawingMode(Render::RenderVariable::DrawMode dm)
+		{
+			// relies on all the values in Render::Renderable::DrawMode being contiguous
+			static std::vector<GLenum> res;
+			if(res.empty()) {
+				res.emplace_back(GL_POINTS);
+				res.emplace_back(GL_LINE_STRIP);
+				res.emplace_back(GL_LINE_LOOP);
+				res.emplace_back(GL_LINES);
+				res.emplace_back(GL_TRIANGLE_STRIP);
+				res.emplace_back(GL_TRIANGLE_FAN);
+				res.emplace_back(GL_TRIANGLES);
+				res.emplace_back(GL_QUAD_STRIP);
+				res.emplace_back(GL_QUADS);
+				res.emplace_back(GL_POLYGON);
+			}
+			ASSERT_LOG(std::vector<GLenum>::size_type(dm) < res.size(), "ConvertDrawingMode: Unable to find type " << dm);
+			return res[dm];
 		}
 	}
 
@@ -140,7 +162,7 @@ namespace Graphics
 		for(auto& hints : def.GetHints()) {
 			if(hints.first == "shader") {
 				// Need to have retrieved more shader data here.
-				dd->SetShader(Shader::ShaderProgram::Factory(hints.second));
+				dd->SetShader(Shader::ShaderProgram::Factory(hints.second[0]));
 				use_default_shader = false;
 			}
 			// ...
@@ -151,25 +173,23 @@ namespace Graphics
 			dd->SetShader(Shader::ShaderProgram::DefaultSystemShader());
 		}
 
-		// XXX Process render variables here
-		for(auto& rv : def.GetRenderVars()) {
+		// Process uniform render variables here
+		for(auto& rv : def.GetUniformRenderVars()) {
 			for(auto& rvd : rv->VariableDescritionList()) {
-				switch(rvd.GetDescription()) {
-					/// XXX the information returned from below needs to be matched with the corresponding render variable
-					// so it can be applied during render -- it may be better if we augment Render variables to do this.
-					case Render::RenderVariableDesc::DESC_ATTRIB: {
-						auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(rvd.GetVertexTypeAsString()));
-						rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
-						break;
-					}
-					case Render::RenderVariableDesc::DESC_UNIFORM: {
-						auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetUniformIterator(rvd.GetUniformTypeAsString()));
-						rvd.SetDisplayData(DisplayDeviceDataPtr(rvdd));
-						break;
-					}
-					default:
-						ASSERT_LOG(false, "Unrecognised render variable description type: " << rvd.GetDescription());
-				}
+				auto& urvd = std::dynamic_pointer_cast<Render::UniformRenderVariableDesc>(rvd);
+				ASSERT_LOG(urvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to UniformRenderVariableDesc.");
+					auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetUniformIterator(urvd->GetUniformTypeAsString()));
+					rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
+			}
+		}
+
+		// Process attribute render variables here
+		for(auto& rv : def.GetAttributeRenderVars()) {
+			for(auto& rvd : rv->VariableDescritionList()) {
+				auto& arvd = std::dynamic_pointer_cast<Render::AttributeRenderVariableDesc>(rvd);
+				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
+				auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(arvd->GetVertexTypeAsString()));
+				rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
 			}
 		}
 		return DisplayDeviceDataPtr(dd);
@@ -182,61 +202,56 @@ namespace Graphics
 		auto shader = dd->GetShader();
 		shader->MakeActive();
 
+		glm::mat4 pmat(1.0f);
 		if(r->Camera()) {
-			/// xxx need to set camera here.
+			// set camera here.
+			pmat = r->Camera()->ProjectionMat() * r->Camera()->ViewMat();
 		}
 		for(auto lp : r->Lights()) {
 			/// xxx need to set lights here.
 		}
 
-		glm::mat4 pmat = glm::ortho(0.0f, 2.0f, 2.0f, 0.0f) /***/ /* view * *//*r->ModelMatrix()*/;
+		pmat *= r->ModelMatrix();
 		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
 
-		std::vector<GLuint> enabled_attribs;
+		// Loop through uniform render variables and set them.
+		for(auto& urv : r->UniformRenderVariables()) {
+			for(auto& rvd : urv->VariableDescritionList()) {
+				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
+				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
+				shader->SetUniformValue(rvdd->GetActiveMapIterator(), urv->Value());
+			}
+		}
 
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
-		for(auto rv : r->RenderVariables()) {
-			for(auto& rvd : rv->VariableDescritionList()) {
-				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd.GetDisplayData());
+		for(auto arv : r->AttributeRenderVariables()) {
+			GLenum draw_mode = ConvertDrawingMode(arv->GetDrawMode());
+			std::vector<GLuint> enabled_attribs;
+
+			for(auto& rvd : arv->VariableDescritionList()) {
+				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
 				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
-				if(rvd.GetDescription() == Render::RenderVariableDesc::DESC_ATTRIB) {
-					glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
-						rvd.NumElements(), 
-						ConvertRenderVariableType(rvd.GetVariableType()), 
-						rvd.Normalised(), 
-						rvd.Stride(), 
-						(void*)((intptr_t)rv->Value() + (intptr_t) + rvd.Offset()));
-					glEnableVertexAttribArray(rvdd->GetActiveMapIterator()->second.location);
-					enabled_attribs.emplace_back(rvdd->GetActiveMapIterator()->second.location);
-				} else {
-					// XXX set uniform
-					//dd->GetShader()->SetUniform(rvdd->GetActiveMapIterator(), rv->Value());
-				}
+				auto& arvd = std::dynamic_pointer_cast<Render::AttributeRenderVariableDesc>(rvd);
+				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
+
+				glEnableVertexAttribArray(rvdd->GetActiveMapIterator()->second.location);
+				glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
+					arvd->NumElements(), 
+					ConvertRenderVariableType(arvd->GetVariableType()), 
+					arvd->Normalised(), 
+					arvd->Stride(), 
+					(void*)((intptr_t)arv->Value() + (intptr_t) + arvd->Offset()));
+				enabled_attribs.emplace_back(rvdd->GetActiveMapIterator()->second.location);
 			}
 
-			// XXX todo change this to a simple index look-up.
-			GLenum draw_mode = GL_NONE;
-			switch(rv->GetDrawMode()) {
-				case Render::RenderVariable::POINTS:			draw_mode = GL_POINTS; break;
-				case Render::RenderVariable::LINE_STRIP:		draw_mode = GL_LINE_STRIP; break;
-				case Render::RenderVariable::LINE_LOOP:			draw_mode = GL_LINE_LOOP; break;
-				case Render::RenderVariable::LINES:				draw_mode = GL_LINES; break;
-				case Render::RenderVariable::TRIANGLE_STRIP:	draw_mode = GL_TRIANGLE_STRIP; break;
-				case Render::RenderVariable::TRIANGLE_FAN:		draw_mode = GL_TRIANGLE_FAN; break;
-				case Render::RenderVariable::TRIANGLES:			draw_mode = GL_TRIANGLES; break;
-				case Render::RenderVariable::QUAD_STRIP:		draw_mode = GL_QUAD_STRIP; break;
-				case Render::RenderVariable::QUADS:				draw_mode = GL_QUADS; break;
-				case Render::RenderVariable::POLYGON:			draw_mode = GL_POLYGON; break;
-			}
-			if(rv->IsIndexedDraw()) {
+			if(arv->IsIndexedDraw()) {
 				// XXX
 				//glDrawElements(draw_mode, rv->Count(), rv->IndexType(), rv->Indicies());
 			} else {
 				// XXX we probably need to grab an offset parameter, from rv, instead of the 0 below.
-				glDrawArrays(draw_mode, 0, rv->Count());
+				glDrawArrays(draw_mode, 0, arv->Count());
 			}
-
 			for(auto attrib : enabled_attribs) {
 				glDisableVertexAttribArray(attrib);
 			}

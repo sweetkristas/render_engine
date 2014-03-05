@@ -31,14 +31,18 @@
 
 namespace Render
 {
-	RenderVariableDesc::RenderVariableDesc(VertexType vertex_type, 
+	void RenderVariable::AddVariableDesc(const RenderVariableDescPtr& desc)
+	{
+		desc_list_.emplace_back(desc);
+	}
+
+	AttributeRenderVariableDesc::AttributeRenderVariableDesc(VertexType vertex_type, 
 		unsigned num_elements, 
 		VariableType var_type, 
 		bool normalised, 
 		unsigned stride, 
 		unsigned offset)
-		: desc_type_(DESC_ATTRIB),
-		vertex_type_(vertex_type), 
+		: vertex_type_(vertex_type), 
 		num_elements_(num_elements),
 		var_type_(var_type),
 		normalised_(normalised),
@@ -46,23 +50,22 @@ namespace Render
 		offset_(offset)
 	{
 		switch(vertex_type_) {
-			case VERTEX_POSITION:	vertex_name_ = "position"; break;
-			case VERTEX_COLOR:		vertex_name_ = "color"; break;
-			case VERTEX_TEXTURE:	vertex_name_ = "texture"; break;
-			case VERTEX_NORMAL:		vertex_name_ = "normal"; break;
+			case POSITION:	vertex_name_ = "position"; break;
+			case COLOR:		vertex_name_ = "color"; break;
+			case TEXTURE:	vertex_name_ = "texture"; break;
+			case NORMAL:		vertex_name_ = "normal"; break;
 			default:
 				ASSERT_LOG(false, "vertex_type has an unknown value: " << vertex_type_);
 		}
 	}
 
-	RenderVariableDesc::RenderVariableDesc(const std::string& vertex_name, 
+	AttributeRenderVariableDesc::AttributeRenderVariableDesc(const std::string& vertex_name, 
 		unsigned num_elements, 
 		VariableType var_type, 
 		bool normalised, 
 		unsigned stride, 
 		unsigned offset)
-		: desc_type_(DESC_ATTRIB),
-		vertex_type_(VERTEX_UNKNOWN), 
+		: vertex_type_(UNKNOWN), 
 		vertex_name_(vertex_name),
 		num_elements_(num_elements),
 		var_type_(var_type),
@@ -72,70 +75,25 @@ namespace Render
 	{
 	}
 
-	RenderVariableDesc::RenderVariableDesc(UniformType uniform_type,
-		unsigned num_elements,
+	UniformRenderVariableDesc::UniformRenderVariableDesc(UniformType uniform_type,
 		UniformVariableType uniform_var_type)
-		: desc_type_(DESC_UNIFORM),
-		uniform_type_(uniform_type),
-		num_elements_(num_elements),
+		: uniform_type_(uniform_type),
 		uniform_var_type_(uniform_var_type)
 	{
 		switch(uniform_type_) {
-			case UNIFORM_COLOR:			uniform_name_ = "color"; break;
-			case UNIFORM_POINT_SIZE:	uniform_name_ = "point_size"; break;
-			case UNIFORM_MODEL:			uniform_name_ = "model_matrix"; break;
+			case COLOR:			uniform_name_ = "color"; break;
+			case POINT_SIZE:	uniform_name_ = "point_size"; break;
+			case MODEL:			uniform_name_ = "model_matrix"; break;
 			default:
 				ASSERT_LOG(false, "uniform_type has an unknown value: " << uniform_type_);
 		}
 	}
 
-	RenderVariableDesc::RenderVariableDesc(const std::string& uniform_name,
-		unsigned num_elements,
+	UniformRenderVariableDesc::UniformRenderVariableDesc(const std::string& uniform_name,
 		UniformVariableType uniform_var_type)
-		: desc_type_(DESC_UNIFORM),
-		uniform_type_(UNIFORM_UNKOWN),
+		: uniform_type_(UNKOWN),
 		uniform_name_(uniform_name),
-		num_elements_(num_elements),
 		uniform_var_type_(uniform_var_type)
 	{
-	}
-
-	RenderVariableDesc::~RenderVariableDesc()
-	{
-	}
-
-
-	void RenderVariable::AddVariableDescription(RenderVariableDesc::VertexType vertex_type, 
-		unsigned num_elements, 
-		RenderVariableDesc::VariableType var_type, 
-		bool normalised, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		desc_list_.push_back(RenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset));
-	}
-
-	void RenderVariable::AddVariableDescription(const std::string& vertex_type, 
-		unsigned num_elements, 
-		RenderVariableDesc::VariableType var_type, 
-		bool normalised, 
-		unsigned stride, 
-		unsigned offset)
-	{
-		desc_list_.push_back(RenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset));
-	}
-
-	void RenderVariable::AddVariableDescription(const std::string& uniform_name, 
-		unsigned num_elements,
-		RenderVariableDesc::UniformVariableType uniform_var_type)
-	{
-		desc_list_.push_back(RenderVariableDesc(uniform_name, num_elements, uniform_var_type));
-	}
-
-	void RenderVariable::AddVariableDescription(RenderVariableDesc::UniformType uniform_type,
-		unsigned num_elements,
-		RenderVariableDesc::UniformVariableType uniform_var_type)
-	{
-		desc_list_.push_back(RenderVariableDesc(uniform_type, num_elements, uniform_var_type));
 	}
 }

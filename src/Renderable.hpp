@@ -60,14 +60,16 @@ namespace Render
 		const Scene::LightPtrList& Lights() const { return lights_; }
 		void SetLights(const Scene::LightPtrList& lights);
 
-		const RenderVariableList& RenderVariables() const { return render_vars_; }
-
 		void SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def);
 		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 
+		void AddAttributeRenderVariable(const RenderVariablePtr& rv);
+		void AddUniformRenderVariable(const RenderVariablePtr& rv);
+		const RenderVariableList& AttributeRenderVariables() const { return attribute_render_vars_; }
+		const RenderVariableList& UniformRenderVariables() const { return uniform_render_vars_; }
+
 		void draw(RenderQueuePtr queue) const;
 	protected:
-		RenderVariableList render_vars_;
 	private:
 		size_t order_;
 		glm::vec3 position_;
@@ -75,6 +77,10 @@ namespace Render
 		glm::vec3 scale_;
 		Scene::CameraPtr camera_;
 		Scene::LightPtrList lights_;
+
+		RenderVariableList attribute_render_vars_;
+		RenderVariableList uniform_render_vars_;
+
 		Graphics::DisplayDeviceDataPtr display_data_;
 		Renderable(const Renderable&);
 	};

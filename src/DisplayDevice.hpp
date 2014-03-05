@@ -34,19 +34,24 @@
 
 namespace Graphics
 {
+	typedef std::vector<std::string> HintList;
+	typedef std::map<std::string,HintList> HintMap;
 	class DisplayDeviceDef
 	{
 	public:
-		DisplayDeviceDef(const Render::RenderVariableList& rv);
+		DisplayDeviceDef(const Render::RenderVariableList& arv, const Render::RenderVariableList& urv);
 		~DisplayDeviceDef();
 
-		const Render::RenderVariableList& GetRenderVars() const { return render_vars_; }
+		const Render::RenderVariableList& GetAttributeRenderVars() const { return attrib_render_vars_; }
+		const Render::RenderVariableList& GetUniformRenderVars() const { return uniform_render_vars_; }
 
 		void SetHint(const std::string& hint_name, const std::string& hint);
-		const std::map<std::string,std::string> GetHints() const { return hints_; }
+		void SetHint(const std::string& hint_name, const HintList& hint);
+		HintMap GetHints() const { return hints_; }
 	private:
-		std::map<std::string,std::string> hints_;
-		const Render::RenderVariableList& render_vars_;
+		HintMap hints_;
+		const Render::RenderVariableList& attrib_render_vars_;
+		const Render::RenderVariableList& uniform_render_vars_;
 	};
 
 	class DisplayDeviceData

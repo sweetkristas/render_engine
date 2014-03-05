@@ -29,37 +29,32 @@ namespace
 	{
 	public:
 		SquareRenderable() : Scene::SceneObject("square") {
-			std::shared_ptr<Render::TypedRenderVariable<vertex_color>> rv = std::make_shared<Render::TypedRenderVariable<vertex_color>>(4, false);
+			using namespace Render;
+			auto& arv = std::make_shared<AttributeRenderVariable<vertex_color>>();
+			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_color), 0);
+			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_color), sizeof(glm::vec2));
+			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
+			AddAttributeRenderVariable(arv);
 
-			render_vars_.resize(2);
-			render_vars_[0] = rv;
-			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_POSITION, 2, Render::RenderVariableDesc::TYPE_FLOAT, true, sizeof(vertex_color), 0);
-			render_vars_[0]->AddVariableDescription(Render::RenderVariableDesc::VERTEX_COLOR, 4, Render::RenderVariableDesc::TYPE_UNSIGNED_BYTE, false, sizeof(vertex_color), sizeof(glm::vec2));
-			render_vars_[0]->SetDrawMode(Render::RenderVariable::TRIANGLE_STRIP);
-			
+			auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
+			urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
+			AddUniformRenderVariable(urv);
+
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
-			vertices.emplace_back(glm::vec2(0.0f,1.0f), glm::u8vec4(0,255,0,255));
-			vertices.emplace_back(glm::vec2(1.0f,0.0f), glm::u8vec4(0,0,255,255));
-			vertices.emplace_back(glm::vec2(1.0f,1.0f), glm::u8vec4(255,0,0,255));
-			rv->Update(vertices);
+			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
+			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
+			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
+			arv->Update(vertices);
 
-			auto color_urv = std::make_shared<Render::UniformRenderVariable<glm::vec4>>();
-			render_vars_[1] = color_urv;
-			color_urv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_COLOR, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT_VEC4);
-			color_urv->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
-			
-			//auto psrv = std::make_shared<Render::UniformRenderVariable<float>>();
-			//render_vars_[2] = psrv;
-			//psrv->AddVariableDescription(Render::RenderVariableDesc::UNIFORM_POINT_SIZE, 1, Render::RenderVariableDesc::UNIFORM_TYPE_FLOAT);
-			//psrv->Update(1.0f);
+			urv->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 
 			SetOrder(0);
 		}
 		virtual ~SquareRenderable() {}
 	protected:
 		Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) {
-			Graphics::DisplayDeviceDef def(render_vars_);
+			Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 			def.SetHint("shader", "attr_color_shader");
 			return def;
 		}
@@ -81,6 +76,44 @@ void recurse_tree(const the::tree<int>& xt, the::tree<int>::pre_iterator& it)
 
 
 #include "Shaders.hpp"
+void gl_test2()
+{
+	const float x = 200.0;
+	const float y = 150.0;
+	const float w = 400.0f;
+	const float h = 300.0f;
+	const float vcoords[] = {
+		  x,   y,
+		  x, y+h,
+		x+w,   y,
+		x+w, y+h,
+	};
+	const uint8_t ccoords[] = {
+		255, 255, 255, 255,
+		255,   0,   0, 255,
+		  0, 255,   0, 255,
+		  0,   0, 255, 255,
+	};
+
+	auto shader = Shader::ShaderProgram::Factory("attr_color_shader");
+	shader->MakeActive();
+
+	glm::mat4 pmat = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f);
+	shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
+	shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(1.0f,1.0f,1.0f,1.0f)));
+	
+	glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
+	glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vcoords);
+	
+	glEnableVertexAttribArray(shader->GetColorAttribute()->second.location);
+	glVertexAttribPointer(shader->GetColorAttribute()->second.location, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, ccoords);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
+	glDisableVertexAttribArray(shader->GetColorAttribute()->second.location);
+}
+
 void gl_test()
 {
 	const float w = 800.0f;
@@ -152,7 +185,7 @@ int main(int argc, char *argv[])
 	root->AttachLight(0, sunlight);
 
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	square->SetPosition(0.5f, 0.5f);
+	square->SetPosition(100.0f, 100.0f);
 	root->AttachObject(square);
 
 	auto rman = std::make_shared<Render::RenderManager>();
@@ -189,7 +222,8 @@ int main(int argc, char *argv[])
 		}
 
 
-		gl_test();
+		//gl_test();
+		//gl_test2();
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 

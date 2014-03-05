@@ -27,12 +27,18 @@
 namespace Render
 {
 	Renderable::Renderable()
-		: order_(0)
+		: order_(0),
+		position_(0.0f),
+		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
+		scale_(1.0f)
 	{
 	}
 
 	Renderable::Renderable(size_t order)
-		: order_(order)
+		: order_(order), 
+		position_(0.0f),
+		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
+		scale_(1.0f)
 	{
 	}
 
@@ -99,4 +105,13 @@ namespace Render
 		display_data_ = dd->CreateDisplayDeviceData(def);
 	}
 
+	void Renderable::AddAttributeRenderVariable(const RenderVariablePtr& rv)
+	{
+		attribute_render_vars_.emplace_back(rv);
+	}
+
+	void Renderable::AddUniformRenderVariable(const RenderVariablePtr& rv)
+	{
+		uniform_render_vars_.emplace_back(rv);
+	}
 }

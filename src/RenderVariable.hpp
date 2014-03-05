@@ -42,81 +42,58 @@ namespace Render
 	class RenderVariableDesc
 	{
 	public:
+		virtual ~RenderVariableDesc() {}
+
+		void SetDisplayData(const Graphics::DisplayDeviceDataPtr& dd) {
+			display_data_ = dd;
+		}
+		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+	private:
+		Graphics::DisplayDeviceDataPtr display_data_;
+	};
+
+	typedef std::shared_ptr<RenderVariableDesc> RenderVariableDescPtr;
+
+	class AttributeRenderVariableDesc : public RenderVariableDesc
+	{
+	public:
 		enum VertexType {
-			VERTEX_UNKNOWN,
-			VERTEX_POSITION,
-			VERTEX_COLOR,
-			VERTEX_TEXTURE,
-			VERTEX_NORMAL,
+			UNKNOWN,
+			POSITION,
+			COLOR,
+			TEXTURE,
+			NORMAL,
 		};
 		enum VariableType {
-			TYPE_BOOL,
-			TYPE_HALF_FLOAT,
-			TYPE_FLOAT,
-			TYPE_DOUBLE,
-			TYPE_FIXED,
-			TYPE_SHORT,
-			TYPE_UNSIGNED_SHORT,
-			TYPE_BYTE,
-			TYPE_UNSIGNED_BYTE,
-			TYPE_INT,
-			TYPE_UNSIGNED_INT,
-			TYPE_INT_2_10_10_10,
-			TYPE_UNSIGNED_INT_2_10_10_10,
-			TYPE_UNSIGNED_INT_10F_11F_11F,
-		};
-		enum UniformType {
-			UNIFORM_UNKOWN,
-			UNIFORM_COLOR,
-			UNIFORM_POINT_SIZE,
-			UNIFORM_MODEL,
-		};
-		enum UniformVariableType {
-			UNIFORM_TYPE_FLOAT,
-			UNIFORM_TYPE_FLOAT_VEC2,
-			UNIFORM_TYPE_FLOAT_VEC3,
-			UNIFORM_TYPE_FLOAT_VEC4,
-			UNIFORM_TYPE_INT,
-			UNIFORM_TYPE_INT_VEC2,
-			UNIFORM_TYPE_INT_VEC3,
-			UNIFORM_TYPE_INT_VEC4,
-			UNIFORM_TYPE_BOOL,
-			UNIFORM_TYPE_BOOL_VEC2,
-			UNIFORM_TYPE_BOOL_VEC3,
-			UNIFORM_TYPE_BOOL_VEC4,
-			UNIFORM_TYPE_FLOAT_MAT2,
-			UNIFORM_TYPE_FLOAT_MAT3,
-			UNIFORM_TYPE_FLOAT_MAT4,
-			UNIFORM_TYPE_SAMPLER_2D, 
-			UNIFORM_TYPE_SAMPLER_CUBE,
-		};
-		enum DescriptionType {
-			DESC_ATTRIB,
-			DESC_UNIFORM,
+			BOOL,
+			HALF_FLOAT,
+			FLOAT,
+			DOUBLE,
+			FIXED,
+			SHORT,
+			UNSIGNED_SHORT,
+			BYTE,
+			UNSIGNED_BYTE,
+			INT,
+			UNSIGNED_INT,
+			INT_2_10_10_10,
+			UNSIGNED_INT_2_10_10_10,
+			UNSIGNED_INT_10F_11F_11F,
 		};
 
-		RenderVariableDesc(VertexType vertex_type, 
+		AttributeRenderVariableDesc(VertexType vertex_type, 
 			unsigned num_elements, 
 			VariableType var_type, 
 			bool normalised, 
 			unsigned stride, 
 			unsigned offset);
-		RenderVariableDesc(const std::string& vertex_name, 
+		AttributeRenderVariableDesc(const std::string& vertex_name, 
 			unsigned num_elements, 
 			VariableType var_type, 
 			bool normalised, 
 			unsigned stride, 
 			unsigned offset);
-		RenderVariableDesc(UniformType uniform_type,
-			unsigned num_elements,
-			UniformVariableType uniform_var_type);
-		RenderVariableDesc(const std::string& uniform_name,
-			unsigned num_elements,
-			UniformVariableType uniform_var_type);
-
-		~RenderVariableDesc();
-
-		DescriptionType GetDescription() const { return desc_type_; }
+		virtual ~AttributeRenderVariableDesc() override {};
 
 		VertexType GetVertexType() const { return vertex_type_; }
 		const std::string& GetVertexTypeAsString() const { return vertex_name_; }
@@ -125,14 +102,7 @@ namespace Render
 		unsigned Stride() const { return stride_; }
 		unsigned Offset() const { return offset_; }
 		bool Normalised() const { return normalised_; }
-
-		void SetDisplayData(const Graphics::DisplayDeviceDataPtr& dd) {
-			display_data_ = dd;
-		}
-		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
-		const std::string& GetUniformTypeAsString() const { return uniform_name_; }
 	private:
-		DescriptionType desc_type_;
 		VertexType vertex_type_;
 		std::string vertex_name_;
 		unsigned num_elements_;
@@ -140,44 +110,63 @@ namespace Render
 		unsigned stride_; 
 		unsigned offset_;
 		bool normalised_;
+	};
 
+	class UniformRenderVariableDesc : public RenderVariableDesc
+	{
+	public:
+		enum UniformType {
+			UNKOWN,
+			COLOR,
+			POINT_SIZE,
+			MODEL,
+		};
+		enum UniformVariableType {
+			IS_FLOAT		= 0x40000000,
+			FLOAT			= 0x40000001,
+			FLOAT_VEC2		= 0x40000002,
+			FLOAT_VEC3		= 0x40000003,
+			FLOAT_VEC4		= 0x40000004,
+			INT				= 0x00000001,
+			INT_VEC2		= 0x00000002,
+			INT_VEC3		= 0x00000003,
+			INT_VEC4		= 0x00000004,
+			BOOL			= 0x00100001,
+			BOOL_VEC2		= 0x00100002,
+			BOOL_VEC3		= 0x00100003,
+			BOOL_VEC4		= 0x00100004,
+			FLOAT_MAT2		= 0x40100002,
+			FLOAT_MAT3		= 0x40100003,
+			FLOAT_MAT4		= 0x40100004,
+			SAMPLER_2D		= 0x00200001, 
+			SAMPLER_CUBE	= 0x00200002,
+		};
+
+		UniformRenderVariableDesc(UniformType uniform_type,
+			UniformVariableType uniform_var_type);
+		UniformRenderVariableDesc(const std::string& uniform_name,
+			UniformVariableType uniform_var_type);
+		virtual ~UniformRenderVariableDesc() override {};
+
+		const std::string& GetUniformTypeAsString() const { return uniform_name_; }
+		UniformVariableType GetUniformVariableType() const { return uniform_var_type_; }
+	private:
 		std::string uniform_name_;
 		UniformType uniform_type_;
 		UniformVariableType uniform_var_type_;
-		Graphics::DisplayDeviceDataPtr display_data_;
 	};
 
-	typedef std::vector<RenderVariableDesc> RenderVariableDescList;
+	typedef std::vector<RenderVariableDescPtr> RenderVariableDescList;
 
 	class RenderVariable
 	{
 	public:
 		virtual ~RenderVariable() {}
 
-		void AddVariableDescription(RenderVariableDesc::VertexType vertex_type, 
-			unsigned num_elements, 
-			RenderVariableDesc::VariableType var_type, 
-			bool normalised, 
-			unsigned stride, 
-			unsigned offset);
-		void AddVariableDescription(const std::string& vertex_type, 
-			unsigned num_elements, 
-			RenderVariableDesc::VariableType var_type, 
-			bool normalised, 
-			unsigned stride, 
-			unsigned offset);
-		void AddVariableDescription(const std::string& uniform_type, 
-			unsigned num_elements,
-			RenderVariableDesc::UniformVariableType uniform_var_type);
-		void AddVariableDescription(RenderVariableDesc::UniformType uniform_type,
-			unsigned num_elements,
-			RenderVariableDesc::UniformVariableType uniform_var_type);
-		
-		void SetIndexedDraw(bool indexed_draw) { indexed_draw_ = indexed_draw; }
-		bool IsIndexedDraw() const { return indexed_draw_; }
-
 		void SetCount(size_t cnt) { count_ = cnt; }
 		size_t Count() const { return count_; }
+
+		RenderVariableDescList& VariableDescritionList() { return desc_list_; }
 
 		enum DrawMode {
 			POINTS,
@@ -194,7 +183,8 @@ namespace Render
 		void SetDrawMode(DrawMode draw_mode) { draw_mode_ = draw_mode; }
 		DrawMode GetDrawMode() const { return draw_mode_; }
 
-		RenderVariableDescList& VariableDescritionList() { return desc_list_; }
+		void SetIndexedDraw(bool indexed_draw) { indexed_draw_ = indexed_draw; }
+		bool IsIndexedDraw() const { return indexed_draw_; }
 
 		virtual void* Value() = 0;
 	protected:
@@ -210,15 +200,9 @@ namespace Render
 			indexed_draw_(false)
 		{
 		}
+	protected:
+		void AddVariableDesc(const RenderVariableDescPtr& desc);
 	private:
-		//VertexType vertex_type_;
-		//const std::string vertex_type_str_;
-		//unsigned num_elements_;
-		//VariableType var_type_;
-		//unsigned stride_;
-		//unsigned offset_;
-		bool indexed_draw_;
-		DrawMode draw_mode_;
 		// Estimated count of number of items.
 		size_t count_;
 		// Whether the data is reloaded often or is static.
@@ -230,42 +214,73 @@ namespace Render
 
 		RenderVariableDescList desc_list_;
 
+		bool indexed_draw_;
+		DrawMode draw_mode_;
+
 		RenderVariable();
 		RenderVariable(const RenderVariable&);
 	};
 
-	template<typename T>
-	class TypedRenderVariable : public RenderVariable
+	template<class T>
+	class AttributeRenderVariable : public RenderVariable
 	{
 	public:
-		TypedRenderVariable<T>(size_t count = 0,
+		AttributeRenderVariable(size_t count = 0,
 			bool dynamic = true, 
 			bool shareable = true, 
 			bool geometry_related = true) 
-			: RenderVariable(count, dynamic, shareable, geometry_related) {
+			: RenderVariable(count, dynamic, shareable, geometry_related) {}
+		virtual ~AttributeRenderVariable() {}
+
+		void AddVariableDescription(AttributeRenderVariableDesc::VertexType vertex_type, 
+			unsigned num_elements, 
+			AttributeRenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset) {
+			AddVariableDesc(RenderVariableDescPtr(new AttributeRenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset)));
 		}
-		virtual ~TypedRenderVariable<T>() {}
+		void AddVariableDescription(const std::string& vertex_type, 
+			unsigned num_elements, 
+			AttributeRenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset) {
+			AddVariableDesc(RenderVariableDescPtr(new AttributeRenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset)));
+		}
+
 		void Update(const std::vector<T>& value) {
 			value_ = value;
+			SetCount(value.size());
 		}
 		void* Value() override { return &value_[0]; }
 	private:
 		std::vector<T> value_;
+		AttributeRenderVariable(const AttributeRenderVariable&);
 	};
 
-	template<typename T>
+	template<class T>
 	class UniformRenderVariable : public RenderVariable
 	{
 	public:
-		UniformRenderVariable<T>() 
-			: RenderVariable(0, false, true, false) {
+		UniformRenderVariable() : RenderVariable(0, false, true, false) {}
+		virtual ~UniformRenderVariable() {}
+
+		void AddVariableDescription(const std::string& uniform_type, 
+			UniformRenderVariableDesc::UniformVariableType uniform_var_type) {
+			AddVariableDesc(RenderVariableDescPtr(new UniformRenderVariableDesc(uniform_type, uniform_var_type)));
 		}
-		virtual ~UniformRenderVariable<T>() {}
+		void AddVariableDescription(UniformRenderVariableDesc::UniformType uniform_type,
+			UniformRenderVariableDesc::UniformVariableType uniform_var_type) {
+			AddVariableDesc(RenderVariableDescPtr(new UniformRenderVariableDesc(uniform_type, uniform_var_type)));
+		}
+
 		void Update(const T& value) {
 			value_ = value;
 		}
 		void* Value() override { return &value_; }
 	private:
 		T value_;
+		UniformRenderVariable(const UniformRenderVariable&);
 	};
 }
