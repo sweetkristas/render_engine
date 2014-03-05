@@ -25,7 +25,7 @@ namespace Shader
 			"uniform vec4 u_color;\n"
 			"void main()\n"
 			"{\n"
-			"    vec4 color = texture2D(u_tex_map, v_texcoord);"
+			"    vec4 color = texture2D(u_tex_map, v_texcoord);\n"
 			"    if(u_discard && color[3] == 0.0) {\n"
 			"        discard;\n"
 			"    } else {\n"
@@ -436,6 +436,34 @@ namespace Shader
 		}
 	}
 
+	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint value)
+	{
+		const Actives& u = it->second;
+		switch(u.type) {
+		case GL_INT:
+		case GL_BOOL:
+		case GL_SAMPLER_2D:
+		case GL_SAMPLER_CUBE:	
+			glUniform1i(u.location, value); 
+			break;
+		default:
+			ASSERT_LOG(false, "Unhandled uniform type: " << it->second.type);
+		}
+	}
+
+	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLfloat value)
+	{
+		const Actives& u = it->second;
+		switch(u.type) {
+		case GL_FLOAT: {
+			glUniform1f(u.location, value);
+			break;
+		}
+		default:
+			ASSERT_LOG(false, "Unhandled uniform type: " << it->second.type);
+		}	
+	}
+
 	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint* value)
 	{
 		const Actives& u = it->second;
@@ -524,6 +552,9 @@ namespace Shader
 		}
 		if(GetUniform("color") != -1) {
 			u_color_ = GetUniformIterator("color");
+		}
+		if(GetUniform("tex_map") != -1) {
+			u_tex_ = GetUniformIterator("tex_map");
 		}
 		if(GetAttribute("position") != -1) {
 			a_vertex_ = GetAttributeIterator("position");

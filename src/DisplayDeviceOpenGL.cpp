@@ -283,11 +283,11 @@ namespace Graphics
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_3D, depth));
 	}
 
+	// XXX Need a way to deal with blits with Camera/Lighting.
 	void DisplayDeviceOpenGL::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
 		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
 		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
-		texture->Bind();
 
 		const float tx1 = float(srcx) / texture->Width();
 		const float ty1 = float(srcy) / texture->Height();
@@ -295,8 +295,8 @@ namespace Graphics
 		const float ty2 = srch == 0 ? 1.0f : float(srcy + srch) / texture->Height();
 		const float uv_coords[] = {
 			tx1, ty1,
-			tx1, ty2,
 			tx2, ty1,
+			tx1, ty2,
 			tx2, ty2,
 		};
 
@@ -312,17 +312,15 @@ namespace Graphics
 		};
 
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f));
-		glm::mat4 pmat = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f);
-		glm::mat4 mvp = pmat * /* view * */ model;
-
+		glm::mat4 mvp = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f) * model;
 		auto shader = Shader::ShaderProgram::DefaultSystemShader();
 		shader->MakeActive();
+		texture->Bind();
 		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(mvp));
 		shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(1.0f,1.0f,1.0f,1.0f)));
-		int value = 0;
-		// XXX the following two lines are only temporary, obviously.
-		shader->SetUniformValue(shader->GetUniformIterator("discard"), &value);
-		shader->SetUniformValue(shader->GetUniformIterator("tex_map"), &value);
+		shader->SetUniformValue(shader->GetTexMapUniform(), 0);
+		// XXX the following line are only temporary, obviously.
+		shader->SetUniformValue(shader->GetUniformIterator("discard"), 0);
 		glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
 		glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vtx_coords);
 		glEnableVertexAttribArray(shader->GetTexcoordAttribute()->second.location);

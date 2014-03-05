@@ -16,4 +16,4 @@ List of things still needed to be done, not in any particular order.
 * Finish implementing packed YUV texture support.
 * Finish implementing cubic texture support.
 * For planar YUV textures in PIXELFORMAT_YV12, need to swap V/U planes when rendering.
-* 
+* Fix lighting. 

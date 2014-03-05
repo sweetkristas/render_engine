@@ -185,27 +185,28 @@ int main(int argc, char *argv[])
 	root->AttachLight(0, sunlight);
 
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	square->SetPosition(100.0f, 100.0f);
+	square->SetPosition(600.0f, 400.0f);
+	square->SetScale(2.0f,2.0f);
 	root->AttachObject(square);
 
 	auto rman = std::make_shared<Render::RenderManager>();
 	auto rq = std::make_shared<Render::RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
-	auto canvas = Graphics::Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
-	canvas->SetSourceColor(0.0, 1.0, 0.0);
-	canvas->Paint();
-	canvas->Fill();
-	auto path = canvas->NewPath();
+	auto cairo_canvas = Graphics::Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
+	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
+	cairo_canvas->Paint();
+	cairo_canvas->Fill();
+	auto path = cairo_canvas->NewPath();
 	path->Circle(256, 256, 100);
-	canvas->AddPath(path);
-	canvas->SetSourceColor(0.0, 0.0, 1.0);
-	canvas->Fill();
-	auto text = canvas->NewPath();
+	cairo_canvas->AddPath(path);
+	cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
+	cairo_canvas->Fill();
+	auto text = cairo_canvas->NewPath();
 	text->MoveTo(10, 10);
 	text->TextPath("ABCDabcde");
-	canvas->AddPath(text);
-	canvas->Fill();
+	cairo_canvas->AddPath(text);
+	cairo_canvas->Fill();
 
 	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
 
@@ -222,12 +223,12 @@ int main(int argc, char *argv[])
 		}
 
 
-		//gl_test();
+		gl_test();
 		//gl_test2();
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 
-		//canvas->Render(main_wnd);
+		cairo_canvas->Render(main_wnd);
 
 
 		double t1 = timer.check();

@@ -345,6 +345,7 @@ namespace Graphics
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
 			tex_ = wnd->CreateTexture(w, h, pffmt);
+			tex_->SetAddressModes(Texture::CLAMP, Texture::CLAMP, Texture::CLAMP);
 		}
 
 		CairoContext::~CairoContext()

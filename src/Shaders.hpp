@@ -64,6 +64,8 @@ namespace Shader
 
 		void SetActives();
 
+		void SetUniformValue(ConstActivesMapIterator it, const GLint);
+		void SetUniformValue(ConstActivesMapIterator it, const GLfloat);
 		void SetUniformValue(ConstActivesMapIterator it, const GLfloat*);
 		void SetUniformValue(ConstActivesMapIterator it, const GLint*);
 		void SetUniformValue(ConstActivesMapIterator it, const void*);
@@ -78,6 +80,7 @@ namespace Shader
 
 		ConstActivesMapIterator GetColorUniform() const { return u_color_; }
 		ConstActivesMapIterator GetMvpUniform() const { return u_mvp_; }
+		ConstActivesMapIterator GetTexMapUniform() const { return u_tex_; }
 		ConstActivesMapIterator GetColorAttribute() const { return a_color_; }
 		ConstActivesMapIterator GetVertexAttribute() const { return a_vertex_; }
 		ConstActivesMapIterator GetTexcoordAttribute() const { return a_texcoord_; }
@@ -101,6 +104,7 @@ namespace Shader
 		// Store for common attributes and uniforms
 		ConstActivesMapIterator u_mvp_;
 		ConstActivesMapIterator u_color_;
+		ConstActivesMapIterator u_tex_;
 		ConstActivesMapIterator a_vertex_;
 		ConstActivesMapIterator a_texcoord_;
 		ConstActivesMapIterator a_color_;

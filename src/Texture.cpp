@@ -161,9 +161,9 @@ namespace Graphics
 		for(auto& am : address_mode_) {
 			am = AddressMode::WRAP;
 		}
-		filtering_[0] = Filtering::LINEAR;
-		filtering_[1] = Filtering::LINEAR;
-		filtering_[2] = Filtering::POINT;
+		filtering_[0] = Filtering::POINT;
+		filtering_[1] = Filtering::POINT;
+		filtering_[2] = Filtering::NONE;
 	}
 	
 	Texture::~Texture()

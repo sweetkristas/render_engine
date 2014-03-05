@@ -106,7 +106,6 @@ namespace Graphics
 		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
 		ASSERT_LOG(GetType() == TEXTURE_1D, "Tried to do 1D texture update on non-1D texture");
 		glTexSubImage1D(GetGLTextureType(GetType()), 0, x, width, format_, type_, pixels);
-		glBindTexture(GetGLTextureType(GetType()), 0);
 	}
 
 	// Add a 2D update function which has single stride, but doesn't support planar YUV.
@@ -142,7 +141,6 @@ namespace Graphics
 		if(!stride.empty()) {
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		}
-		glBindTexture(GetGLTextureType(GetType()), 0);
 	}
 
 	void OpenGLTexture::Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels)
@@ -166,7 +164,6 @@ namespace Graphics
 		if(GetMipMapLevels() > 0 && GetType() > TextureType::TEXTURE_1D) {
 			glGenerateMipmap(GetGLTextureType(GetType()));
 		}
-		glBindTexture(GetGLTextureType(GetType()), 0);
 	}
 
 	void OpenGLTexture::CreateTexture(const PixelFormat::PixelFormatConstant& fmt)
@@ -336,7 +333,6 @@ namespace Graphics
 		glGenTextures(num_textures, &texture_id_[0]);
 		for(int n = 0; n != num_textures; ++n) {
 			glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 			unsigned w = n>0 ? Width()/2 : Width();
 			unsigned h = n>0 ? Height()/2 : Height();
@@ -357,7 +353,6 @@ namespace Graphics
 					ASSERT_LOG(false, "Implement texturing of cubic texture target");
 			}
 		}
-		glBindTexture(GetGLTextureType(GetType()), 0);
 	}
 
 	void OpenGLTexture::Init()
@@ -425,18 +420,18 @@ namespace Graphics
 				glGenerateMipmap(type);
 			}
 		}
-
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		glBindTexture(GetType(), 0);
 	}
 
 	void OpenGLTexture::Bind(int n) 
 	{ 
-		int num_textures = is_yuv_planar_ ? 2 : 0;
-
-		for(int n = num_textures; n >= 0; --n) {
-			glActiveTexture(GL_TEXTURE0 + n); 			
-			glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
+		if(is_yuv_planar_) {
+			int num_textures = is_yuv_planar_ ? 2 : 0;
+			for(int n = num_textures; n > 0; --n) {
+				glActiveTexture(GL_TEXTURE0 + n); 			
+				glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
+			}
+			glActiveTexture(GL_TEXTURE0);
 		}
+		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
 	}
 }
