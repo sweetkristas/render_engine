@@ -23,9 +23,9 @@
 
 #pragma once
 
-namespace graphics
+namespace Graphics
 {
-	namespace particles
+	namespace Particles
 	{
 	}
 }
