@@ -30,6 +30,7 @@ public:
 	explicit variant(const std::string&);
 	explicit variant(const variant_map&);
 	explicit variant(const variant_list&);
+	explicit variant(std::vector<variant>* list);
 
 	variant_type type() const { return type_; }
 	std::string type_as_string() const;
@@ -38,10 +39,14 @@ public:
 
 	std::string as_string() const;
 	int64_t as_int() const;
+	int64_t as_int(int64_t value) const;
 	float as_float() const;
+	float as_float(float value) const;
 	bool as_bool() const;
+	bool as_bool(bool default_value) const;
 	const variant_list& as_list() const;
 	const variant_map& as_map() const;
+	std::vector<std::string> as_list_string() const;
 
 	variant_list& as_mutable_list();
 	variant_map& as_mutable_map();
@@ -87,3 +92,19 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, const variant& n);
+
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+glm::vec3 variant_to_vec3(const variant& v);
+variant vec3_to_variant(const glm::vec3& v);
+
+glm::ivec3 variant_to_ivec3(const variant& v);
+variant ivec3_to_variant(const glm::ivec3& v);
+
+glm::quat variant_to_quat(const variant& v);
+variant quat_to_variant(const glm::quat& v);
+
+glm::vec4 variant_to_vec4(const variant& v);
+variant vec4_to_variant(const glm::vec4& v);
+

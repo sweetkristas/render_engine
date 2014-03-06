@@ -217,7 +217,7 @@ namespace Graphics
 			// XXX Here is were we can abstract image loading and provide an
 			// image cache.
 			// return SurfacePtr(WindowManager::LoadImage(filename));
-			return SurfacePtr(new SurfaceSDL(IMG_Load(filename.c_str())));
+			return Surface::Create(filename);
 		}
 
 		void handle_set_clear_color() {
@@ -354,8 +354,9 @@ namespace Graphics
 	TexturePtr WindowManager::CreateTexture(const variant& node)
 	{
 		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		ASSERT_LOG(node.has_key("image") && node["image"].is_string(), "Must have 'image' attribute that is a string when specifying textures.");
-		auto surface = CreateSurface(node["image"].as_string());
+		ASSERT_LOG(node.has_key("image") || node.has_key("texture"), "Must have either 'image' or 'texture' attribute.");
+		const std::string image_name = node.has_key("image") ? node["image"].as_string() : node["texture"].as_string();
+		auto surface = CreateSurface(image_name);
 		return display_->CreateTexture(surface, node);
 	}
 
@@ -364,6 +365,12 @@ namespace Graphics
 		ASSERT_LOG(display_ != NULL, "No display to create texture.");
 		auto surface = CreateSurface(filename);
 		return display_->CreateTexture(surface, type, mipmap_levels);
+	}
+
+	MaterialPtr WindowManager::CreateMaterial(const variant& node)
+	{
+		ASSERT_LOG(display_ != NULL, "No display to create material.");
+		return display_->CreateMaterial(node);
 	}
 
 	WindowManagerPtr WindowManager::factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)

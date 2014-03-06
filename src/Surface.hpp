@@ -149,6 +149,10 @@ namespace Graphics
 		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
 		virtual bool SetClipRect(const rect& r) = 0;
 		virtual const rect GetClipRect() = 0;
+
+		static bool RegisterSurfaceCreator(const std::string& name, SurfacePtr(*)(const std::string&));
+		static void UnRegisterSurfaceCreator(const std::string& name);
+		static SurfacePtr Create(const std::string& filename);
 	protected:
 		Surface();
 		void SetPixelFormat(PixelFormatPtr pf);

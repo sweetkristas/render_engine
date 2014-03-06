@@ -21,11 +21,18 @@
 	   distribution.
 */
 
+#include "SDL_image.h"
+
 #include "asserts.hpp"
 #include "SurfaceSDL.hpp"
 
 namespace Graphics
 {
+	namespace
+	{
+		bool can_create_surfaces = Surface::RegisterSurfaceCreator("sdl", SurfaceSDL::CreateFromFile);
+	}
+
 	SurfaceSDL::SurfaceSDL(size_t width, 
 		size_t height, 
 		size_t bpp, 
@@ -367,5 +374,10 @@ namespace Graphics
 			case SDL_PIXELFORMAT_YVYU:	        return PIXELFORMAT_YVYU;
 		}
 		return PIXELFORMAT_UNKNOWN;
+	}
+
+	SurfacePtr SurfaceSDL::CreateFromFile(const std::string& filename)
+	{
+		return SurfacePtr(new SurfaceSDL(IMG_Load(filename.c_str())));
 	}
 }

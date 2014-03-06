@@ -24,8 +24,8 @@
 #pragma once
 
 #include "DisplayDevice.hpp"
+#include "Material.hpp"
 #include "Shaders.hpp"
-#include "Texture.hpp"
 
 namespace Graphics
 {
@@ -52,6 +52,8 @@ namespace Graphics
 		TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TEXTURE_2D) override;
 		TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) override;
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) override;
+
+		MaterialPtr CreateMaterial(const variant& node) override;
 
 		void init(size_t width, size_t height);
 		void print_device_info();

@@ -50,6 +50,12 @@ variant::variant(const std::vector<variant>& l)
 {
 }
 
+variant::variant(std::vector<variant>* list)
+	: type_(VARIANT_TYPE_LIST), i_(0), f_(0.0f), b_(false)
+{
+	l_.swap(*list);
+}
+
 variant variant::from_bool(bool b)
 {
 	variant n;
@@ -94,6 +100,20 @@ int64_t variant::as_int() const
 	return 0;
 }
 
+int64_t variant::as_int(int64_t value) const
+{
+	switch(type()) {
+	case VARIANT_TYPE_INTEGER:
+		return i_;
+	case VARIANT_TYPE_FLOAT:
+		return int64_t(f_);
+	case VARIANT_TYPE_BOOL:
+		return b_ ? 1 : 0;
+	}
+	return value;
+}
+
+
 std::string variant::as_string() const
 {
 	switch(type()) {
@@ -128,6 +148,19 @@ float variant::as_float() const
 	return 0;
 }
 
+float variant::as_float(float value) const
+{
+	switch(type()) {
+	case VARIANT_TYPE_INTEGER:
+		return float(i_);
+	case VARIANT_TYPE_FLOAT:
+		return f_;
+	case VARIANT_TYPE_BOOL:
+		return b_ ? 1.0f : 0.0f;
+	}
+	return value;
+}
+
 bool variant::as_bool() const
 {
 	switch(type()) {
@@ -146,6 +179,15 @@ bool variant::as_bool() const
 	}
 	ASSERT_LOG(false, "as_bool() type conversion error from " << type_as_string() << " to boolean");
 	return 0;
+}
+
+bool variant::as_bool(bool default_value) const
+{
+	switch(type_) {
+	case VARIANT_TYPE_INTEGER: return i_ != 0;
+	case VARIANT_TYPE_BOOL: return b_;
+	default: return default_value;
+	}
 }
 
 const variant_list& variant::as_list() const
@@ -404,8 +446,96 @@ void variant::write_json(std::ostream& os, bool pretty, int indent) const
 	}
 }
 
+std::vector<std::string> variant::as_list_string() const
+{
+	std::vector<std::string> result;
+	ASSERT_LOG(type_ == VARIANT_TYPE_LIST, "as_list_string: variant must be a list.");
+	result.reserve(l_.size());
+	for(auto& el : l_) {
+		ASSERT_LOG(el.is_string(), "as_list_string: Each element in list must be a string.");
+		result.emplace_back(el.as_string());
+	}
+	return result;
+}
+
 std::ostream& operator<<(std::ostream& os, const variant& n)
 {
 	n.write_json(os);
 	return os;
+}
+
+glm::vec3 variant_to_vec3(const variant& v)
+{
+	ASSERT_LOG(v.is_list() && v.num_elements() == 3, "Expected vec3 variant but found " << v);
+	glm::vec3 result;
+	result[0] = v[0].as_float();
+	result[1] = v[1].as_float();
+	result[2] = v[2].as_float();
+	return result;
+}
+
+variant vec3_to_variant(const glm::vec3& v)
+{
+	std::vector<variant> result;
+	result.push_back(variant(float(v[0])));
+	result.push_back(variant(float(v[1])));
+	result.push_back(variant(float(v[2])));
+	return variant(&result);
+}
+
+glm::ivec3 variant_to_ivec3(const variant& v)
+{
+	ASSERT_LOG(v.is_list() && v.num_elements() == 3, "Expected ivec3 variant but found " << v);
+	return glm::ivec3(v[0].as_int(), v[1].as_int(), v[2].as_int());
+}
+
+variant ivec3_to_variant(const glm::ivec3& v)
+{
+	std::vector<variant> result;
+	result.push_back(variant(int64_t(v.x)));
+	result.push_back(variant(int64_t(v.y)));
+	result.push_back(variant(int64_t(v.z)));
+	return variant(&result);
+}
+
+glm::quat variant_to_quat(const variant& v)
+{
+	ASSERT_LOG(v.is_list() && v.num_elements() == 4, "Expected vec4 variant but found " << v);
+	glm::quat result;
+	result.w = v[0].as_float();
+	result.x = v[1].as_float();
+	result.y = v[2].as_float();
+	result.z = v[3].as_float();
+	return result;
+}
+
+variant quat_to_variant(const glm::quat& v)
+{
+	std::vector<variant> result;
+	result.push_back(variant(float(v.w)));
+	result.push_back(variant(float(v.x)));
+	result.push_back(variant(float(v.y)));
+	result.push_back(variant(float(v.z)));
+	return variant(&result);
+}
+
+glm::vec4 variant_to_vec4(const variant& v)
+{
+	ASSERT_LOG(v.is_list() && v.num_elements() == 4, "Expected vec4 variant but found " << v);
+	glm::vec4 result;
+	result[0] = v[0].as_float();
+	result[1] = v[1].as_float();
+	result[2] = v[2].as_float();
+	result[3] = v[2].as_float();
+	return result;
+}
+
+variant vec4_to_variant(const glm::vec4& v)
+{
+	std::vector<variant> result;
+	result.push_back(variant(float(v.x)));
+	result.push_back(variant(float(v.y)));
+	result.push_back(variant(float(v.z)));
+	result.push_back(variant(float(v.w)));
+	return variant(&result);
 }

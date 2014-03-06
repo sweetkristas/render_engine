@@ -25,6 +25,16 @@
 
 namespace Graphics
 {
+	namespace
+	{
+		typedef std::map<std::string,SurfacePtr(*)(const std::string&)> CreatorMap;
+		CreatorMap& get_surface_creator()
+		{
+			static CreatorMap res;
+			return res;
+		}
+	}
+
 	Surface::Surface()
 	{
 	}
@@ -52,6 +62,24 @@ namespace Graphics
 	SurfaceLock::~SurfaceLock()
 	{
 		surface_->Unlock();
+	}
+
+	bool Surface::RegisterSurfaceCreator(const std::string& name, SurfacePtr(*Creator)(const std::string&))
+	{
+		return get_surface_creator().insert(std::make_pair(name, Creator)).second;
+	}
+
+	void Surface::UnRegisterSurfaceCreator(const std::string& name)
+	{
+		auto it = get_surface_creator().find(name);
+		ASSERT_LOG(it != get_surface_creator().end(), "Unable to find surface creator: " << name);
+		get_surface_creator().erase(it);
+	}
+
+	SurfacePtr Surface::Create(const std::string& filename)
+	{
+		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create images from files.");
+		return get_surface_creator().begin()->second(filename);
 	}
 
 	PixelFormat::PixelFormat()

@@ -126,6 +126,8 @@ namespace Graphics
 		bool SetClipRect(const rect& r) override;
 		const rect GetClipRect() override;
 
+		static SurfacePtr CreateFromFile(const std::string&);
+
 		void Lock() override;
 		void Unlock() override;
 	private:

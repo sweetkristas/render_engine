@@ -25,8 +25,9 @@
 
 #include "asserts.hpp"
 #include "CameraObject.hpp"
-#include "LightObject.hpp"
 #include "DisplayDeviceOpenGL.hpp"
+#include "LightObject.hpp"
+#include "MaterialOpenGL.hpp"
 #include "RenderVariable.hpp"
 #include "TextureOpenGL.hpp"
 
@@ -281,6 +282,11 @@ namespace Graphics
 	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
 	{
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_3D, depth));
+	}
+
+	MaterialPtr DisplayDeviceOpenGL::CreateMaterial(const variant& node)
+	{
+		return MaterialPtr(new OpenGLMaterial(node));
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.

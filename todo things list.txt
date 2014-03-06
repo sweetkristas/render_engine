@@ -17,3 +17,7 @@ List of things still needed to be done, not in any particular order.
 * Finish implementing cubic texture support.
 * For planar YUV textures in PIXELFORMAT_YV12, need to swap V/U planes when rendering.
 * Fix lighting. 
+* Add material over the top of textures.
+* Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
+* Implement the an Abstract factory design for all the DisplayDevice and WindowManager backends.
+

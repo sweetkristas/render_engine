@@ -28,8 +28,8 @@
 #include <string>
 
 #include "DisplayDeviceFwd.hpp"
+#include "Material.hpp"
 #include "Renderable.hpp"
-#include "Texture.hpp"
 #include "variant.hpp"
 
 namespace Graphics
@@ -109,6 +109,8 @@ namespace Graphics
 		virtual TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TEXTURE_2D) = 0;
 		virtual TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) = 0;
 		virtual void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
+
+		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
