@@ -115,7 +115,19 @@ namespace Graphics
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
 		static DisplayDevicePtr factory(const std::string& type);
+
+		static void RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()>);
 	private:
 		DisplayDevice(const DisplayDevice&);
+	};
+
+	template<class T>
+	struct DisplayDeviceRegistrar
+	{
+		DisplayDeviceRegistrar(const std::string& type)
+		{
+			// register the class factory function 
+			DisplayDevice::RegisterFactoryFunction(type, []() -> DisplayDevicePtr { return DisplayDevicePtr(new T());});
+		}
 	};
 }

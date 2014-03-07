@@ -48,6 +48,12 @@ namespace Graphics
 			v |= v >> 16;
 			return ++v;
 		}
+
+		DisplayDevicePtr& current_display_device()
+		{
+			static DisplayDevicePtr res;
+			return res;
+		}
 	}
 
 	class SDLWindowManager : public WindowManager
@@ -60,7 +66,8 @@ namespace Graphics
 			context_(NULL) {
 			if(renderer_hint_.empty()) {
 				renderer_hint_ = "opengl";
-			}			
+			}
+			current_display_device() = display_ = DisplayDevice::factory(renderer_hint_);
 		}
 		~SDLWindowManager() {
 			destroy_window();
@@ -71,8 +78,6 @@ namespace Graphics
 			logical_height_ = height_ = height;
 
 			Uint32 wnd_flags = 0;
-
-			display_ = DisplayDevice::factory(renderer_hint_);
 
 			if(display_->id() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				// We need to do extra SDL set-up for an OpenGL context.
@@ -379,5 +384,11 @@ namespace Graphics
 		// at the moment, so we just return it. We could use hint in the
 		// future if we had more.
 		return WindowManagerPtr(new SDLWindowManager(title, rend_hint));
+	}
+
+	DisplayDevicePtr WindowManager::GetDisplayDevice()
+	{
+		ASSERT_LOG(current_display_device() != NULL, "GetDisplayDevice() With no defined display device.");
+		return current_display_device();
 	}
 }

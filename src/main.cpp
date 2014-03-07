@@ -1,11 +1,15 @@
 #include <list>
 #include <vector>
 
+#include <glm/gtc/type_precision.hpp>
+
+#include "json.hpp"
 #include "logger.hpp"
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
 #include "CameraObject.hpp"
 #include "LightObject.hpp"
+#include "ParticleSystem.hpp"
 #include "Renderable.hpp"
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
@@ -74,100 +78,11 @@ void recurse_tree(const the::tree<int>& xt, the::tree<int>::pre_iterator& it)
 	recurse_tree(xt, ++it);
 }
 
-
-#include "Shaders.hpp"
-void gl_test2()
-{
-	const float x = 200.0;
-	const float y = 150.0;
-	const float w = 400.0f;
-	const float h = 300.0f;
-	const float vcoords[] = {
-		  x,   y,
-		  x, y+h,
-		x+w,   y,
-		x+w, y+h,
-	};
-	const uint8_t ccoords[] = {
-		255, 255, 255, 255,
-		255,   0,   0, 255,
-		  0, 255,   0, 255,
-		  0,   0, 255, 255,
-	};
-
-	auto shader = Shader::ShaderProgram::Factory("attr_color_shader");
-	shader->MakeActive();
-
-	glm::mat4 pmat = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f);
-	shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
-	shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(1.0f,1.0f,1.0f,1.0f)));
-	
-	glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
-	glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vcoords);
-	
-	glEnableVertexAttribArray(shader->GetColorAttribute()->second.location);
-	glVertexAttribPointer(shader->GetColorAttribute()->second.location, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, ccoords);
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
-	glDisableVertexAttribArray(shader->GetColorAttribute()->second.location);
-}
-
-void gl_test()
-{
-	const float w = 800.0f;
-	const float h = 600.0f;
-	const float vcoords[] = {
-		0.0f, 0.0f,
-		0.0f,    h,
-		   w, 0.0f,
-		   w,    h,
-	};
-
-	auto shader = Shader::ShaderProgram::Factory("simple");
-	shader->MakeActive();
-
-	glm::mat4 pmat = glm::ortho(0.0f, 512.0f, 512.0f, 0.0f);
-	shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
-	shader->SetUniformValue(shader->GetColorUniform(), glm::value_ptr(glm::vec4(0.0f,1.0f,0.0f,1.0f)));
-	
-	int value = 0;
-	shader->SetUniformValue(shader->GetUniformIterator("discard"), &value);
-	const float point_size = 1.0f;
-	shader->SetUniformValue(shader->GetUniformIterator("point_size"), &point_size);
-
-	glEnableVertexAttribArray(shader->GetVertexAttribute()->second.location);
-	glVertexAttribPointer(shader->GetVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vcoords);
-
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
-}
-
-
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
 	double cumulative_time = 0.0;
 	int cnt = 0;
-
-	// "(1 (5 (6 7 8)) (9 (10 11) 12) (2 3 4 42))
-	//the::tree<int> xt = the::tree_of(1)(the::tree_of(5)(the::tree_of(6)(7,8)),
-    //                  the::tree_of(9)(the::tree_of(10)(11),12),
-    //                  the::tree_of(2)(3,4,42));
-	//
-	//              1
-	//             / \
-	//            /   \
-	//           /     \
-	//          5       9
-	//         / \     / \
-	//        6   7   10 12
-	//                /
-	//               11
-	//the::tree<int> xt = the::tree_of(1)(the::tree_of(5)(6,7), the::tree_of(9)(the::tree_of(10)(11),12));
-	//recurse_tree(xt, xt.begin());
 
 	SDL::SDL_ptr manager(new SDL::SDL());
 
@@ -210,6 +125,8 @@ int main(int argc, char *argv[])
 
 	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
 
+	auto psystem = std::make_shared<Graphics::Particles::ParticleSystemContainer>(json::parse_from_file("psystem1.cfg"));
+	root->AttachObject(psystem);
 
 	SDL_Event e;
 	bool done = false;
@@ -222,9 +139,9 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		// Called once a cycle before rendering.
+		psystem->Process(SDL_GetTicks() / 1000.0f);
 
-		gl_test();
-		//gl_test2();
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 

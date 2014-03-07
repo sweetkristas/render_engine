@@ -21,6 +21,9 @@
 	   distribution.
 */
 
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "DisplayDevice.hpp"
 #include "Renderable.hpp"
 
@@ -43,10 +46,6 @@ namespace Render
 	}
 
 	Renderable::~Renderable()
-	{
-	}
-
-	void Renderable::draw(RenderQueuePtr queue) const
 	{
 	}
 

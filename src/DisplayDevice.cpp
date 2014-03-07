@@ -21,12 +21,11 @@
 	   distribution.
 */
 
+#include <map>
+
 #include "asserts.hpp"
 #include "DisplayDevice.hpp"
-#include "DisplayDeviceOpenGL.hpp"
-#include "DisplayDeviceOpenGLFixed.hpp"
-#include "DisplayDeviceSDL.hpp"
-//#include "DisplayDeviceD3D.hpp"
+#include "logger.hpp"
 
 namespace Graphics
 {
@@ -42,6 +41,13 @@ namespace Graphics
 					[](std::string::value_type l1, std::string::value_type r1)
 						{ return toupper(l1) == toupper(r1); });
 		}	
+
+		typedef std::map<std::string, std::function<DisplayDevicePtr()>> DisplayDeviceRegistry;
+		DisplayDeviceRegistry& get_display_registry()
+		{
+			static DisplayDeviceRegistry res;
+			return res;
+		}
 	}
 
 	DisplayDevice::DisplayDevice()
@@ -59,15 +65,22 @@ namespace Graphics
 
 	DisplayDevicePtr DisplayDevice::factory(const std::string& type)
 	{
-		if(icasecmp(type, "opengl")) {
-			return DisplayDevicePtr(new DisplayDeviceOpenGL());
-		} else if(icasecmp(type, "opengles")) {
-		} else if(type.size() >= 3 && icasecmp(type.substr(0,3), "sdl")) {
-		} else if(icasecmp(type, "direct3d")) {
-			ASSERT_LOG(false, "Use of Direct3D isn't directly supported");
+		ASSERT_LOG(!get_display_registry().empty(), "No display device drivers registered.");
+		auto it = get_display_registry().find(type);
+		if(it == get_display_registry().end()) {			
+			LOG_WARN("Requested display driver '" << type << "' not found, using default: " << get_display_registry().begin()->first);
+			return get_display_registry().begin()->second();
 		}
-		ASSERT_LOG(false, "Unknown display device type: " << type);
-		return DisplayDevicePtr();
+		return it->second();
+	}
+
+	void DisplayDevice::RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()> create_fn)
+	{
+		auto it = get_display_registry().find(type);
+		if(it != get_display_registry().end()) {
+			LOG_WARN("Overwriting the Display Device Driver: " << type);
+		}
+		get_display_registry()[type] = create_fn;
 	}
 
 	DisplayDeviceDef::DisplayDeviceDef(const Render::RenderVariableList& arv, const Render::RenderVariableList& urv)

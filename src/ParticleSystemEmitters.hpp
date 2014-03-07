@@ -27,16 +27,13 @@
 
 namespace Graphics
 {
-	class BoxOutline;
-	typedef std::unique_ptr<BoxOutline> BoxOutlinePtr; 
-
 	namespace Particles
 	{
 
 		class emitter : public emit_object
 		{
 		public:
-			explicit emitter(particle_system_container* parent, const variant& node);
+			explicit emitter(ParticleSystemContainer* parent, const variant& node);
 			virtual ~emitter();
 			emitter(const emitter&);
 
@@ -48,7 +45,7 @@ namespace Graphics
 			}
 
 			virtual emitter* clone() = 0;
-			static emitter* factory(particle_system_container* parent, const variant& node);
+			static emitter* factory(ParticleSystemContainer* parent, const variant& node);
 		protected:
 			virtual void internal_create(particle& p, float t) = 0;
 			virtual void handle_process(float t);
@@ -97,7 +94,7 @@ namespace Graphics
 			float generate_angle() const;
 			glm::vec3 get_initial_direction() const;
 
-			BoxOutlinePtr debug_draw_outline_;
+			//BoxOutlinePtr debug_draw_outline_;
 
 			// working items
 			// Any "left over" fractional count of emitted particles

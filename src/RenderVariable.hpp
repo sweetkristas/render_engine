@@ -28,8 +28,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "glm/glm.hpp"
-#include "glm/ext.hpp"
+#include <glm/glm.hpp>
 
 #include "DisplayDeviceFwd.hpp"
 

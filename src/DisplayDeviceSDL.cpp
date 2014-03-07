@@ -23,6 +23,14 @@
 
 #include "DisplayDeviceSDL.hpp"
 
+namespace Graphics
+{
+	namespace
+	{
+		//DisplayDeviceRegistrar<DisplayDeviceSDL> ogl_register("SDL");
+	}
+}
+
 /*
 	XXX this code goes in the call to init().
 
@@ -34,7 +42,7 @@
 				SDL_SetHint(SDL_HINT_RENDER_DRIVER, renderer_hint_.substr(5).c_str());
 			}
 			renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
-			ASSERT_LOG(renderer_ != NULL, "FATAL: Failed to create renderer: " << SDL_GetError());
+			ASSERT_LOG(renderer_ != NULL, "Failed to create renderer: " << SDL_GetError());
 
 	XXX in swap()
 		SDL_RenderPresent(renderer_);

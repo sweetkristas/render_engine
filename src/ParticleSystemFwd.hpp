@@ -25,8 +25,9 @@
 
 #include <cmath>
 #include <memory>
-#include <glm/gtx/quaternion.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/perpendicular.hpp>
 
 #include "variant.hpp"
@@ -37,13 +38,11 @@ namespace Graphics
 	{
 		class emit_object;
 		typedef std::shared_ptr<emit_object> emit_object_ptr;
-		class particle_system_container;
+		class ParticleSystemContainer;
 		class particle_system;
 		typedef std::shared_ptr<particle_system> particle_system_ptr;
 		class technique;
 		typedef std::shared_ptr<technique> technique_ptr;
-		class material;
-		typedef std::shared_ptr<material> material_ptr;
 		class parameter;
 		typedef std::shared_ptr<parameter> parameter_ptr;
 		class emitter;

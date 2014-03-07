@@ -24,11 +24,14 @@
 #include <cmath>
 #include <chrono>
 
+#include <glm/gtc/type_precision.hpp>
+
 #include "ParticleSystem.hpp"
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemParameters.hpp"
 #include "ParticleSystemEmitters.hpp"
 #include "spline.hpp"
+#include "WindowManager.hpp"
 
 namespace Graphics
 {
@@ -140,15 +143,13 @@ namespace Graphics
 			return q * v;
 		}
 
-		particle_system::particle_system(particle_system_container* parent, const variant& node)
+		particle_system::particle_system(ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), 
 			elapsed_time_(0.0f), 
 			scale_velocity_(1.0f), 
 			scale_time_(1.0f),
 			scale_dimensions_(1.0f)
 		{
-			ASSERT_LOG(node.has_key("shader"), "Must supply a shader to draw particles with.");
-
 			ASSERT_LOG(node.has_key("technique"), "PSYSTEM2: Must have a list of techniques to create particles.");
 			ASSERT_LOG(node["technique"].is_map() || node["technique"].is_list(), "PSYSTEM2: 'technique' attribute must be map or list.");
 			if(node["technique"].is_map()) {
@@ -246,12 +247,12 @@ namespace Graphics
 			tq->set_parent(this);
 		}
 
-		particle_system* particle_system::factory(particle_system_container* parent, const variant& node)
+		particle_system* particle_system::factory(ParticleSystemContainer* parent, const variant& node)
 		{
 			return new particle_system(parent, node);
 		}
 
-		technique::technique(particle_system_container* parent, const variant& node)
+		technique::technique(ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), default_particle_width_(node["default_particle_width"].as_float(1.0f)),
 			default_particle_height_(node["default_particle_height"].as_float(1.0f)),
 			default_particle_depth_(node["default_particle_depth"].as_float(1.0f)),
@@ -264,7 +265,7 @@ namespace Graphics
 			ASSERT_LOG(node.has_key("visual_particle_quota"), "PSYSTEM2: 'technique' must have 'visual_particle_quota' attribute.");
 			particle_quota_ = node["visual_particle_quota"].as_int();
 			ASSERT_LOG(node.has_key("material"), "PSYSTEM2: 'technique' must have 'material' attribute.");
-			material_.reset(new Material(node["material"]));
+			material_ = WindowManager::GetDisplayDevice()->CreateMaterial(node["material"]);
 			//ASSERT_LOG(node.has_key("renderer"), "PSYSTEM2: 'technique' must have 'renderer' attribute.");
 			//renderer_.reset(new renderer(node["renderer"]));
 			if(node.has_key("emitter")) {
@@ -342,9 +343,7 @@ namespace Graphics
 			lod_index_(tq.lod_index_),
 			velocity_(tq.velocity_),
 			material_(tq.material_),
-			particle_system_(tq.particle_system_),
-			a_dimensions_(tq.a_dimensions_),
-			shader_(tq.shader_)			
+			particle_system_(tq.particle_system_)
 		{
 			if(tq.max_velocity_) {
 				max_velocity_.reset(new float(*tq.max_velocity_));
@@ -367,15 +366,6 @@ namespace Graphics
 		{
 			ASSERT_LOG(parent != NULL, "PSYSTEM2: parent is null");
 			particle_system_ = parent;
-		}
-
-		void technique::set_shader(gles2::program_ptr shader)
-		{
-			ASSERT_LOG(shader != NULL, "PSYSTEM2: shader is null");
-			shader_ = shader;
-
-			a_dimensions_ = shader_->get_fixed_attribute("dimensions");
-			ASSERT_LOG(a_dimensions_ != -1, "PSYSTEM2: No shader 'dimensions' attribute found.");
 		}
 
 		void technique::add_emitter(emitter_ptr e) 
@@ -453,19 +443,6 @@ namespace Graphics
 
 		void technique::handle_draw() const
 		{
-			ASSERT_LOG(shader_ != NULL, "PSYSTEM2: shader_ not set before draw called.");
-			if(material_) {
-				material_->apply();
-			}
-
-			GLuint mvp_uniform = -1;
-			if(mvp_uniform == -1) {
-				mvp_uniform = gles2::active_shader()->shader()->get_fixed_uniform("mvp_matrix");
-			}
-			//glm::mat4 mvp = level::current().camera()->projection_mat() * level::current().camera()->view_mat();
-			glm::mat4 mvp = get_main_window()->camera()->projection_mat() * get_main_window()->camera()->view_mat();
-			glUniformMatrix4fv(mvp_uniform, 1, GL_FALSE, glm::value_ptr(mvp));
-
 			for(auto e :  active_emitters_) {
 				e->draw();
 			}
@@ -479,104 +456,10 @@ namespace Graphics
 			shader_->vertex_attrib_array(a_dimensions_, 3, GL_FLOAT, GL_FALSE, sizeof(particle), &active_particles_[0].current.dimensions);
 			glDrawArrays(GL_POINTS, 0, active_particles_.size());
 #endif
-			if(material_) {
-				material_->unapply();
-			}
 		}
 
-		material::material(const variant& node)
-			: name_(node["name"].as_string())
-		{
-			// XXX: technically a material could have multiple technique's and passes -- ignoring for now.
-			ASSERT_LOG(node.has_key("technique"), "PSYSTEM2: 'material' must have 'technique' attribute.");
-			ASSERT_LOG(node["technique"].has_key("pass"), "PSYSTEM2: 'material' must have 'pass' attribute.");
-			const variant& pass = node["technique"]["pass"];
-			use_lighting_ = pass["lighting"].as_bool(false);
-			use_fog_ = pass["fog_override"].as_bool(false);
-			do_depth_write_ = pass["depth_write"].as_bool(true);
-			do_depth_check_ = pass["depth_check"].as_bool(true);
-			blend_.sfactor = GL_SRC_ALPHA;
-			blend_.dfactor = GL_ONE_MINUS_SRC_ALPHA;
-			if(pass.has_key("scene_blend")) {
-				const std::string& blend = pass["scene_blend"].as_string();
-				if(blend == "add") {
-					blend_.sfactor = GL_ONE;
-					blend_.dfactor = GL_ONE;
-				} else if(blend == "alpha_blend") {
-					// leave as defaults.
-				} else if(blend == "colour_blend") {
-					blend_.sfactor = GL_SRC_COLOR;
-					blend_.dfactor = GL_ONE_MINUS_SRC_COLOR;
-				} else if(blend == "modulate") {
-					blend_.sfactor = GL_DST_COLOR;
-					blend_.dfactor = GL_ZERO;
-				} else if(blend == "src_colour one") {
-					blend_.sfactor = GL_SRC_COLOR;
-					blend_.dfactor = GL_ONE;
-				} else if(blend == "src_colour zero") {
-					blend_.sfactor = GL_SRC_COLOR;
-					blend_.dfactor = GL_ZERO;
-				} else if(blend == "src_colour dest_colour") {
-					blend_.sfactor = GL_SRC_COLOR;
-					blend_.dfactor = GL_DST_COLOR;
-				} else if(blend == "dest_colour one") {
-					blend_.sfactor = GL_DST_COLOR;
-					blend_.dfactor = GL_ONE;
-				} else if(blend == "dest_colour src_colour") {
-					blend_.sfactor = GL_DST_COLOR;
-					blend_.dfactor = GL_SRC_COLOR;
-				} else {
-					ASSERT_LOG(false, "PSYSTEM2: Unrecognised scene_blend mode " << blend);
-				}
-			}
-			if(pass.has_key("texture_unit")) {
-				if(pass["texture_unit"].is_map()) {
-					tex_.push_back(texture::get(pass["texture_unit"]["texture"].as_string()));
-					// XXX Deal with:
-					// tex_address_mode clamp
-					// wave_xform scroll_x sine 0 0.3 0 0.15
-					// filtering none
-					// See http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units for a full list.
-				} else if(pass["texture_unit"].is_list()) {
-					for(size_t n = 0; n != pass["texture_unit"].num_elements(); ++n) {
-						tex_.push_back(texture::get(pass["texture_unit"]["texture"][n].as_string()));
-					}
-				} else {
-					ASSERT_LOG(false, "PSYSTEM2: 'texture_unit' attribute must be map or list ");
-				}
-			}
-		}
-
-		material::~material()
-		{
-		}
-
-		void material::apply() const
-		{
-			if(tex_.size() >= 1) {
-				tex_[0].set_as_current_texture();
-				// set more textures here...
-			}
-			// use_lighting_ 
-			// use_fog_
-			// do_depth_write_
-			// do_depth_check_
-			// blend_
-			if(do_depth_check_) {
-				glEnable(GL_DEPTH_TEST);
-			}
-			glBlendFunc(blend_.sfactor, blend_.dfactor);
-		}
-
-		void material::unapply() const
-		{
-			if(do_depth_check_) {
-				glDisable(GL_DEPTH_TEST);
-			}
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-
-		particle_system_container::particle_system_container(const variant& node) 
+		ParticleSystemContainer::ParticleSystemContainer(const variant& node) 
+			: Scene::SceneObject("particle_system_container")
 		{
 			if(node.has_key("systems")) {
 				if(node["systems"].is_list()) {
@@ -605,52 +488,77 @@ namespace Graphics
 			} else {
 				active_particle_systems_ = clone_particle_systems();
 			}
+			
+			Init();
 		}
 
-		particle_system_container::~particle_system_container()
+		ParticleSystemContainer::~ParticleSystemContainer()
 		{
 		}
 
-		void particle_system_container::draw() const
+		struct vertex_texcoord
 		{
-			for(auto ps : active_particle_systems_) {
-				ps->draw();
-			}
+			vertex_texcoord() : vertex(0.0f), texcoord(0.0f), color(255) {}
+			vertex_texcoord(const glm::vec2& v, const glm::vec2& tc, const glm::u8vec4& c) 
+				: vertex(v), texcoord(tc), color(c) {}
+			glm::vec2 vertex;
+			glm::vec2 texcoord;
+			glm::u8vec4 color;
+		};
+
+		void ParticleSystemContainer::Init()
+		{
+			using namespace Render;
+			auto& arv = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
+			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), 0);
+			arv->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), sizeof(glm::vec2));
+			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, false, sizeof(vertex_texcoord), sizeof(glm::u8vec4)+sizeof(glm::vec2));
+			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
+			AddAttributeRenderVariable(arv);
+
+			auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
+			urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
+			AddUniformRenderVariable(urv);
 		}
 
-		void particle_system_container::process()
+		void ParticleSystemContainer::PreRender()
+		{
+			// Called before rendering to give us a chance to get all the active data together.
+		}
+
+		void ParticleSystemContainer::Process(double current_time)
 		{
 			for(auto ps : active_particle_systems_) {
 				ps->process(process_step_time);
 			}
 		}
 
-		void particle_system_container::add_particle_system(particle_system* obj)
+		void ParticleSystemContainer::add_particle_system(particle_system* obj)
 		{
 			particle_systems_.push_back(particle_system_ptr(obj));
 		}
 
-		void particle_system_container::add_technique(technique* obj)
+		void ParticleSystemContainer::add_technique(technique* obj)
 		{
 			techniques_.push_back(technique_ptr(obj));
 		}
 
-		void particle_system_container::add_emitter(emitter* obj)
+		void ParticleSystemContainer::add_emitter(emitter* obj)
 		{
 			emitters_.push_back(emitter_ptr(obj));
 		}
 
-		void particle_system_container::add_affector(affector* obj) 
+		void ParticleSystemContainer::add_affector(affector* obj) 
 		{
 			affectors_.push_back(affector_ptr(obj));
 		}
 
-		void particle_system_container::activate_particle_system(const std::string& name)
+		void ParticleSystemContainer::activate_particle_system(const std::string& name)
 		{
 			active_particle_systems_.push_back(clone_particle_system(name));
 		}
 
-		particle_system_ptr particle_system_container::clone_particle_system(const std::string& name)
+		particle_system_ptr ParticleSystemContainer::clone_particle_system(const std::string& name)
 		{
 			for(auto ps : particle_systems_) {
 				if(ps->name() == name) {
@@ -661,7 +569,7 @@ namespace Graphics
 			return particle_system_ptr();
 		}
 
-		technique_ptr particle_system_container::clone_technique(const std::string& name)
+		technique_ptr ParticleSystemContainer::clone_technique(const std::string& name)
 		{
 			for(auto tq : techniques_) {
 				if(tq->name() == name) {
@@ -672,7 +580,7 @@ namespace Graphics
 			return technique_ptr();
 		}
 
-		emitter_ptr particle_system_container::clone_emitter(const std::string& name)
+		emitter_ptr ParticleSystemContainer::clone_emitter(const std::string& name)
 		{
 			for(auto e : emitters_) {
 				if(e->name() == name) {
@@ -683,7 +591,7 @@ namespace Graphics
 			return emitter_ptr();
 		}
 
-		affector_ptr particle_system_container::clone_affector(const std::string& name)
+		affector_ptr ParticleSystemContainer::clone_affector(const std::string& name)
 		{
 			for(auto a : affectors_) {
 				if(a->name() == name) {
@@ -694,7 +602,7 @@ namespace Graphics
 			return affector_ptr();
 		}
 
-		std::vector<particle_system_ptr> particle_system_container::clone_particle_systems()
+		std::vector<particle_system_ptr> ParticleSystemContainer::clone_particle_systems()
 		{
 			std::vector<particle_system_ptr> res;
 			for(auto ps : particle_systems_) {
@@ -703,7 +611,7 @@ namespace Graphics
 			return res;
 		}
 		
-		std::vector<technique_ptr> particle_system_container::clone_techniques()
+		std::vector<technique_ptr> ParticleSystemContainer::clone_techniques()
 		{
 			std::vector<technique_ptr> res;
 			for(auto tq : techniques_) {
@@ -712,7 +620,7 @@ namespace Graphics
 			return res;
 		}
 
-		std::vector<emitter_ptr> particle_system_container::clone_emitters()
+		std::vector<emitter_ptr> ParticleSystemContainer::clone_emitters()
 		{
 			std::vector<emitter_ptr> res;
 			for(auto e : emitters_) {
@@ -721,7 +629,7 @@ namespace Graphics
 			return res;
 		}
 
-		std::vector<affector_ptr> particle_system_container::clone_affectors()
+		std::vector<affector_ptr> ParticleSystemContainer::clone_affectors()
 		{
 			std::vector<affector_ptr> res;
 			for(auto a : affectors_) {
@@ -729,5 +637,12 @@ namespace Graphics
 			}
 			return res;
 		}
+
+		DisplayDeviceDef ParticleSystemContainer::Attach(const DisplayDevicePtr& dd) {
+			DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+			def.SetHint("shader", "vtc_shader");
+			return def;
+		}
+
 	}
 }

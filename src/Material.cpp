@@ -27,10 +27,15 @@
 
 namespace Graphics
 {
-	Material::Material(const variant& node)
-		: name_(node["name"].as_string()),
-		blend_(BlendMode::BM_SRC_ALPHA, BlendMode::BM_ONE_MINUS_SRC_ALPHA)
+	Material::Material()
 	{
+	}
+
+	void Material::Init(const variant& node)
+	{
+		name_ = node["name"].as_string();
+		blend_.Set(BlendMode::BM_SRC_ALPHA, BlendMode::BM_ONE_MINUS_SRC_ALPHA);
+		
 		// XXX: technically a material could have multiple technique's and passes -- ignoring for now.
 		ASSERT_LOG(node.has_key("technique"), "PSYSTEM2: 'material' must have 'technique' attribute.");
 		ASSERT_LOG(node["technique"].has_key("pass"), "PSYSTEM2: 'material' must have 'pass' attribute.");
@@ -92,6 +97,11 @@ namespace Graphics
 	void Material::SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst)
 	{
 		blend_.Set(src, dst);
+	}
+
+	void Material::Apply()
+	{
+		HandleApply();
 	}
 
 	namespace

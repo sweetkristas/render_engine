@@ -23,15 +23,15 @@
 
 #include "asserts.hpp"
 #include "spline.hpp"
-#include "psystem2_parameters.hpp"
+#include "ParticleSystemParameters.hpp"
 
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
 #endif
 
-namespace graphics
+namespace Graphics
 {
-	namespace particles
+	namespace Particles
 	{
 		namespace
 		{
@@ -98,11 +98,11 @@ namespace graphics
 
 		parameter_ptr parameter::factory(const variant& node)
 		{
-			if(node.is_decimal() || node.is_int()) {
+			if(node.is_float() || node.is_int()) {
 				// single fixed attribute
-				return parameter_ptr(new fixed_parameter(float(node.as_decimal().as_float())));
+				return parameter_ptr(new fixed_parameter(float(node.as_float())));
 			}
-			ASSERT_LOG(node.has_key("type"), "FATAL: PSYSTEM2: parameter must have 'type' attribute");
+			ASSERT_LOG(node.has_key("type"), "PSYSTEM2: parameter must have 'type' attribute");
 			const std::string& ntype = node["type"].as_string();
 			if(ntype == "fixed") {
 				return parameter_ptr(new fixed_parameter(node));
@@ -115,7 +115,7 @@ namespace graphics
 			} else if(ntype == "dyn_oscillate") {
 				return parameter_ptr(new oscillate_parameter(node));
 			} else {
-				ASSERT_LOG(false, "FATAL: PSYSTEM2: Unrecognised affector type: " << ntype);
+				ASSERT_LOG(false, "PSYSTEM2: Unrecognised affector type: " << ntype);
 			}
 			return parameter_ptr();
 		}
@@ -135,7 +135,7 @@ namespace graphics
 
 		fixed_parameter::fixed_parameter(const variant& node)
 		{
-			value_ = node["value"].as_decimal().as_float();
+			value_ = node["value"].as_float();
 		}
 
 		fixed_parameter::~fixed_parameter()
@@ -144,8 +144,8 @@ namespace graphics
 
 		random_parameter::random_parameter(const variant& node)
 			: parameter(PARAMETER_RANDOM), 
-			min_value_(node["min"].as_decimal(decimal(0.1)).as_float()),
-			max_value_(node["max"].as_decimal(decimal(1.0)).as_float())
+			min_value_(node["min"].as_float(0.1f)),
+			max_value_(node["max"].as_float(1.0f))
 		{
 		}
 
@@ -164,16 +164,16 @@ namespace graphics
 			osc_type_(TYPE_SINE)
 		{
 			if(node.has_key("oscillate_frequency")) {
-				frequency_ = node["oscillate_frequency"].as_decimal().as_float();
+				frequency_ = node["oscillate_frequency"].as_float();
 			} 
 			if(node.has_key("oscillate_phase")) {
-				phase_ = node["oscillate_phase"].as_decimal().as_float();
+				phase_ = node["oscillate_phase"].as_float();
 			} 
 			if(node.has_key("oscillate_base")) {
-				base_ = node["oscillate_base"].as_decimal().as_float();
+				base_ = node["oscillate_base"].as_float();
 			} 
 			if(node.has_key("oscillate_amplitude")) {
-				amplitude_ = node["oscillate_amplitude"].as_decimal().as_float();
+				amplitude_ = node["oscillate_amplitude"].as_float();
 			} 
 			if(node.has_key("oscillate_type")) {
 				const std::string& type = node["oscillate_type"].as_string();
@@ -182,7 +182,7 @@ namespace graphics
 				} else if(type == "square") {
 					osc_type_ = TYPE_SQUARE;
 				} else {
-					ASSERT_LOG(false, "FATAL: PSYSTEM2: unrecognised oscillate type: " << type);
+					ASSERT_LOG(false, "PSYSTEM2: unrecognised oscillate type: " << type);
 				}
 			}             
 		}
@@ -194,9 +194,9 @@ namespace graphics
 		float oscillate_parameter::get_value(float t)
 		{
 			if(osc_type_ == TYPE_SINE) {
-				return base_ + amplitude_ * sin(2*M_PI*frequency_*t + phase_);
+				return float(base_ + amplitude_ * sin(2*M_PI*frequency_*t + phase_));
 			} else if(osc_type_ == TYPE_SQUARE) {
-				return base_ + amplitude_ * sign(sin(2*M_PI*frequency_*t + phase_));
+				return float(base_ + amplitude_ * sign(sin(2*M_PI*frequency_*t + phase_)));
 			}
 			return 0;
 		}
@@ -207,13 +207,13 @@ namespace graphics
 			ASSERT_LOG(node.has_key("control_point") 
 				&& node["control_point"].is_list()
 				&& node["control_point"].num_elements() >= 2, 
-				"FATAL: PSYSTEM2: curved parameters must have at least 2 control points.");
+				"PSYSTEM2: curved parameters must have at least 2 control points.");
 			for(size_t n = 0; n != node["control_point"].num_elements(); ++n) {
 				ASSERT_LOG(node["control_point"][n].is_list() 
 					&& node["control_point"][n].num_elements() == 2,
-					"FATAL: PSYSTEM2: Control points should be list of two elements.");
-				auto p = std::make_pair(node["control_point"][n][0].as_decimal().as_float(), 
-					node["control_point"][n][1].as_decimal().as_float());
+					"PSYSTEM2: Control points should be list of two elements.");
+				auto p = std::make_pair(node["control_point"][n][0].as_float(), 
+					node["control_point"][n][1].as_float());
 				control_points_.push_back(p);
 			}
 		}
@@ -244,15 +244,15 @@ namespace graphics
 				auto it = find_closest_point(t);
 				auto it2 = it + 1;
 				if(it2 == control_points_.end()) {
-					return it2->second;
+					return float(it2->second);
 				} else {
 					// linear interpolate, see http://en.wikipedia.org/wiki/Linear_interpolation
-					return it->second + (it2->second - it->second) * (t - it->first) / (it2->first - it->first);
+					return float(it->second + (it2->second - it->second) * (t - it->first) / (it2->first - it->first));
 				}
 			} else if(curve_type_ == INTERPOLATE_SPLINE) {
 				// http://en.wikipedia.org/wiki/Spline_interpolation
 				geometry::spline spl(control_points_);
-				return spl.interpolate(t);
+				return float(spl.interpolate(t));
 			}
 			return 0;
 		}

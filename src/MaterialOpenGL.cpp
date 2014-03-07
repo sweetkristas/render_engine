@@ -28,17 +28,33 @@ namespace Graphics
 {
 
 	OpenGLMaterial::OpenGLMaterial(const variant& node) 
-		: Material(node) 
 	{
+		Init(node);
 	}
 
 	OpenGLMaterial::~OpenGLMaterial()
 	{
 	}
 
-	void OpenGLMaterial::Apply() 
+	void OpenGLMaterial::HandleApply() 
 	{
 		ASSERT_LOG(false, "XXX: OpenGLMaterial::Apply");
+		/*void material::apply() const
+		{
+			if(tex_.size() >= 1) {
+				tex_[0].set_as_current_texture();
+				// set more textures here...
+			}
+			// use_lighting_ 
+			// use_fog_
+			// do_depth_write_
+			// do_depth_check_
+			// blend_
+			if(do_depth_check_) {
+				glEnable(GL_DEPTH_TEST);
+			}
+			glBlendFunc(blend_.sfactor, blend_.dfactor);
+		}*/
 	}
 
 	TexturePtr OpenGLMaterial::CreateTexture(const variant& node)

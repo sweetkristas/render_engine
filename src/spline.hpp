@@ -88,7 +88,7 @@ namespace geometry
 						}
 				}
 				h = control_points_[hi].first - control_points_[lo].first;
-				ASSERT_LOG(h != 0.0, "FATAL: SPLINE: bad value in call to spline::interpolate.");
+				ASSERT_LOG(h != 0.0, "SPLINE: bad value in call to spline::interpolate.");
 				a = (control_points_[hi].first - x)/h;
 				b = (x - control_points_[lo].first)/h;
 				return a*control_points_[lo].second + b*control_points_[hi].second + ((a*a*a-a)*z_prime_prime_[lo] + (b*b*b-b)*z_prime_prime_[hi])*(h*h)/6.0;

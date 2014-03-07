@@ -48,6 +48,13 @@ namespace Render
 		renderables_.erase(it);
 	}
 
+	void RenderQueue::PreRender()
+	{
+		for(auto r : renderables_) {
+			r.second->PreRender();
+		}
+	}
+
 	void RenderQueue::Render(const Graphics::WindowManagerPtr& wm) const 
 	{
 		for(auto r : renderables_) {
@@ -55,7 +62,7 @@ namespace Render
 		}
 	}
 
-	void RenderQueue::FinishRender()
+	void RenderQueue::PostRender()
 	{
 		renderables_.clear();
 	}

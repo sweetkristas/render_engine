@@ -32,7 +32,7 @@ namespace Graphics
 		class affector : public emit_object
 		{
 		public:
-			explicit affector(particle_system_container* parent, const variant& node);
+			explicit affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~affector();
 			virtual affector* clone() = 0;
 
@@ -43,7 +43,7 @@ namespace Graphics
 				technique_ = tq;
 			}
 
-			static affector* factory(particle_system_container* parent, const variant& node);
+			static affector* factory(ParticleSystemContainer* parent, const variant& node);
 		protected:
 			//virtual void handle_apply(std::vector<particle>& particles, float t) = 0;
 			//virtual void handle_apply(std::vector<emit_object_ptr>& objs, float t) = 0;

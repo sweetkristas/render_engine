@@ -33,6 +33,11 @@
 
 namespace Graphics
 {
+	namespace
+	{
+		static DisplayDeviceRegistrar<DisplayDeviceOpenGL> ogl_register("opengl");
+	}
+
 	// These basically get attached to renderable's and we can retreive them during the
 	// rendering process. So we store stuff like shader information and shader variables.
 	class OpenGLDeviceData : public DisplayDeviceData

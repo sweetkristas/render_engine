@@ -446,6 +446,13 @@ void variant::write_json(std::ostream& os, bool pretty, int indent) const
 	}
 }
 
+std::string variant::write_json(bool pretty, int indent) const
+{
+	std::stringstream ss;
+	write_json(ss, pretty, indent);
+	return ss.str();
+}
+
 std::vector<std::string> variant::as_list_string() const
 {
 	std::vector<std::string> result;

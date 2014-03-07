@@ -70,7 +70,7 @@ namespace Scene
 			// single fixed attribute
 			return ParameterPtr(new fixed_parameter(float(node.as_decimal().as_float())));
 		}
-		ASSERT_LOG(node.has_key("type"), "FATAL: PSYSTEM2: parameter must have 'type' attribute");
+		ASSERT_LOG(node.has_key("type"), "PSYSTEM2: parameter must have 'type' attribute");
 		const std::string& ntype = node["type"].as_string();
 		if(ntype == "fixed") {
 			return ParameterPtr(new fixed_parameter(node));
@@ -177,7 +177,7 @@ namespace Scene
 			} else if(type == "square") {
 				osc_type_ = TYPE_SQUARE;
 			} else {
-				ASSERT_LOG(false, "FATAL: PSYSTEM2: unrecognised oscillate type: " << type);
+				ASSERT_LOG(false, "PSYSTEM2: unrecognised oscillate type: " << type);
 			}
 		}             
 	}*/
@@ -218,11 +218,11 @@ namespace Scene
 		ASSERT_LOG(node.has_key("control_point") 
 			&& node["control_point"].is_list()
 			&& node["control_point"].num_elements() >= 2, 
-			"FATAL: PSYSTEM2: curved parameters must have at least 2 control points.");
+			"PSYSTEM2: curved parameters must have at least 2 control points.");
 		for(size_t n = 0; n != node["control_point"].num_elements(); ++n) {
 			ASSERT_LOG(node["control_point"][n].is_list() 
 				&& node["control_point"][n].num_elements() == 2,
-				"FATAL: PSYSTEM2: Control points should be list of two elements.");
+				"PSYSTEM2: Control points should be list of two elements.");
 			auto p = std::make_pair(node["control_point"][n][0].as_decimal().as_float(), 
 				node["control_point"][n][1].as_decimal().as_float());
 			control_points_.push_back(p);

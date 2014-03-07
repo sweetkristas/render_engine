@@ -22,3 +22,11 @@
 */
 
 #include "DisplayDeviceOpenGLFixed.hpp"
+
+namespace Graphics
+{
+	namespace
+	{
+		//DisplayDeviceRegistrar<DisplayDeviceOpenGLFixed> ogl_register("opengl-fixed");
+	}
+}

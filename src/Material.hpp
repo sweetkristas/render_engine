@@ -80,7 +80,7 @@ namespace Graphics
 	class Material
 	{
 	public:
-		Material(const variant& node);
+		Material();
 		virtual ~Material();
 
 		const std::vector<TexturePtr>& GetTexture() const { return tex_; }
@@ -99,9 +99,13 @@ namespace Graphics
 		void SetBlendMode(const BlendMode& bm);
 		void SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
 
-		virtual void Apply() = 0;
+		void Apply();
+	protected:
+		void Init(const variant& node);
 	private:
 		virtual TexturePtr CreateTexture(const variant& node) = 0;
+		virtual void HandleApply() = 0;
+
 		std::string name_;
 		std::vector<TexturePtr> tex_;
 		bool use_lighting_;
@@ -109,6 +113,8 @@ namespace Graphics
 		bool do_depth_write_;
 		bool do_depth_check_;
 		BlendMode blend_;
+		Material(const Material&);
+		Material& operator=(const Material&);
 	};
 
 	typedef std::shared_ptr<Material> MaterialPtr;

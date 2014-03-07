@@ -22,19 +22,19 @@
 */
 
 #include "asserts.hpp"
-#include "psystem2.hpp"
-#include "psystem2_affectors.hpp"
-#include "psystem2_emitters.hpp"
-#include "psystem2_parameters.hpp"
+#include "ParticleSystem.hpp"
+#include "ParticleSystemAffectors.hpp"
+#include "ParticleSystemEmitters.hpp"
+#include "ParticleSystemParameters.hpp"
 
-namespace graphics
+namespace Graphics
 {
-	namespace particles
+	namespace Particles
 	{
 		class time_color_affector : public affector
 		{
 		public:
-			explicit time_color_affector(particle_system_container* parent, const variant& node);
+			explicit time_color_affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~time_color_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -58,7 +58,7 @@ namespace graphics
 		class jet_affector : public affector
 		{
 		public:
-			explicit jet_affector(particle_system_container* parent, const variant& node);
+			explicit jet_affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~jet_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -88,7 +88,7 @@ namespace graphics
 		class scale_affector : public affector
 		{
 		public:
-			explicit scale_affector(particle_system_container* parent, const variant& node);
+			explicit scale_affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~scale_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -108,7 +108,7 @@ namespace graphics
 		class vortex_affector : public affector
 		{
 		public:
-			explicit vortex_affector(particle_system_container* parent, const variant& node);
+			explicit vortex_affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~vortex_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -124,7 +124,7 @@ namespace graphics
 		class gravity_affector : public affector
 		{
 		public:
-			explicit gravity_affector(particle_system_container* parent, const variant& node);
+			explicit gravity_affector(ParticleSystemContainer* parent, const variant& node);
 			virtual ~gravity_affector()  {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -139,10 +139,10 @@ namespace graphics
 		class particle_follower_affector : public affector
 		{
 		public:
-			explicit particle_follower_affector(particle_system_container* parent, const variant& node)
+			explicit particle_follower_affector(ParticleSystemContainer* parent, const variant& node)
 				: affector(parent, node),
-				min_distance_(node["min_distance"].as_decimal(decimal(1.0)).as_float()),
-				max_distance_(node["max_distance"].as_decimal(decimal(std::numeric_limits<float>::max())).as_float()) {
+				min_distance_(node["min_distance"].as_float(1.0f)),
+				max_distance_(node["max_distance"].as_float(std::numeric_limits<float>::max())) {
 			}
 			virtual ~particle_follower_affector() {}
 		protected:
@@ -177,7 +177,7 @@ namespace graphics
 		class align_affector : public affector
 		{
 		public:
-			explicit align_affector(particle_system_container* parent, const variant& node) 
+			explicit align_affector(ParticleSystemContainer* parent, const variant& node) 
 				: affector(parent, node), resize_(node["resize"].as_bool(false)) {
 			}
 			virtual ~align_affector() {}
@@ -217,18 +217,18 @@ namespace graphics
 		class randomiser_affector : public affector
 		{
 		public:
-			explicit randomiser_affector(particle_system_container* parent, const variant& node) 
+			explicit randomiser_affector(ParticleSystemContainer* parent, const variant& node) 
 				: affector(parent, node), max_deviation_(0.0f), 
-				time_step_(float(node["time_step"].as_decimal(decimal(0.0f)).as_float())), 
+				time_step_(float(node["time_step"].as_float(0))), 
 				random_direction_(node["use_direction"].as_bool(true)) {
 				if(node.has_key("max_deviation_x")) {
-					max_deviation_.x = float(node["max_deviation_x"].as_decimal().as_float());
+					max_deviation_.x = float(node["max_deviation_x"].as_float());
 				}
 				if(node.has_key("max_deviation_y")) {
-					max_deviation_.y = float(node["max_deviation_y"].as_decimal().as_float());
+					max_deviation_.y = float(node["max_deviation_y"].as_float());
 				}
 				if(node.has_key("max_deviation_z")) {
-					max_deviation_.z = float(node["max_deviation_z"].as_decimal().as_float());
+					max_deviation_.z = float(node["max_deviation_z"].as_float());
 				}
 				last_update_time_[0] = last_update_time_[1] = 0.0f;
 			}
@@ -284,7 +284,7 @@ namespace graphics
 		class sine_force_affector : public affector
 		{
 		public:
-			explicit sine_force_affector(particle_system_container* parent, const variant& node) 
+			explicit sine_force_affector(ParticleSystemContainer* parent, const variant& node) 
 				: affector(parent, node),
 				min_frequency_(1.0f),
 				max_frequency_(1.0f),
@@ -295,11 +295,11 @@ namespace graphics
 				fa_(FA_ADD)
 			{
 				if(node.has_key("max_frequency")) {
-					max_frequency_ = float(node["max_frequency"].as_decimal().as_float());
+					max_frequency_ = float(node["max_frequency"].as_float());
 					frequency_ = max_frequency_;
 				}
 				if(node.has_key("min_frequency")) {
-					min_frequency_ = float(node["min_frequency"].as_decimal().as_float());					
+					min_frequency_ = float(node["min_frequency"].as_float());					
 					if(min_frequency_ > max_frequency_) {
 						frequency_ = min_frequency_;
 					}
@@ -314,7 +314,7 @@ namespace graphics
 					} else if(fa == "add") {
 						fa_ = FA_ADD;
 					} else {
-						ASSERT_LOG(false, "FATAL: PSYSTEM2: 'force_application' attribute should have value average or add");
+						ASSERT_LOG(false, "PSYSTEM2: 'force_application' attribute should have value average or add");
 					}
 				}
 			}
@@ -325,8 +325,8 @@ namespace graphics
 				float sine_value = sin(angle_);
 				scale_vector_ = force_vector_ * t * sine_value;
 				//std::cerr << "XXX: angle: " << angle_ << " scale_vec: " << scale_vector_ << std::endl;
-				if(angle_ > M_PI*2.0f) {
-					angle_ -= M_PI*2.0f;
+				if(angle_ > float(M_PI*2.0f)) {
+					angle_ -= float(M_PI*2.0f);
 					if(min_frequency_ != max_frequency_) {
 						frequency_ = get_random_float(min_frequency_, max_frequency_);
 					}
@@ -358,9 +358,9 @@ namespace graphics
 			sine_force_affector();
 		};
 
-		affector::affector(particle_system_container* parent, const variant& node)
+		affector::affector(ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), enabled_(node["enabled"].as_bool(true)), 
-			mass_(float(node["mass_affector"].as_decimal(decimal(1.0)).as_float())),
+			mass_(float(node["mass_affector"].as_float(1.0f))),
 			position_(0.0f), scale_(1.0f)
 		{
 			if(node.has_key("position")) {
@@ -381,15 +381,15 @@ namespace graphics
 
 		void affector::handle_process(float t) 
 		{
-			ASSERT_LOG(technique_ != NULL, "FATAL: PSYSTEM2: technique_ is null");
+			ASSERT_LOG(technique_ != NULL, "PSYSTEM2: technique_ is null");
 			for(auto& e : technique_->active_emitters()) {
-				ASSERT_LOG(e->emitted_by != NULL, "FATAL: PSYSTEM2: e->emitted_by is null");
+				ASSERT_LOG(e->emitted_by != NULL, "PSYSTEM2: e->emitted_by is null");
 				if(!is_emitter_excluded(e->emitted_by->name())) {
 					internal_apply(*e,t);
 				}
 			}
 			for(auto& p : technique_->active_particles()) {
-				ASSERT_LOG(p.emitted_by != NULL, "FATAL: PSYSTEM2: p.emitted_by is null");
+				ASSERT_LOG(p.emitted_by != NULL, "PSYSTEM2: p.emitted_by is null");
 				if(!is_emitter_excluded(p.emitted_by->name())) {
 					internal_apply(p,t);
 				}
@@ -401,9 +401,9 @@ namespace graphics
 			return std::find(excluded_emitters_.begin(), excluded_emitters_.end(), name) != excluded_emitters_.end();
 		}
 
-		affector* affector::factory(particle_system_container* parent, const variant& node)
+		affector* affector::factory(ParticleSystemContainer* parent, const variant& node)
 		{
-			ASSERT_LOG(node.has_key("type"), "FATAL: PSYSTEM2: affector must have 'type' attribute");
+			ASSERT_LOG(node.has_key("type"), "PSYSTEM2: affector must have 'type' attribute");
 			const std::string& ntype = node["type"].as_string();
 			if(ntype == "color" || ntype == "colour") {
 				return new time_color_affector(parent, node);
@@ -424,12 +424,12 @@ namespace graphics
 			} else if(ntype == "sine_force") {
 				return new sine_force_affector(parent, node);
 			} else {
-				ASSERT_LOG(false, "FATAL: PSYSTEM2: Unrecognised affector type: " << ntype);
+				ASSERT_LOG(false, "PSYSTEM2: Unrecognised affector type: " << ntype);
 			}
 			return NULL;
 		}
 
-		time_color_affector::time_color_affector(particle_system_container* parent, const variant& node)
+		time_color_affector::time_color_affector(ParticleSystemContainer* parent, const variant& node)
 			: affector(parent, node), operation_(time_color_affector::COLOR_OP_SET)
 		{
 			if(node.has_key("colour_operation")) {
@@ -439,48 +439,48 @@ namespace graphics
 				} else if(op == "set") {
 					operation_ = COLOR_OP_SET;
 				} else {
-					ASSERT_LOG(false, "FATAL: PSYSTEM2: unrecognised time_color affector operation: " << op);
+					ASSERT_LOG(false, "PSYSTEM2: unrecognised time_color affector operation: " << op);
 				}
 			}
-			ASSERT_LOG(node.has_key("time_colour") || node.has_key("time_color"), "FATAL: PSYSTEM2: Must be a 'time_colour' attribute");
+			ASSERT_LOG(node.has_key("time_colour") || node.has_key("time_color"), "PSYSTEM2: Must be a 'time_colour' attribute");
 			const variant& tc_node = node.has_key("time_colour") ? node["time_colour"] : node["time_color"];
 			if(tc_node.is_map()) {
-				float t = tc_node["time"].as_decimal().as_float();
+				float t = tc_node["time"].as_float();
 				glm::vec4 result;
 				if(tc_node.has_key("color")) {
 					ASSERT_LOG(tc_node["color"].is_list() && tc_node["color"].num_elements() == 4, "Expected vec4 variant but found " << tc_node["color"].write_json());
-					result.r = tc_node["color"][0].as_decimal().as_float();
-					result.g = tc_node["color"][1].as_decimal().as_float();
-					result.b = tc_node["color"][2].as_decimal().as_float();
-					result.a = tc_node["color"][3].as_decimal().as_float();
+					result.r = tc_node["color"][0].as_float();
+					result.g = tc_node["color"][1].as_float();
+					result.b = tc_node["color"][2].as_float();
+					result.a = tc_node["color"][3].as_float();
 				} else if(tc_node.has_key("colour")) {
 					ASSERT_LOG(tc_node["colour"].is_list() && tc_node["colour"].num_elements() == 4, "Expected vec4 variant but found " << tc_node["colour"].write_json());
-					result.r = tc_node["colour"][0].as_decimal().as_float();
-					result.g = tc_node["colour"][1].as_decimal().as_float();
-					result.b = tc_node["colour"][2].as_decimal().as_float();
-					result.a = tc_node["colour"][3].as_decimal().as_float();
+					result.r = tc_node["colour"][0].as_float();
+					result.g = tc_node["colour"][1].as_float();
+					result.b = tc_node["colour"][2].as_float();
+					result.a = tc_node["colour"][3].as_float();
 				} else {
-					ASSERT_LOG(false, "FATAL: PSYSTEM2, time_colour nodes must have a 'color' or 'colour' attribute");
+					ASSERT_LOG(false, "PSYSTEM2, time_colour nodes must have a 'color' or 'colour' attribute");
 				}
 				tc_data_.push_back(std::make_pair(t, result));
 			} else if(tc_node.is_list()) {
 				for(size_t n = 0; n != tc_node.num_elements(); ++n) {
-					float t = tc_node[n]["time"].as_decimal().as_float();
+					float t = tc_node[n]["time"].as_float();
 					glm::vec4 result;
 					if(tc_node[n].has_key("color")) {
 						ASSERT_LOG(tc_node[n]["color"].is_list() && tc_node[n]["color"].num_elements() == 4, "Expected vec4 variant but found " << tc_node[n]["color"].write_json());
-						result.r = tc_node[n]["color"][0].as_decimal().as_float();
-						result.g = tc_node[n]["color"][1].as_decimal().as_float();
-						result.b = tc_node[n]["color"][2].as_decimal().as_float();
-						result.a = tc_node[n]["color"][3].as_decimal().as_float();
+						result.r = tc_node[n]["color"][0].as_float();
+						result.g = tc_node[n]["color"][1].as_float();
+						result.b = tc_node[n]["color"][2].as_float();
+						result.a = tc_node[n]["color"][3].as_float();
 					} else if(tc_node[n].has_key("colour")) {
 						ASSERT_LOG(tc_node[n]["colour"].is_list() && tc_node[n]["colour"].num_elements() == 4, "Expected vec4 variant but found " << tc_node[n]["colour"].write_json());
-						result.r = tc_node[n]["colour"][0].as_decimal().as_float();
-						result.g = tc_node[n]["colour"][1].as_decimal().as_float();
-						result.b = tc_node[n]["colour"][2].as_decimal().as_float();
-						result.a = tc_node[n]["colour"][3].as_decimal().as_float();
+						result.r = tc_node[n]["colour"][0].as_float();
+						result.g = tc_node[n]["colour"][1].as_float();
+						result.b = tc_node[n]["colour"][2].as_float();
+						result.a = tc_node[n]["colour"][3].as_float();
 					} else {
-						ASSERT_LOG(false, "FATAL: PSYSTEM2, time_colour nodes must have a 'color' or 'colour' attribute");
+						ASSERT_LOG(false, "PSYSTEM2, time_colour nodes must have a 'color' or 'colour' attribute");
 					}
 					tc_data_.push_back(std::make_pair(t, result));
 				}
@@ -530,7 +530,7 @@ namespace graphics
 			return --it;
 		}
 
-		jet_affector::jet_affector(particle_system_container* parent, const variant& node)
+		jet_affector::jet_affector(ParticleSystemContainer* parent, const variant& node)
 			: affector(parent, node)
 		{
 			if(node.has_key("acceleration")) {
@@ -550,7 +550,7 @@ namespace graphics
 			}
 		}
 
-		vortex_affector::vortex_affector(particle_system_container* parent, const variant& node)
+		vortex_affector::vortex_affector(ParticleSystemContainer* parent, const variant& node)
 			: affector(parent, node), rotation_axis_(1.0f, 0.0f, 0.0f, 0.0f)
 		{
 			if(node.has_key("rotation_speed")) {
@@ -572,8 +572,8 @@ namespace graphics
 			p.current.direction = rotation_axis_ * p.current.direction;
 		}
 
-		gravity_affector::gravity_affector(particle_system_container* parent, const variant& node)
-			: affector(parent, node), gravity_(float(node["gravity"].as_decimal(decimal(1.0)).as_float()))
+		gravity_affector::gravity_affector(ParticleSystemContainer* parent, const variant& node)
+			: affector(parent, node), gravity_(float(node["gravity"].as_float(1.0f)))
 		{
 		}
 
@@ -587,7 +587,7 @@ namespace graphics
 			}
 		}
 
-		scale_affector::scale_affector(particle_system_container* parent, const variant& node)
+		scale_affector::scale_affector(ParticleSystemContainer* parent, const variant& node)
 			: affector(parent, node), since_system_start_(node["since_system_start"].as_bool(false))
 		{
 			if(node.has_key("scale_x")) {

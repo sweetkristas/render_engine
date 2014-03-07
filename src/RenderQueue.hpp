@@ -42,8 +42,9 @@ namespace Render
 		void Enqueue(uint64_t order, RenderablePtr p);	
 		void Dequeue(uint64_t order);
 
+		void PreRender();
 		void Render(const Graphics::WindowManagerPtr& wm) const;
-		void FinishRender();
+		void PostRender();
 	private:
 		std::map<uint64_t, RenderablePtr> renderables_;
 		std::string name_;

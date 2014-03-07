@@ -100,8 +100,6 @@ namespace Graphics
 		void set_clear_color(float r, float g, float b, float a=1.0f);
 		// color clear_color() const { return clear_color_; }
 
-		DisplayDevicePtr GetDisplayDevice() { return display_; }
-
 		TexturePtr CreateTexture(const variant& node);
 		TexturePtr CreateTexture(const std::string& filename, 
 			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
@@ -115,6 +113,8 @@ namespace Graphics
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
 
 		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
+
+		static DisplayDevicePtr GetDisplayDevice();
 	protected:
 		size_t width_;
 		size_t height_;

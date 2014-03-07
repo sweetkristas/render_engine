@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <glm/gtx/quaternion.hpp>
+
 #include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
 #include "SceneFwd.hpp"
@@ -68,8 +70,7 @@ namespace Render
 		const RenderVariableList& AttributeRenderVariables() const { return attribute_render_vars_; }
 		const RenderVariableList& UniformRenderVariables() const { return uniform_render_vars_; }
 
-		void draw(RenderQueuePtr queue) const;
-	protected:
+		virtual void PreRender() {}
 	private:
 		size_t order_;
 		glm::vec3 position_;

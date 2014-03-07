@@ -79,6 +79,7 @@ public:
 	bool has_key(const std::string& key) const;
 			
 	void write_json(std::ostream& s, bool pretty=true, int indent=0) const;
+	std::string write_json(bool pretty=true, int indent=0) const;
 protected:
 private:
 	variant_type type_;

@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#include <glm/ext.hpp>
+#include <glm/glm.hpp>
 
 #include "Frustum.hpp"
 

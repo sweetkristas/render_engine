@@ -25,7 +25,7 @@
 
 #include "DisplayDevice.hpp"
 #include "Material.hpp"
-#include "Shaders.hpp"
+#include "ShadersOpenGL.hpp"
 
 namespace Graphics
 {

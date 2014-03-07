@@ -55,10 +55,13 @@ namespace Render
 	void RenderManager::Render(const Graphics::WindowManagerPtr& wm) const
 	{
 		for(auto& q : render_queues_) {
+			q.second->PreRender();
+		}
+		for(auto& q : render_queues_) {
 			q.second->Render(wm);
 		}
 		for(auto& q : render_queues_) {
-			q.second->FinishRender();
+			q.second->PostRender();
 		}
 	}
 

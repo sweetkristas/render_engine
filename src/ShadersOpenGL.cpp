@@ -1,8 +1,28 @@
-#include <vector>
+/*
+	Copyright (C) 2003-2013 by Kristina Simpson <sweet.kristas@gmail.com>
+	
+	This software is provided 'as-is', without any express or implied
+	warranty. In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	   1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgement in the product documentation would be
+	   appreciated but is not required.
+
+	   2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+
+	   3. This notice may not be removed or altered from any source
+	   distribution.
+*/
 
 #include "asserts.hpp"
-#include "logger.hpp"
-#include "Shaders.hpp"
+#include "ShadersOpenGL.hpp"
 
 namespace Shader
 {
@@ -116,6 +136,44 @@ namespace Shader
 			{"color", "a_color"},
 		};
 
+		const char* const vtc_vs = 
+			"uniform mat4 u_mvp_matrix;\n"
+			"attribute vec2 a_position;\n"
+			"attribute vec2 a_texcoord;\n"
+			"attribute vec4 a_color;\n"
+			"varying vec2 v_texcoord;\n"
+			"varying vec4 v_color;\n"
+			"void main()\n"
+			"{\n"
+			"    v_color = a_color;\n"
+			"    v_texcoord = a_texcoord;\n"
+			"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
+			"}\n";
+		const char* const vtc_fs =
+			"uniform sampler2D u_tex_map;\n"
+			"varying vec2 v_texcoord;\n"
+			"varying vec4 v_color;\n"
+			"uniform vec4 u_color;\n"
+			"void main()\n"
+			"{\n"
+			"    vec4 color = texture2D(u_tex_map, v_texcoord);\n"
+			"    gl_FragColor = color * v_color * u_color;\n"
+			"}\n";
+
+		const struct { const char* alt_name; const char* name; } vtc_uniform_mapping[] =
+		{
+			{"mvp_matrix", "u_mvp_matrix"},
+			{"color", "u_color"},
+			{"tex_map", "u_tex_map"},
+			{"tex_map0", "u_tex_map"},
+		};
+		const struct { const char* alt_name; const char* name; } vtc_attribue_mapping[] =
+		{
+			{"position", "a_position"},
+			{"texcoord", "a_texcoord"},
+			{"color", "a_color"},
+		};
+
 		typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
 		shader_factory_map& get_shader_factory()
 		{
@@ -154,6 +212,18 @@ namespace Shader
 					spp->SetAlternateUniformName(sum.name, sum.alt_name);
 				}
 				for(auto& sam : attr_color_attribue_mapping) {
+					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+				}
+				spp->SetActives();
+
+				spp = ShaderProgramPtr(new ShaderProgram("vtc_shader", 
+					ShaderDef("vtc_vs", vtc_vs), 
+					ShaderDef("vtc_fs", vtc_fs)));
+				res["vtc_shader"] = spp;
+				for(auto& sum : vtc_uniform_mapping) {
+					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+				}
+				for(auto& sam : vtc_attribue_mapping) {
 					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
 				}
 				spp->SetActives();

@@ -21,11 +21,11 @@
 	   distribution.
 */
 
-#include "psystem2_observers.hpp"
+#include "ParticleSystemObservers.hpp"
 
-namespace graphics
+namespace Graphics
 {
-	namespace particles
+	namespace Particles
 	{
 	}
 }

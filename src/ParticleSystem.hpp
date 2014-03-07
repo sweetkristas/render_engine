@@ -31,6 +31,7 @@
 #include "asserts.hpp"
 #include "Material.hpp"
 #include "ParticleSystemFwd.hpp"
+#include "SceneObject.hpp"
 
 namespace Graphics
 {
@@ -65,7 +66,7 @@ namespace Graphics
 		class emit_object : public particle
 		{
 		public:
-			explicit emit_object(particle_system_container* parent, const variant& node) 
+			explicit emit_object(ParticleSystemContainer* parent, const variant& node) 
 				: parent_container_(parent) {
 				ASSERT_LOG(parent != NULL, "PSYSTEM2: parent is null");
 				if(node.has_key("name")) {
@@ -84,7 +85,7 @@ namespace Graphics
 			void draw() const {
 				handle_draw();
 			}
-			particle_system_container* parent_container() { 
+			ParticleSystemContainer* parent_container() { 
 				ASSERT_LOG(parent_container_ != NULL, "PSYSTEM2: parent container is NULL");
 				return parent_container_; 
 			}
@@ -94,7 +95,7 @@ namespace Graphics
 			virtual bool duration_expired() { return false; }
 		private:
 			std::string name_;
-			particle_system_container* parent_container_;
+			ParticleSystemContainer* parent_container_;
 			emit_object();
 			//emit_object(const emit_object&);
 		};
@@ -102,7 +103,7 @@ namespace Graphics
 		class technique  : public emit_object
 		{
 		public:
-			explicit technique(particle_system_container* parent, const variant& node);
+			explicit technique(ParticleSystemContainer* parent, const variant& node);
 			technique(const technique& tq);
 			virtual ~technique();
 
@@ -138,7 +139,7 @@ namespace Graphics
 			float velocity_;
 			std::unique_ptr<float> max_velocity_;
 
-			material_ptr material_;
+			MaterialPtr material_;
 			//renderer_ptr renderer_;
 			std::vector<emitter_ptr> active_emitters_;
 			std::vector<affector_ptr> active_affectors_;
@@ -158,7 +159,7 @@ namespace Graphics
 		class particle_system : public emit_object
 		{
 		public:
-			explicit particle_system(particle_system_container* parent, const variant& node);
+			explicit particle_system(ParticleSystemContainer* parent, const variant& node);
 			particle_system(const particle_system& ps);
 			virtual ~particle_system();
 
@@ -167,7 +168,7 @@ namespace Graphics
 			float scale_time() const { return scale_time_; }
 			const glm::vec3& scale_dimensions() const { return scale_dimensions_; }
 
-			static particle_system* factory(particle_system_container* parent, const variant& node);
+			static particle_system* factory(ParticleSystemContainer* parent, const variant& node);
 
 			void add_technique(technique_ptr tq);
 			std::vector<technique_ptr>& active_techniques() { return active_techniques_; }
@@ -190,11 +191,11 @@ namespace Graphics
 			particle_system();
 		};
 
-		class particle_system_container
+		class ParticleSystemContainer : public Scene::SceneObject
 		{
 		public:
-			explicit particle_system_container(const WindowManagerPtr& wnd, const variant& node);
-			virtual ~particle_system_container();
+			explicit ParticleSystemContainer(const variant& node);
+			virtual ~ParticleSystemContainer();
 
 			void activate_particle_system(const std::string& name);
 			std::vector<particle_system_ptr>& active_particle_systems() { return active_particle_systems_; }
@@ -214,9 +215,13 @@ namespace Graphics
 			std::vector<emitter_ptr> clone_emitters();
 			std::vector<affector_ptr> clone_affectors();
 
-			void draw() const;
-			void process();
+			void Process(double current_time);
+
+			void PreRender() override;
+		protected:
+			DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 		private:
+			void Init();
 			std::vector<particle_system_ptr> active_particle_systems_;
 
 			std::vector<particle_system_ptr> particle_systems_;
@@ -224,8 +229,8 @@ namespace Graphics
 			std::vector<emitter_ptr> emitters_;
 			std::vector<affector_ptr> affectors_;
 			
-			particle_system_container();
-			particle_system_container(const particle_system_container&);
+			ParticleSystemContainer();
+			ParticleSystemContainer(const ParticleSystemContainer&);
 		};
 
 		std::ostream& operator<<(std::ostream& os, const glm::vec3& v);
