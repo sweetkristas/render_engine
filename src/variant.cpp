@@ -275,8 +275,11 @@ const variant& variant::operator[](const std::string& key) const
 {
 	ASSERT_LOG(type() == VARIANT_TYPE_MAP, "Tried to index variant that isn't a map, was: " << type_as_string());
 	auto it = m_.find(variant(key));
-	ASSERT_LOG(it != m_.end(), "Couldn't find key(" << key << ") in map");
-	return it->second;
+	//ASSERT_LOG(it != m_.end(), "Couldn't find key(" << key << ") in map");
+	if(it != m_.end()) {
+		return it->second;
+	}
+	return variant();
 }
 
 bool variant::has_key(const variant& v) const

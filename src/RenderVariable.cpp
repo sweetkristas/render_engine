@@ -52,7 +52,7 @@ namespace Render
 		switch(vertex_type_) {
 			case POSITION:	vertex_name_ = "position"; break;
 			case COLOR:		vertex_name_ = "color"; break;
-			case TEXTURE:	vertex_name_ = "texture"; break;
+			case TEXTURE:	vertex_name_ = "texcoord"; break;
 			case NORMAL:		vertex_name_ = "normal"; break;
 			default:
 				ASSERT_LOG(false, "vertex_type has an unknown value: " << vertex_type_);

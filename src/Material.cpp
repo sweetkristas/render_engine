@@ -45,7 +45,7 @@ namespace Graphics
 		do_depth_write_ = pass["depth_write"].as_bool(true);
 		do_depth_check_ = pass["depth_check"].as_bool(true);
 		if(pass.has_key("scene_blend")) {
-			blend_.Set(node["scene_blend"]);
+			blend_.Set(pass["scene_blend"]);
 		}
 		if(pass.has_key("texture_unit")) {
 			if(pass["texture_unit"].is_map()) {

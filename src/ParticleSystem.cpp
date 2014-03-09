@@ -508,7 +508,7 @@ namespace Graphics
 
 		void ParticleSystemContainer::Init()
 		{
-			using namespace Render;
+			/*using namespace Render;
 			auto& arv = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
 			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), 0);
 			arv->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), sizeof(glm::vec2));
@@ -518,7 +518,7 @@ namespace Graphics
 
 			auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
 			urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
-			AddUniformRenderVariable(urv);
+			AddUniformRenderVariable(urv);*/
 		}
 
 		void ParticleSystemContainer::PreRender()

@@ -435,12 +435,28 @@ namespace Graphics
 			if(duration == 0.0f || duration_remaining_ >= 0.0f) {
 				if(emits_type_ == EMITS_VISUAL) {
 					std::vector<particle>::iterator start;
-					std::vector<particle>::iterator end;
-					create_particles(particles, start, end, t);
-					for(auto it = start; it != end; ++it) {
+
+					//create_particles(particles, start, end, t);
+					ASSERT_LOG(technique_ != NULL, "technique_ is null");
+					size_t cnt = calculate_particles_to_emit(t, technique_->quota(), particles.size());
+					// XXX: techincally this shouldn't be needed as we reserve the default quota upon initialising
+					// the particle list. We could hit some pathological case where we allocate particles past
+					// the quota (since it isn't enforced yet). This saves us from start from being invalidated
+					// if push_back were to cause a reallocation.
+					start = particles.begin() + particles.size();
+					auto last_index = particles.size();
+					particles.resize(particles.size() + cnt);
+					//start = particles.end();
+					for(size_t n = 0; n != cnt; ++n) {
+						particle p;
+						init_particle(p, t);
+						particles[n+last_index] = p;
+					}
+
+					for(auto it = start; it != particles.end(); ++it) {
 						internal_create(*it, t);
 					}
-					set_particle_starting_values(start, end);
+					set_particle_starting_values(start, particles.end());
 				} else {
 					if(emits_type_ == EMITS_EMITTER) {
 						size_t cnt = calculate_particles_to_emit(t, technique_->emitter_quota(), technique_->active_emitters().size());
@@ -529,21 +545,6 @@ namespace Graphics
 			std::vector<particle>::iterator& end, 
 			float t)
 		{
-			ASSERT_LOG(technique_ != NULL, "technique_ is null");
-			size_t cnt = calculate_particles_to_emit(t, technique_->quota(), particles.size());
-
-			// XXX: techincally this shouldn't be needed as we reserve the default quota upon initialising
-			// the particle list. We could hit some pathological case where we allocate particles past
-			// the quota (since it isn't enforced yet). This saves us from start from being invalidated
-			// if push_back were to cause a reallocation.
-			particles.reserve(particles.size() + cnt);
-			start = particles.end();
-			for(size_t n = 0; n != cnt; ++n) {
-				particle p;
-				init_particle(p, t);
-				particles.push_back(p);
-			}
-			end = particles.end();
 		}
 
 		void emitter::set_particle_starting_values(const std::vector<particle>::iterator& start, const std::vector<particle>::iterator& end)
