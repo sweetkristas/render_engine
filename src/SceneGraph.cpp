@@ -39,6 +39,13 @@ namespace Scene
 			static SceneObjectFactoryLookupTable res;
 			return res;
 		}
+
+		typedef std::map<std::string, std::function<SceneNodePtr(SceneGraph* sg, const variant&)>> SceneNodeRegistry;
+		SceneNodeRegistry& get_scene_node_registry()
+		{
+			static SceneNodeRegistry res;
+			return res;
+		}
 	}
 		
 	SceneGraph::SceneGraph(const std::string& name) 
@@ -55,16 +62,18 @@ namespace Scene
 		return *graph_.begin();
 	}
 
-	void SceneGraph::AttachNode(const SceneNodePtr& parent, SceneNodePtr node) 
+	void SceneGraph::AttachNode(SceneNode* parent, SceneNodePtr node) 
 	{
 		if(parent == NULL) {
 			graph_.insert(graph_.end_child(), node);
+			node->NodeAttached();
 			return;
 		}
-		the::tree<SceneNodePtr>::const_pre_iterator it = graph_.begin();
+		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		for(; it != graph_.end(); ++it) {
-			if(*it == parent) {
-				//graph_.insert(it, node);
+			if(it->get() == parent) {
+				graph_.insert(it, node);
+				node->NodeAttached();
 				return;
 			}
 		}
@@ -80,9 +89,24 @@ namespace Scene
 		return sg;
 	}
 	
-	SceneNodePtr SceneGraph::CreateNode()
+	SceneNodePtr SceneGraph::CreateNode(const std::string& node_type, const variant& node)
 	{
-		return std::make_shared<SceneNode>(this);
+		auto it = get_scene_node_registry().find(node_type);
+		if(node_type.empty()) {
+			return std::make_shared<SceneNode>(this);
+		}
+		ASSERT_LOG(it != get_scene_node_registry().end(), "Couldn't find a node with name '" << node_type << "' to create.");
+		return it->second(this, node);
+	}
+
+	void SceneGraph::RegisterFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)> create_fn)
+	{
+		auto it = get_scene_node_registry().find(type);
+		if(it != get_scene_node_registry().end()) {
+			LOG_WARN("Overwriting the Scene Node Function: " << type);
+		}
+		get_scene_node_registry()[type] = create_fn;
+		
 	}
 
 	/*SceneObjectPtr SceneGraph::CreateObject(const std::string& type, const std::string& name) 
@@ -119,5 +143,13 @@ namespace Scene
 		LightPtrList lights;
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		RenderSceneHelper(renderer, it, camera, lights);
+	}
+
+	void SceneGraph::Process(double elapsed_time)
+	{
+		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
+		for(; it != graph_.end(); ++it) {
+			(*it)->Process(elapsed_time);
+		}
 	}
 }

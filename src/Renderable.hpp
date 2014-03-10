@@ -25,6 +25,7 @@
 
 #include <glm/gtx/quaternion.hpp>
 
+#include "Material.hpp"
 #include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
 #include "SceneFwd.hpp"
@@ -62,6 +63,9 @@ namespace Render
 		const Scene::LightPtrList& Lights() const { return lights_; }
 		void SetLights(const Scene::LightPtrList& lights);
 
+		const Graphics::MaterialPtr& Material() const { return material_; }
+		void SetMaterial(const Graphics::MaterialPtr& material);
+
 		void SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def);
 		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 
@@ -78,6 +82,7 @@ namespace Render
 		glm::vec3 scale_;
 		Scene::CameraPtr camera_;
 		Scene::LightPtrList lights_;
+		Graphics::MaterialPtr material_;
 
 		RenderVariableList attribute_render_vars_;
 		RenderVariableList uniform_render_vars_;

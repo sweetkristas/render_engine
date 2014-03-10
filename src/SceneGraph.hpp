@@ -37,19 +37,33 @@ namespace Scene
 	public:
 		SceneGraph(const std::string& name);
 		~SceneGraph();
-		void AttachNode(const SceneNodePtr& parent, SceneNodePtr node);
+		void AttachNode(SceneNode* parent, SceneNodePtr node);
 		static SceneGraphPtr Create(const std::string& name, const Graphics::WindowManagerPtr& wnd);
-		SceneNodePtr CreateNode();
+		SceneNodePtr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
 		void RenderScene(const Render::RenderManagerPtr& renderer);
 		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, const CameraPtr& camera, const LightPtrList& lights);
 	
 		Graphics::DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
+
+		void Process(double);
+
+		static void RegisterFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)>);
 	private:
 		Graphics::WindowManagerPtr wnd_;
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;
 		SceneGraph(const SceneGraph&);
+	};
+
+	template<class T>
+	struct SceneNodeRegistrar
+	{
+		SceneNodeRegistrar(const std::string& type)
+		{
+			// register the class factory function 
+			SceneGraph::RegisterFactoryFunction(type, [](SceneGraph* sg, const variant& node) -> SceneNodePtr { return SceneNodePtr(new T(sg, node));});
+		}
 	};
 }

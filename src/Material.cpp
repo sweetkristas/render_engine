@@ -99,9 +99,15 @@ namespace Graphics
 		blend_.Set(src, dst);
 	}
 
-	void Material::Apply()
+	bool Material::Apply()
 	{
 		HandleApply();
+		return UseLighting();
+	}
+
+	void Material::Unapply()
+	{
+		HandleUnapply();
 	}
 
 	namespace

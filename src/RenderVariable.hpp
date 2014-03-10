@@ -248,9 +248,9 @@ namespace Render
 			AddVariableDesc(RenderVariableDescPtr(new AttributeRenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset)));
 		}
 
-		void Update(const std::vector<T>& value) {
-			value_ = value;
-			SetCount(value.size());
+		void Update(std::vector<T>* value) {
+			value_.swap(*value);
+			SetCount(value_.size());
 		}
 		void* Value() override { return &value_[0]; }
 	private:

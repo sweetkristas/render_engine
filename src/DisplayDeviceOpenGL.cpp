@@ -208,13 +208,24 @@ namespace Graphics
 		auto shader = dd->GetShader();
 		shader->MakeActive();
 
+		// lighting can be switched on or off at a material level.
+		// so we grab the return of the Material::Apply() function
+		// to find whether to apply it or not.
+		bool use_lighting = true;
+		if(r->Material()) {
+			use_lighting = r->Material()->Apply();
+		}
+
 		glm::mat4 pmat(1.0f);
 		if(r->Camera()) {
 			// set camera here.
 			pmat = r->Camera()->ProjectionMat() * r->Camera()->ViewMat();
 		}
-		for(auto lp : r->Lights()) {
-			/// xxx need to set lights here.
+
+		if(use_lighting) {
+			for(auto lp : r->Lights()) {
+				/// xxx need to set lights here.
+			}
 		}
 
 		pmat *= r->ModelMatrix();

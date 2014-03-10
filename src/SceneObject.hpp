@@ -36,6 +36,7 @@ namespace Scene
 		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) = 0;
 		size_t Queue() const { return queue_; }
 		void SetQueue(size_t q) { queue_ = q; }
+		const std::string& ObjectName() const { return name_; }
 	private:
 		size_t queue_;
 		std::string name_;

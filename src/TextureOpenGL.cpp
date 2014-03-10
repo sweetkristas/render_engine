@@ -422,7 +422,7 @@ namespace Graphics
 		}
 	}
 
-	void OpenGLTexture::Bind(int n) 
+	void OpenGLTexture::Bind() 
 	{ 
 		if(is_yuv_planar_) {
 			int num_textures = is_yuv_planar_ ? 2 : 0;

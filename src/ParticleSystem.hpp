@@ -27,14 +27,25 @@
 #include <random>
 #include <sstream>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_precision.hpp>
 
 #include "asserts.hpp"
 #include "Material.hpp"
 #include "ParticleSystemFwd.hpp"
+#include "SceneNode.hpp"
 #include "SceneObject.hpp"
 
 namespace Graphics
 {
+	struct vertex_texture_color
+	{
+		vertex_texture_color(const glm::vec3& v, const glm::vec2& t, const glm::u8vec4& c)
+			: vertex(v), texcoord(t), color(c) {}
+		glm::vec3 vertex;
+		glm::vec2 texcoord;
+		glm::u8vec4 color;
+	};
+
 	namespace Particles
 	{
 		typedef glm::detail::tvec4<unsigned char> color_vector;
@@ -100,7 +111,7 @@ namespace Graphics
 			//emit_object(const emit_object&);
 		};
 
-		class technique  : public emit_object
+		class technique  : public emit_object, public Scene::SceneObject
 		{
 		public:
 			explicit technique(ParticleSystemContainer* parent, const variant& node);
@@ -123,10 +134,17 @@ namespace Graphics
 			std::vector<affector_ptr>& active_affectors() { return instanced_affectors_; }
 			void add_emitter(emitter_ptr e);
 			void add_affector(affector_ptr a);
+			void PreRender() override;
 		protected:
+			DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+
 			virtual void handle_process(float t);
-			virtual void handle_draw() const;
 		private:
+			void Init();
+
+			std::shared_ptr<Render::AttributeRenderVariable<vertex_texture_color>> arv_;
+			std::shared_ptr<Render::UniformRenderVariable<glm::vec4>> urv_;
+
 			float default_particle_width_;
 			float default_particle_height_;
 			float default_particle_depth_;
@@ -139,7 +157,6 @@ namespace Graphics
 			float velocity_;
 			std::unique_ptr<float> max_velocity_;
 
-			MaterialPtr material_;
 			//renderer_ptr renderer_;
 			std::vector<emitter_ptr> active_emitters_;
 			std::vector<affector_ptr> active_affectors_;
@@ -156,10 +173,10 @@ namespace Graphics
 			technique();
 		};
 
-		class particle_system : public emit_object
+		class particle_system : public emit_object, public Scene::SceneNode
 		{
 		public:
-			explicit particle_system(ParticleSystemContainer* parent, const variant& node);
+			explicit particle_system(Scene::SceneGraph* sg, ParticleSystemContainer* parent, const variant& node);
 			particle_system(const particle_system& ps);
 			virtual ~particle_system();
 
@@ -172,8 +189,9 @@ namespace Graphics
 
 			void add_technique(technique_ptr tq);
 			std::vector<technique_ptr>& active_techniques() { return active_techniques_; }
+
+			void NodeAttached() override;
 		protected:
-			virtual void handle_draw() const;
 			virtual void handle_process(float t);
 		private:
 			void update(float t);
@@ -191,10 +209,10 @@ namespace Graphics
 			particle_system();
 		};
 
-		class ParticleSystemContainer : public Scene::SceneObject
+		class ParticleSystemContainer : public Scene::SceneNode
 		{
 		public:
-			explicit ParticleSystemContainer(const variant& node);
+			explicit ParticleSystemContainer(Scene::SceneGraph* sg, const variant& node);
 			virtual ~ParticleSystemContainer();
 
 			void activate_particle_system(const std::string& name);
@@ -215,13 +233,9 @@ namespace Graphics
 			std::vector<emitter_ptr> clone_emitters();
 			std::vector<affector_ptr> clone_affectors();
 
-			void Process(double current_time);
-
-			void PreRender() override;
-		protected:
-			DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+			void Process(double current_time) override;
+			void NodeAttached() override;
 		private:
-			void Init();
 			std::vector<particle_system_ptr> active_particle_systems_;
 
 			std::vector<particle_system_ptr> particle_systems_;

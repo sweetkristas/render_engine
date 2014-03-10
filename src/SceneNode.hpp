@@ -41,6 +41,9 @@ namespace Scene
 		void AttachCamera(const CameraPtr& obj);
 		void AttachObject(const SceneObjectPtr& obj);
 		void RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights);
+		SceneGraph* ParentGraph() { return scene_graph_; }
+		virtual void Process(double);
+		virtual void NodeAttached();
 	private:
 		SceneGraph* scene_graph_;
 		std::vector<SceneObjectPtr> objects_;

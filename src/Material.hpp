@@ -98,13 +98,18 @@ namespace Graphics
 		void EnableDepthCheck(bool en=true);
 		void SetBlendMode(const BlendMode& bm);
 		void SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
-
-		void Apply();
+		
+		// Performs the actions to apply the current material to the renderable object.
+		// Returns a boolean indicating whether to use lighting or not for this
+		// material.
+		bool Apply();
+		void Unapply();
 	protected:
 		void Init(const variant& node);
 	private:
 		virtual TexturePtr CreateTexture(const variant& node) = 0;
 		virtual void HandleApply() = 0;
+		virtual void HandleUnapply() = 0;
 
 		std::string name_;
 		std::vector<TexturePtr> tex_;

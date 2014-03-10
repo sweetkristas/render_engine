@@ -99,6 +99,11 @@ namespace Render
 		lights_ = lights;
 	}
 
+	void Renderable::SetMaterial(const Graphics::MaterialPtr& material)
+	{
+		material_ = material;
+	}
+
 	void Renderable::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)
 	{
 		display_data_ = dd->CreateDisplayDeviceData(def);

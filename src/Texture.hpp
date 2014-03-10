@@ -83,6 +83,7 @@ namespace Graphics
 		void InternalInit();
 
 		virtual void Init() = 0;
+		virtual void Bind() = 0;
 
 		virtual void Update(int x, unsigned width, void* pixels) = 0;
 		virtual void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) = 0;

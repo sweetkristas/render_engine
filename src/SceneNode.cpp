@@ -44,7 +44,7 @@ namespace Scene
 	void SceneNode::AttachNode(const SceneNodePtr& node)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
-		scene_graph_->AttachNode(SceneNodePtr(this), node);
+		scene_graph_->AttachNode(this, node);
 	}
 
 	void SceneNode::AttachObject(const SceneObjectPtr& obj)
@@ -53,7 +53,7 @@ namespace Scene
 		auto dd = scene_graph_->DisplayDevice();
 		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		objects_.emplace_back(obj);
-		obj->SetDisplayData(dd, obj->Attach(dd));		
+		obj->SetDisplayData(dd, obj->Attach(dd));
 	}
 
 	void SceneNode::AttachLight(size_t ref, const LightPtr& obj)
@@ -89,5 +89,15 @@ namespace Scene
 			o->SetLights(lights);
 			renderer->AddRenderableToQueue(o->Queue(), o->Order(), o);
 		}
+	}
+
+	void SceneNode::NodeAttached()
+	{
+		// nothing need be done as default
+	}
+
+	void SceneNode::Process(double)
+	{
+		// nothing need be done as default
 	}
 }

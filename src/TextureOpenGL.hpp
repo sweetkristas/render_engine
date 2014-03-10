@@ -43,7 +43,7 @@ namespace Graphics
 			unsigned depth=0);
 		virtual ~OpenGLTexture();
 
-		void Bind(int n=0);
+		void Bind() override;
 
 		unsigned Width() const { return width_; }
 		unsigned Height() const { return height_; }

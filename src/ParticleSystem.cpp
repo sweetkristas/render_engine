@@ -24,12 +24,11 @@
 #include <cmath>
 #include <chrono>
 
-#include <glm/gtc/type_precision.hpp>
-
 #include "ParticleSystem.hpp"
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemParameters.hpp"
 #include "ParticleSystemEmitters.hpp"
+#include "SceneGraph.hpp"
 #include "spline.hpp"
 #include "WindowManager.hpp"
 
@@ -43,6 +42,8 @@ namespace Graphics
 
 		namespace 
 		{
+			Scene::SceneNodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
+
 			std::default_random_engine& get_rng_engine() 
 			{
 				static std::unique_ptr<std::default_random_engine> res;
@@ -143,8 +144,9 @@ namespace Graphics
 			return q * v;
 		}
 
-		particle_system::particle_system(ParticleSystemContainer* parent, const variant& node)
+		particle_system::particle_system(Scene::SceneGraph* sg, ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), 
+			Scene::SceneNode(sg),
 			elapsed_time_(0.0f), 
 			scale_velocity_(1.0f), 
 			scale_time_(1.0f),
@@ -183,7 +185,7 @@ namespace Graphics
 					}
 				} else if(node["active_techniques"].is_string()) {
 					active_techniques_.push_back(parent_container()->clone_technique(node["active_techniques"].as_string()));
-					active_techniques_.back()->set_parent(this);
+					active_techniques_.back()->set_parent(this);					
 				} else {
 					ASSERT_LOG(false, "PSYSTEM2: 'active_techniques' attribute must be list of strings or single string.");
 				}
@@ -208,6 +210,7 @@ namespace Graphics
 
 		particle_system::particle_system(const particle_system& ps)
 			: emit_object(ps),
+			Scene::SceneNode(const_cast<particle_system&>(ps).ParentGraph()),
 			elapsed_time_(0),
 			scale_velocity_(ps.scale_velocity_),
 			scale_time_(ps.scale_time_),
@@ -221,17 +224,17 @@ namespace Graphics
 			}
 		}
 
+		void particle_system::NodeAttached()
+		{
+			for(auto t : active_techniques_) {
+				AttachObject(t);
+			}
+		}
+
 		void particle_system::update(float dt)
 		{
 			for(auto t : active_techniques_) {
 				t->process(dt);
-			}
-		}
-
-		void particle_system::handle_draw() const
-		{
-			for(auto t : active_techniques_) {
-				t->draw();
 			}
 		}
 
@@ -249,11 +252,13 @@ namespace Graphics
 
 		particle_system* particle_system::factory(ParticleSystemContainer* parent, const variant& node)
 		{
-			return new particle_system(parent, node);
+			return new particle_system(parent->ParentGraph(), parent, node);
 		}
 
 		technique::technique(ParticleSystemContainer* parent, const variant& node)
-			: emit_object(parent, node), default_particle_width_(node["default_particle_width"].as_float(1.0f)),
+			: Scene::SceneObject("technique"),
+			emit_object(parent, node), 
+			default_particle_width_(node["default_particle_width"].as_float(1.0f)),
 			default_particle_height_(node["default_particle_height"].as_float(1.0f)),
 			default_particle_depth_(node["default_particle_depth"].as_float(1.0f)),
 			lod_index_(node["lod_index"].as_int(0)), velocity_(1.0f),
@@ -265,7 +270,7 @@ namespace Graphics
 			ASSERT_LOG(node.has_key("visual_particle_quota"), "PSYSTEM2: 'technique' must have 'visual_particle_quota' attribute.");
 			particle_quota_ = node["visual_particle_quota"].as_int();
 			ASSERT_LOG(node.has_key("material"), "PSYSTEM2: 'technique' must have 'material' attribute.");
-			material_ = WindowManager::GetDisplayDevice()->CreateMaterial(node["material"]);
+			SetMaterial(WindowManager::GetDisplayDevice()->CreateMaterial(node["material"]));
 			//ASSERT_LOG(node.has_key("renderer"), "PSYSTEM2: 'technique' must have 'renderer' attribute.");
 			//renderer_.reset(new renderer(node["renderer"]));
 			if(node.has_key("emitter")) {
@@ -324,6 +329,8 @@ namespace Graphics
 
 			// In order to create as few re-allocations of particles, reserve space here
 			active_particles_.reserve(particle_quota_);
+
+			Init();
 		}
 
 		technique::~technique()
@@ -331,7 +338,8 @@ namespace Graphics
 		}
 
 		technique::technique(const technique& tq) 
-			: emit_object(tq),
+			: Scene::SceneObject(tq.ObjectName()),
+			emit_object(tq),
 			default_particle_width_(tq.default_particle_width_),
 			default_particle_height_(tq.default_particle_height_),
 			default_particle_depth_(tq.default_particle_depth_),
@@ -342,9 +350,11 @@ namespace Graphics
 			system_quota_(tq.system_quota_),
 			lod_index_(tq.lod_index_),
 			velocity_(tq.velocity_),
-			material_(tq.material_),
 			particle_system_(tq.particle_system_)
 		{
+			if(tq.Material()) {
+				SetMaterial(tq.Material());
+			}
 			if(tq.max_velocity_) {
 				max_velocity_.reset(new float(*tq.max_velocity_));
 			}
@@ -360,6 +370,8 @@ namespace Graphics
 				active_affectors_.back()->set_parent_technique(this);
 			}
 			active_particles_.reserve(particle_quota_);
+
+			Init();
 		}
 
 		void technique::set_parent(particle_system* parent)
@@ -381,7 +393,6 @@ namespace Graphics
 			//active_affectors_.push_back(a);
 			instanced_affectors_.push_back(a);
 		}
-
 
 		void technique::handle_process(float t)
 		{
@@ -441,25 +452,49 @@ namespace Graphics
 			//std::cerr << "XXX: Active Emitter Count: " << active_emitters_.size() << std::endl;
 		}
 
-		void technique::handle_draw() const
+		void technique::Init()
 		{
-			for(auto e :  active_emitters_) {
-				e->draw();
-			}
-			for(auto e : instanced_emitters_) {
-				e->draw();
-			}
+			using namespace Render;
+			arv_ = std::make_shared<AttributeRenderVariable<vertex_texture_color>>();
+			arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 3, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,vertex));
+			arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,texcoord));
+			arv_->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_texture_color), offsetof(vertex_texture_color,color));
+			arv_->SetDrawMode(RenderVariable::TRIANGLES);
+			AddAttributeRenderVariable(arv_);
 
-#if defined(USE_SHADERS)
-			shader_->vertex_array(3, GL_FLOAT, GL_FALSE, sizeof(particle), &active_particles_[0].current.position);
-			shader_->color_array(4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(particle), &active_particles_[0].current.color);
-			shader_->vertex_attrib_array(a_dimensions_, 3, GL_FLOAT, GL_FALSE, sizeof(particle), &active_particles_[0].current.dimensions);
-			glDrawArrays(GL_POINTS, 0, active_particles_.size());
-#endif
+			auto& urv_ = std::make_shared<UniformRenderVariable<glm::vec4>>();
+			urv_->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
+			AddUniformRenderVariable(urv_);
+			urv_->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
+
+			SetOrder(1);
 		}
 
-		ParticleSystemContainer::ParticleSystemContainer(const variant& node) 
-			: Scene::SceneObject("particle_system_container")
+		DisplayDeviceDef technique::Attach(const DisplayDevicePtr& dd) {
+			DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+			def.SetHint("shader", "vtc_shader");
+			return def;
+		}
+
+		void technique::PreRender()
+		{
+			//LOG_DEBUG("technique::PreRender, particle count: " << active_particles_.size());
+			std::vector<vertex_texture_color> vtc;
+			vtc.reserve(active_particles_.size());
+			for(auto& p : active_particles_) {
+				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y,p.current.position.z), glm::vec2(0.0f,0.0f), p.current.color);
+				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(0.0f,1.0f), p.current.color);
+				vtc.emplace_back(glm::vec3(p.current.position.x+p.current.dimensions.x,p.current.position.y,p.current.position.z), glm::vec2(1.0f,0.0f), p.current.color);
+
+				vtc.emplace_back(glm::vec3(p.current.position.x+p.current.dimensions.x,p.current.position.y,p.current.position.z), glm::vec2(1.0f,0.0f), p.current.color);
+				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(0.0f,1.0f), p.current.color);
+				vtc.emplace_back(glm::vec3(p.current.position.x+p.current.dimensions.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(1.0f,1.0f), p.current.color);
+			}
+			arv_->Update(&vtc);
+		}
+
+		ParticleSystemContainer::ParticleSystemContainer(Scene::SceneGraph* sg, const variant& node) 
+			: Scene::SceneNode(sg)
 		{
 			if(node.has_key("systems")) {
 				if(node["systems"].is_list()) {
@@ -488,46 +523,22 @@ namespace Graphics
 			} else {
 				active_particle_systems_ = clone_particle_systems();
 			}
-			
-			Init();
+		}
+
+		void ParticleSystemContainer::NodeAttached()
+		{
+			for(auto& a : active_particle_systems_) {
+				AttachNode(a);
+			}
 		}
 
 		ParticleSystemContainer::~ParticleSystemContainer()
 		{
 		}
 
-		struct vertex_texcoord
-		{
-			vertex_texcoord() : vertex(0.0f), texcoord(0.0f), color(255) {}
-			vertex_texcoord(const glm::vec2& v, const glm::vec2& tc, const glm::u8vec4& c) 
-				: vertex(v), texcoord(tc), color(c) {}
-			glm::vec2 vertex;
-			glm::vec2 texcoord;
-			glm::u8vec4 color;
-		};
-
-		void ParticleSystemContainer::Init()
-		{
-			/*using namespace Render;
-			auto& arv = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
-			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), 0);
-			arv->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), sizeof(glm::vec2));
-			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, false, sizeof(vertex_texcoord), sizeof(glm::u8vec4)+sizeof(glm::vec2));
-			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
-			AddAttributeRenderVariable(arv);
-
-			auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
-			urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
-			AddUniformRenderVariable(urv);*/
-		}
-
-		void ParticleSystemContainer::PreRender()
-		{
-			// Called before rendering to give us a chance to get all the active data together.
-		}
-
 		void ParticleSystemContainer::Process(double current_time)
 		{
+			//LOG_DEBUG("ParticleSystemContainer::Process: " << current_time);
 			for(auto ps : active_particle_systems_) {
 				ps->process(process_step_time);
 			}
@@ -637,12 +648,5 @@ namespace Graphics
 			}
 			return res;
 		}
-
-		DisplayDeviceDef ParticleSystemContainer::Attach(const DisplayDevicePtr& dd) {
-			DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
-			def.SetHint("shader", "vtc_shader");
-			return def;
-		}
-
 	}
 }

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <list>
 #include <vector>
 
@@ -35,8 +36,8 @@ namespace
 		SquareRenderable() : Scene::SceneObject("square") {
 			using namespace Render;
 			auto& arv = std::make_shared<AttributeRenderVariable<vertex_color>>();
-			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_color), 0);
-			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_color), sizeof(glm::vec2));
+			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex));
+			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color));
 			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
 			AddAttributeRenderVariable(arv);
 
@@ -49,7 +50,7 @@ namespace
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			arv->Update(vertices);
+			arv->Update(&vertices);
 
 			urv->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 
@@ -124,9 +125,11 @@ int main(int argc, char *argv[])
 	cairo_canvas->Fill();
 
 	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
-
-	auto psystem = std::make_shared<Graphics::Particles::ParticleSystemContainer>(json::parse_from_file("psystem1.cfg"));
-	root->AttachObject(psystem);
+	/// XXX SceneGraph and SceneNodes should get a Process(double) function. virtual for SceneNodes.
+	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	root->AttachNode(psystem);
+	auto particle_cam = std::make_shared<Scene::Camera>("particle_cam", main_wnd);
+	psystem->AttachCamera(particle_cam);
 
 	SDL_Event e;
 	bool done = false;
@@ -140,13 +143,12 @@ int main(int argc, char *argv[])
 		}
 
 		// Called once a cycle before rendering.
-		psystem->Process(SDL_GetTicks() / 1000.0f);
+		scene->Process(SDL_GetTicks() / 1000.0f);
 
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 
 		cairo_canvas->Render(main_wnd);
-
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

@@ -35,6 +35,7 @@ namespace Graphics
 		virtual ~OpenGLMaterial();
 	private:
 		void HandleApply() override;
+		void HandleUnapply() override;
 		TexturePtr CreateTexture(const variant& node) override;
 	};
 }
