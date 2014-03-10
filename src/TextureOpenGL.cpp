@@ -338,15 +338,16 @@ namespace Graphics
 			unsigned h = n>0 ? Height()/2 : Height();
 			unsigned d = n>0 ? Depth()/2 : Depth();
 
+			const void* pixels = GetSurface() ? GetSurface()->Pixels() : 0;
 			switch(GetType()) {
 				case TEXTURE_1D:
-					glTexImage1D(GetGLTextureType(GetType()), 0, internal_format_, w, 0, format_, type_, 0);
+					glTexImage1D(GetGLTextureType(GetType()), 0, internal_format_, w, 0, format_, type_, pixels);
 					break;
 				case TEXTURE_2D:
-					glTexImage2D(GetGLTextureType(GetType()), 0, internal_format_, w, h, 0, format_, type_, 0);
+					glTexImage2D(GetGLTextureType(GetType()), 0, internal_format_, w, h, 0, format_, type_, pixels);
 					break;
 				case TEXTURE_3D:
-					glTexImage3D(GetGLTextureType(GetType()), 0, internal_format_, w, h, d, 0, format_, type_, 0);
+					glTexImage3D(GetGLTextureType(GetType()), 0, internal_format_, w, h, d, 0, format_, type_, pixels);
 					break;
 				case TEXTURE_CUBIC:
 					// If we are using a cubic texture 		

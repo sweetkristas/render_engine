@@ -78,11 +78,11 @@ namespace Scene
 
 	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights)
 	{
+		if(camera_) {
+			camera = camera_;
+		}
 		for(auto l : lights_) {
 			lights[l.first] = l.second;
-			if(camera_) {
-				camera = camera_;
-			}
 		}
 		for(auto o : objects_) {
 			o->SetCamera(camera);
@@ -99,5 +99,19 @@ namespace Scene
 	void SceneNode::Process(double)
 	{
 		// nothing need be done as default
+	}
+
+	std::ostream& operator<<(std::ostream& os, const SceneNode& node)
+	{
+		os  << "NODE(" 
+			<< node.NodeName() << " : "
+			<< (node.camera_ ? "1 camera, " : "") 
+			<< node.lights_.size() << " light" << (node.lights_.size() != 1 ? "s" : "") << ", "
+			<< node.objects_.size() << " object" << (node.objects_.size() != 1 ? "s (" : " (");
+		for(auto o : node.objects_) {
+			os << ", \"" << o->ObjectName() << "\"";
+		}
+		os << "))";
+		return os;
 	}
 }

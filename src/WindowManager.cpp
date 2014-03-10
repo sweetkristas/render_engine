@@ -160,7 +160,7 @@ namespace Graphics
 
 			display_->set_clear_color(clear_color_[0],clear_color_[1],clear_color_[2],clear_color_[3]);
 			display_->init(width_, height_);
-			display_->print_device_info();
+			display_->PrintDeviceInfo();
 			display_->clear(DisplayDevice::DISPLAY_CLEAR_ALL);
 			swap();
 		}

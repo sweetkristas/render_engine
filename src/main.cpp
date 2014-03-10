@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
 
 	Scene::SceneGraphPtr scene = Scene::SceneGraph::Create("main", main_wnd);
 	Scene::SceneNodePtr root = scene->RootNode();
+	root->SetNodeName("root_node");
 	auto scenecam = std::make_shared<Scene::Camera>("cam0", 0, 800, 0, 600);
 	scenecam->AttachFrustum(std::make_shared<Scene::Frustum>());
 	root->AttachCamera(scenecam);
@@ -125,10 +126,11 @@ int main(int argc, char *argv[])
 	cairo_canvas->Fill();
 
 	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
-	/// XXX SceneGraph and SceneNodes should get a Process(double) function. virtual for SceneNodes.
 	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
 	root->AttachNode(psystem);
+	psystem->SetNodeName("psc_node");
 	auto particle_cam = std::make_shared<Scene::Camera>("particle_cam", main_wnd);
+	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 	psystem->AttachCamera(particle_cam);
 
 	SDL_Event e;
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
 
-		cairo_canvas->Render(main_wnd);
+		//cairo_canvas->Render(main_wnd);
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

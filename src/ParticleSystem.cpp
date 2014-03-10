@@ -529,6 +529,7 @@ namespace Graphics
 		{
 			for(auto& a : active_particle_systems_) {
 				AttachNode(a);
+				a->SetNodeName("ps_node_" + a->name());
 			}
 		}
 

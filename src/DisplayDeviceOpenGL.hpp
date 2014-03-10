@@ -56,7 +56,7 @@ namespace Graphics
 		MaterialPtr CreateMaterial(const variant& node) override;
 
 		void init(size_t width, size_t height);
-		void print_device_info();
+		void PrintDeviceInfo() override;
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) override;
 

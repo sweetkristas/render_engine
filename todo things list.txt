@@ -5,7 +5,6 @@ List of things still needed to be done, not in any particular order.
 
 * Implement a texture registry and system for re-building textures if the context is lost.
 * Implement surface or image caching, using filename as a key.
-* Re-think the way render variables work. 
 * Add ways to specify different techniques for implementing things, so we can fallback if the hardware doesn't support a required feature.
 * Add a 2D canvas for drawing simple textures, such as might be used with UI elements.
 * Add a way to convert a surface to a different format (such as might be used if 16bpp is enabled).
@@ -17,7 +16,10 @@ List of things still needed to be done, not in any particular order.
 * Finish implementing cubic texture support.
 * For planar YUV textures in PIXELFORMAT_YV12, need to swap V/U planes when rendering.
 * Fix lighting. 
-* Add material over the top of textures.
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
-* Implement the an Abstract factory design for all the DisplayDevice and WindowManager backends.
 
+Finished things
+
+* -Add material over the top of textures.-
+* -Implement the an Abstract factory design for all the DisplayDevice and WindowManager backends.-
+* -Re-think the way render variables work.-

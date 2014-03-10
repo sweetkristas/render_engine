@@ -72,7 +72,8 @@ namespace Scene
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		for(; it != graph_.end(); ++it) {
 			if(it->get() == parent) {
-				graph_.insert(it, node);
+				//graph_.insert(it, node);
+				graph_.insert_below(it, node);
 				node->NodeAttached();
 				return;
 			}
@@ -139,9 +140,10 @@ namespace Scene
 
 	void SceneGraph::RenderScene(const Render::RenderManagerPtr& renderer)
 	{
+		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
+		LOG_DEBUG("RenderScene: " << (*it)->NodeName());
 		CameraPtr camera;
 		LightPtrList lights;
-		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		RenderSceneHelper(renderer, it, camera, lights);
 	}
 
@@ -151,5 +153,16 @@ namespace Scene
 		for(; it != graph_.end(); ++it) {
 			(*it)->Process(elapsed_time);
 		}
+	}
+
+	std::ostream& operator<<(std::ostream& os, const SceneGraph& sg)
+	{
+		os << "SCENEGRAPH(";
+		the::tree<SceneNodePtr>::const_pre_iterator it = sg.graph_.begin();
+		for(; it != sg.graph_.end(); ++it) {
+			os << *(*it);
+		}
+		os << ")\n";
+		return os;
 	}
 }

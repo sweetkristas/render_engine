@@ -40,17 +40,26 @@ namespace Scene
 		void AttachLight(size_t ref, const LightPtr& obj);
 		void AttachCamera(const CameraPtr& obj);
 		void AttachObject(const SceneObjectPtr& obj);
+		const CameraPtr& Camera() const { return camera_; }
+		const LightPtrList& Lights() const { return lights_; }
 		void RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights);
 		SceneGraph* ParentGraph() { return scene_graph_; }
 		virtual void Process(double);
 		virtual void NodeAttached();
+		void SetNodeName(const std::string& s) { name_ = s; }
+		const std::string& NodeName() const { return name_; }
 	private:
+		std::string name_;
 		SceneGraph* scene_graph_;
 		std::vector<SceneObjectPtr> objects_;
-		std::unordered_map<size_t, LightPtr> lights_;
+		LightPtrList lights_;
 		CameraPtr camera_;
 		SceneNode();
 		SceneNode(const SceneNode&);
 		SceneNode& operator=(const SceneNode&);
+
+		friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);
 	};
+
+	std::ostream& operator<<(std::ostream& os, const SceneNode& node);
 }

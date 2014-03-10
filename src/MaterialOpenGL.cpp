@@ -94,12 +94,14 @@ namespace Graphics
 
 	void OpenGLMaterial::HandleUnapply() 
 	{
-		glDisable(GL_DEPTH_TEST);
+		if(DoDepthCheck() || DoDepthWrite()) {
+			glDisable(GL_DEPTH_TEST);
+		}
 
 		auto& bm = GetBlendMode();
 		if(bm.Src() != BlendMode::BM_SRC_ALPHA 
 			&& bm.Dst() != BlendMode::BM_ONE_MINUS_SRC_ALPHA) {
-			glBlendFunc(BlendMode::BM_SRC_ALPHA, BlendMode::BM_ONE_MINUS_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
 

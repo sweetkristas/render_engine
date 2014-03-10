@@ -136,12 +136,26 @@ namespace Graphics
 
 		glViewport(0, 0, width, height);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		// Register with the render variable factory so we can create 
 		// VBO backed render variables.
 	}
 
-	void DisplayDeviceOpenGL::print_device_info()
+	void DisplayDeviceOpenGL::PrintDeviceInfo()
 	{
+		GLint minor_version;
+		GLint major_version;
+		glGetIntegerv(GL_MINOR_VERSION, &minor_version);
+		glGetIntegerv(GL_MINOR_VERSION, &major_version);
+		if(glGetError() != GL_NONE) {
+			// fall-back to old glGetStrings method.
+			const char* version_str = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+			std::cerr << "OpenGL version: " << version_str << std::endl;
+		} else {
+			std::cerr << "OpenGL version: " << major_version << "." << minor_version << std::endl;
+		}
 	}
 
 	void DisplayDeviceOpenGL::clear(uint32_t clr)
@@ -272,6 +286,9 @@ namespace Graphics
 			for(auto attrib : enabled_attribs) {
 				glDisableVertexAttribArray(attrib);
 			}
+		}
+		if(r->Material()) {
+			r->Material()->Unapply();
 		}
 	}
 

@@ -55,7 +55,11 @@ namespace Scene
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;
 		SceneGraph(const SceneGraph&);
+
+		friend std::ostream& operator<<(std::ostream& s, const SceneGraph& sg);
 	};
+
+	std::ostream& operator<<(std::ostream& s, const SceneGraph& sg);
 
 	template<class T>
 	struct SceneNodeRegistrar

@@ -156,6 +156,9 @@
     <ClCompile Include="..\src\TextureSDL.cpp">
       <Filter>Source Files\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Fbo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\logger.hpp">
@@ -313,6 +316,9 @@
     </ClInclude>
     <ClInclude Include="..\src\SurfaceSDL.hpp">
       <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Fbo.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
