@@ -156,8 +156,11 @@
     <ClCompile Include="..\src\TextureSDL.cpp">
       <Filter>Source Files\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Fbo.cpp">
+    <ClCompile Include="..\src\RenderTarget.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\FboOpenGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -189,9 +192,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\RenderVariable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ref_counted_ptr.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\SceneGraph.hpp">
@@ -317,8 +317,11 @@
     <ClInclude Include="..\src\SurfaceSDL.hpp">
       <Filter>Header Files\SDL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Fbo.hpp">
+    <ClInclude Include="..\src\RenderTarget.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\FboOpenGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -63,14 +63,14 @@ namespace Scene
 		type_(CAMERA_PERSPECTIVE), 
 		ortho_left_(0), 
 		ortho_bottom_(0),
-		ortho_top_(wnd->logical_height()), 
-		ortho_right_(wnd->logical_width()),
+		ortho_top_(wnd->LogicalHeight()), 
+		ortho_right_(wnd->LogicalWidth()),
 		clip_planes_set_(false),
 		view_mode_(VIEW_MODE_AUTO)
 	{
 		up_ = glm::vec3(0.0f, 1.0f, 0.0f);
 		position_ = glm::vec3(0.0f, 0.0f, 0.7f); 
-		aspect_ = float(wnd->logical_width())/float(wnd->logical_height());
+		aspect_ = float(wnd->LogicalWidth())/float(wnd->LogicalHeight());
 	
 		ComputeView();
 		ComputeProjection();
@@ -195,8 +195,8 @@ namespace Scene
 		type_(CAMERA_PERSPECTIVE), 
 		ortho_left_(0), 
 		ortho_bottom_(0),
-		ortho_top_(wnd->logical_height()), 
-		ortho_right_(wnd->logical_width()),
+		ortho_top_(wnd->LogicalHeight()), 
+		ortho_right_(wnd->LogicalWidth()),
 		clip_planes_set_(true),
 		view_mode_(VIEW_MODE_AUTO)
 	{

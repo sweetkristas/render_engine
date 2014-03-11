@@ -17,7 +17,8 @@
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
-    <ClCompile Include="..\src\Fbo.cpp" />
+    <ClCompile Include="..\src\FboOpenGL.cpp" />
+    <ClCompile Include="..\src\RenderTarget.cpp" />
     <ClCompile Include="..\src\filesystem.cpp" />
     <ClCompile Include="..\src\Frustum.cpp" />
     <ClCompile Include="..\src\json.cpp" />
@@ -62,7 +63,8 @@
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
-    <ClInclude Include="..\src\Fbo.hpp" />
+    <ClInclude Include="..\src\FboOpenGL.hpp" />
+    <ClInclude Include="..\src\RenderTarget.hpp" />
     <ClInclude Include="..\src\filesystem.hpp" />
     <ClInclude Include="..\src\formatter.hpp" />
     <ClInclude Include="..\src\Frustum.hpp" />
@@ -79,7 +81,6 @@
     <ClInclude Include="..\src\ParticleSystemObservers.hpp" />
     <ClInclude Include="..\src\ParticleSystemParameters.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
-    <ClInclude Include="..\src\ref_counted_ptr.hpp" />
     <ClInclude Include="..\src\Renderable.hpp" />
     <ClInclude Include="..\src\RenderFwd.hpp" />
     <ClInclude Include="..\src\RenderManager.hpp" />

@@ -25,6 +25,7 @@
 
 #include <string>
 
+#include "Color.hpp"
 #include "DisplayDevice.hpp"
 #include "Material.hpp"
 #include "Renderable.hpp"
@@ -42,14 +43,15 @@ namespace Graphics
 		};
 		explicit WindowManager(const std::string& title);
 		virtual ~WindowManager();
-		virtual void create_window(size_t width, size_t height) = 0;
-		virtual void destroy_window() = 0;
+		virtual void CreateWindow(size_t width, size_t height) = 0;
+		virtual void DestroyWindow() = 0;
 		
-		virtual bool set_window_size(size_t width, size_t height) = 0;
-		virtual bool auto_window_size(size_t& width, size_t& height) = 0;
+		virtual bool SetWindowSize(size_t width, size_t height) = 0;
+		virtual bool AutoWindowSize(size_t& width, size_t& height) = 0;
+		virtual bool SetLogicalWindowSize(size_t width, size_t height) = 0;
 
-		virtual void set_window_title(const std::string& title) = 0;
-		virtual void set_window_icon(const std::string& name) = 0;
+		virtual void SetWindowTitle(const std::string& title) = 0;
+		virtual void SetWindowIcon(const std::string& name) = 0;
 
 		virtual void Render(const Render::RenderablePtr& r) = 0;
 
@@ -71,34 +73,36 @@ namespace Graphics
 			void* pixels) = 0;
 		virtual SurfacePtr CreateSurface(const std::string& filename) = 0;
 
-		virtual void swap() = 0;
+		virtual void Swap() = 0;
 
-		void map_mouse_position(size_t* x, size_t* y);
+		void MapMousePosition(size_t* x, size_t* y);
 
-		void enable_16bpp(bool bpp=true);
-		void enable_multisampling(bool multi_sampling=true, size_t samples=4);
-		void enable_resizeable_window(bool en=true);
-		void set_fullscreen_mode(FullScreenMode mode);
-		void enable_vsync(bool en=true);
+		void Enable16bpp(bool bpp=true);
+		void EnableMultisampling(bool multi_sampling=true, size_t samples=4);
+		void EnableResizeableWindow(bool en=true);
+		void SetFullscreenMode(FullScreenMode mode);
+		void EnableVsync(bool en=true);
 
-		bool use_16bpp() const { return use_16bpp_; }
-		bool use_multi_sampling() const { return use_multi_sampling_; }
-		size_t multi_samples() const { return samples_; }
-		bool resizeable() const { return is_resizeable_; }
-		FullScreenMode fullscreen_mode() const { return fullscreen_mode_; }
-		bool vsync() const { return use_vsync_; }
+		bool Use16bpp() const { return use_16bpp_; }
+		bool UseMultiSampling() const { return use_multi_sampling_; }
+		size_t MultiSamples() const { return samples_; }
+		bool Resizeable() const { return is_resizeable_; }
+		FullScreenMode FullscreenMode() const { return fullscreen_mode_; }
+		bool Vsync() const { return use_vsync_; }
 
-		size_t width() const { return width_; }
-		size_t height() const { return height_; }
+		size_t Width() const { return width_; }
+		size_t Height() const { return height_; }
 
-		size_t logical_width() const { return logical_width_; }
-		size_t logical_height() const { return logical_height_; }
+		size_t LogicalWidth() const { return logical_width_; }
+		size_t LogicalHeight() const { return logical_height_; }
 
-		const std::string& title() const { return title_; }
+		const std::string& Title() const { return title_; }
 
-		void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
-		void set_clear_color(float r, float g, float b, float a=1.0f);
-		// color clear_color() const { return clear_color_; }
+		void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
+		void SetClearColor(float r, float g, float b, float a=1.0f);
+		void SetClearColor(const Color& color);
+		
+		Color ClearColor() const { return clear_color_; }
 
 		TexturePtr CreateTexture(const variant& node);
 		TexturePtr CreateTexture(const std::string& filename, 
@@ -112,7 +116,7 @@ namespace Graphics
 
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
 
-		static WindowManagerPtr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
+		static WindowManagerPtr Factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 
 		static DisplayDevicePtr GetDisplayDevice();
 	protected:
@@ -120,14 +124,14 @@ namespace Graphics
 		size_t height_;
 		size_t logical_width_;
 		size_t logical_height_;
-		// XXX repolace the following with a proper color interface.
-		float clear_color_[4];
+		Color clear_color_;
 
 		DisplayDevicePtr display_;
-
-		virtual void change_fullscreen_mode() = 0;
-		virtual void handle_set_clear_color() = 0;
 	private:
+		virtual void ChangeFullscreenMode() = 0;
+		virtual void HandleSetClearColor() = 0;
+		virtual bool HandleLogicalWindowSizeChange() = 0;
+
 		bool use_16bpp_;
 		bool use_multi_sampling_;
 		size_t samples_;

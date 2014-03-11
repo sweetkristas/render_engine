@@ -27,9 +27,11 @@
 #include <memory>
 #include <string>
 
+#include "Color.hpp"
 #include "DisplayDeviceFwd.hpp"
 #include "Material.hpp"
 #include "Renderable.hpp"
+#include "RenderTarget.hpp"
 #include "variant.hpp"
 
 namespace Graphics
@@ -88,18 +90,19 @@ namespace Graphics
 		DisplayDevice();
 		virtual ~DisplayDevice();
 
-		virtual DisplayDeviceId id() const = 0;
+		virtual DisplayDeviceId ID() const = 0;
 
-		virtual void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-		virtual void set_clear_color(float r, float g, float b, float a) = 0;
+		virtual void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+		virtual void SetClearColor(float r, float g, float b, float a) = 0;
+		virtual void SetClearColor(const Color& color) = 0;
 
-		virtual void clear(uint32_t clr) = 0;
-		virtual void swap() = 0;
+		virtual void Clear(uint32_t clr) = 0;
+		virtual void Swap() = 0;
 
-		virtual void init(size_t width, size_t height) = 0;
+		virtual void Init(size_t width, size_t height) = 0;
 		virtual void PrintDeviceInfo() = 0;
 
-		virtual void render(const Render::RenderablePtr& r) = 0;
+		virtual void Render(const Render::RenderablePtr& r) = 0;
 
 		virtual TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) = 0;
 		virtual TexturePtr CreateTexture(const SurfacePtr& surface, 
@@ -112,9 +115,17 @@ namespace Graphics
 
 		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
 
+		virtual RenderTargetPtr CreateRenderTarget(size_t width, size_t height, 
+			size_t color_plane_count=1, 
+			bool depth=false, 
+			bool stencil=false, 
+			bool use_multi_sampling=false, 
+			size_t multi_samples=0) = 0;
+		virtual RenderTargetPtr CreateRenderTarget(const variant& node) = 0;
+
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
-		static DisplayDevicePtr factory(const std::string& type);
+		static DisplayDevicePtr Factory(const std::string& type);
 
 		static void RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()>);
 	private:

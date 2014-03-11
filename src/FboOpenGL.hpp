@@ -21,8 +21,28 @@
 	   distribution.
 */
 
-#include "Fbo.hpp"
+#pragma once
+
+#include "RenderTarget.hpp"
+#include "variant.hpp"
 
 namespace Graphics
 {
+	class FboOpenGL : public RenderTarget
+	{
+	public:
+		explicit FboOpenGL(size_t width, size_t height, 
+			size_t color_plane_count=1, 
+			bool depth=false, 
+			bool stencil=false, 
+			bool use_multi_sampling=false, 
+			size_t multi_samples=0);
+		explicit FboOpenGL(const variant& node);
+		virtual ~FboOpenGL();
+		virtual void Render() override;
+	private:
+		virtual void Init() override;
+		virtual void SetAsRenderTarget() override;
+		bool uses_ext_;
+	};
 }

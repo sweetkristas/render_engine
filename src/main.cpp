@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
 
 	SDL::SDL_ptr manager(new SDL::SDL());
 
-	Graphics::WindowManagerPtr main_wnd = Graphics::WindowManager::factory("SDL", "opengl");
-	main_wnd->enable_vsync(false);
-	main_wnd->create_window(800,600);
+	Graphics::WindowManagerPtr main_wnd = Graphics::WindowManager::Factory("SDL", "opengl");
+	main_wnd->EnableVsync(false);
+	main_wnd->CreateWindow(800,600);
 
 	Scene::SceneGraphPtr scene = Scene::SceneGraph::Create("main", main_wnd);
 	Scene::SceneNodePtr root = scene->RootNode();
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 			smoothed_time.pop_front();
 		}
 
-		main_wnd->swap();
+		main_wnd->Swap();
 	}
 	return 0;
 }

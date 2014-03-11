@@ -58,12 +58,12 @@ namespace Graphics
 	{
 	}
 
-	void DisplayDevice::set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void DisplayDevice::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
-		set_clear_color(r/255.0f, g/255.0f, b/255.0f, a/255.0f);
+		SetClearColor(r/255.0f, g/255.0f, b/255.0f, a/255.0f);
 	}
 
-	DisplayDevicePtr DisplayDevice::factory(const std::string& type)
+	DisplayDevicePtr DisplayDevice::Factory(const std::string& type)
 	{
 		ASSERT_LOG(!get_display_registry().empty(), "No display device drivers registered.");
 		auto it = get_display_registry().find(type);

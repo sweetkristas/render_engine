@@ -26,6 +26,7 @@
 #include "asserts.hpp"
 #include "CameraObject.hpp"
 #include "DisplayDeviceOpenGL.hpp"
+#include "FboOpenGL.hpp"
 #include "LightObject.hpp"
 #include "MaterialOpenGL.hpp"
 #include "RenderVariable.hpp"
@@ -129,7 +130,7 @@ namespace Graphics
 	{
 	}
 
-	void DisplayDeviceOpenGL::init(size_t width, size_t height)
+	void DisplayDeviceOpenGL::Init(size_t width, size_t height)
 	{
 		GLenum err = glewInit();
 		ASSERT_LOG(err == GLEW_OK, "Could not initialise GLEW: " << glewGetErrorString(err));
@@ -158,19 +159,24 @@ namespace Graphics
 		}
 	}
 
-	void DisplayDeviceOpenGL::clear(uint32_t clr)
+	void DisplayDeviceOpenGL::Clear(uint32_t clr)
 	{
 		glClear(clr & DISPLAY_CLEAR_COLOR ? GL_COLOR_BUFFER_BIT : 0 
 			| clr & DISPLAY_CLEAR_DEPTH ? GL_DEPTH_BUFFER_BIT : 0 
 			| clr & DISPLAY_CLEAR_STENCIL ? GL_STENCIL_BUFFER_BIT : 0);
 	}
 
-	void DisplayDeviceOpenGL::set_clear_color(float r, float g, float b, float a)
+	void DisplayDeviceOpenGL::SetClearColor(float r, float g, float b, float a)
 	{
 		glClearColor(r, g, b, a);
 	}
 
-	void DisplayDeviceOpenGL::swap()
+	void DisplayDeviceOpenGL::SetClearColor(const Color& color)
+	{
+		glClearColor(float(color.r()), float(color.g()), float(color.b()), float(color.a()));
+	}
+
+	void DisplayDeviceOpenGL::Swap()
 	{
 		// This is a no-action.
 	}
@@ -215,7 +221,7 @@ namespace Graphics
 		return DisplayDeviceDataPtr(dd);
 	}
 
-	void DisplayDeviceOpenGL::render(const Render::RenderablePtr& r)
+	void DisplayDeviceOpenGL::Render(const Render::RenderablePtr& r)
 	{
 		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->GetDisplayData());
 		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
@@ -320,6 +326,21 @@ namespace Graphics
 	MaterialPtr DisplayDeviceOpenGL::CreateMaterial(const variant& node)
 	{
 		return MaterialPtr(new OpenGLMaterial(node));
+	}
+
+	RenderTargetPtr DisplayDeviceOpenGL::CreateRenderTarget(size_t width, size_t height, 
+			size_t color_plane_count, 
+			bool depth, 
+			bool stencil, 
+			bool use_multi_sampling, 
+			size_t multi_samples)
+	{
+		return RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
+	}
+
+	RenderTargetPtr DisplayDeviceOpenGL::CreateRenderTarget(const variant& node)
+	{
+		return RenderTargetPtr(new FboOpenGL(node));
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.

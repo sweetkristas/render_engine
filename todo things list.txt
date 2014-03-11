@@ -17,6 +17,7 @@ List of things still needed to be done, not in any particular order.
 * For planar YUV textures in PIXELFORMAT_YV12, need to swap V/U planes when rendering.
 * Fix lighting. 
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
+* Add hardware buffers for storing render variables.
 
 Finished things
 
