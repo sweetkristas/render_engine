@@ -75,4 +75,19 @@ namespace Graphics
 	RenderTarget::~RenderTarget()
 	{
 	}
+
+	void RenderTarget::Create()
+	{
+		HandleCreate();
+	}
+	
+	void RenderTarget::Apply()
+	{
+		HandleApply();
+	}
+
+	void RenderTarget::Unappy()
+	{
+		HandleUnapply();
+	}
 }

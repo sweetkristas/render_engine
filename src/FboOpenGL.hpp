@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <vector>
 #include "RenderTarget.hpp"
 #include "variant.hpp"
 
@@ -41,8 +42,15 @@ namespace Graphics
 		virtual ~FboOpenGL();
 		virtual void Render() override;
 	private:
-		virtual void Init() override;
-		virtual void SetAsRenderTarget() override;
+		virtual void HandleCreate() override;
+		virtual void HandleApply() override;
+		virtual void HandleUnapply() override;
+		void GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format);
 		bool uses_ext_;
+		std::shared_ptr<GLuint> depth_stencil_buffer_id_;
+		std::shared_ptr<std::vector<GLuint>> color_buffer_id_;
+		std::shared_ptr<GLuint> framebuffer_id_;
+		std::shared_ptr<GLuint> sample_framebuffer_id_;
+		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
 	};
 }

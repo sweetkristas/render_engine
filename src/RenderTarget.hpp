@@ -28,6 +28,11 @@
 
 namespace Graphics
 {
+	//class ApplyRenderTarget
+	//{
+	//
+	//};
+
 	class RenderTarget
 	{
 	public:
@@ -41,6 +46,10 @@ namespace Graphics
 		virtual ~RenderTarget();
 		virtual void Render() = 0;
 
+		void Create();
+		void Apply();
+		void Unappy();
+
 		size_t Width() const { return width_; }
 		size_t Height() const { return height_; }
 		size_t ColorPlanes() const { return color_attachments_; }
@@ -49,8 +58,10 @@ namespace Graphics
 		bool UsesMultiSampling() const { return multi_sampling_; }
 		size_t MultiSamples() const { return multi_samples_; }
 	private:
-		virtual void Init() = 0;
+		virtual void HandleCreate() = 0;
 		virtual void SetAsRenderTarget() = 0;
+		virtual void HandleApply() = 0;
+		virtual void HandleUnapply() = 0;
 
 		size_t width_;
 		size_t height_;
