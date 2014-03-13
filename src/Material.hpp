@@ -81,6 +81,7 @@ namespace Graphics
 	{
 	public:
 		Material();
+		Material(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
 		virtual ~Material();
 
 		const std::vector<TexturePtr>& GetTexture() const { return tex_; }

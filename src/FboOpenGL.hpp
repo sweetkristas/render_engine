@@ -29,19 +29,27 @@
 
 namespace Graphics
 {
+	struct vertex_texcoord
+	{
+		vertex_texcoord(const glm::vec2& v, const glm::vec2& tc) : vertex(v), texcoord(tc) {}
+		glm::vec2 vertex;
+		glm::vec2 texcoord;
+	};
+
 	class FboOpenGL : public RenderTarget
 	{
 	public:
-		explicit FboOpenGL(size_t width, size_t height, 
-			size_t color_plane_count=1, 
+		explicit FboOpenGL(unsigned width, unsigned height, 
+			unsigned color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
-			size_t multi_samples=0);
+			unsigned multi_samples=0);
 		explicit FboOpenGL(const variant& node);
 		virtual ~FboOpenGL();
-		virtual void Render() override;
+		virtual void PreRender() override;
 	private:
+		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) override;
 		virtual void HandleCreate() override;
 		virtual void HandleApply() override;
 		virtual void HandleUnapply() override;
@@ -52,5 +60,11 @@ namespace Graphics
 		std::shared_ptr<GLuint> framebuffer_id_;
 		std::shared_ptr<GLuint> sample_framebuffer_id_;
 		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
+
+		std::shared_ptr<Render::AttributeRenderVariable<vertex_texcoord>> arv_;
+
+		unsigned tex_width_;
+		unsigned tex_height_;
+		std::string shader_hint_;
 	};
 }

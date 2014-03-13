@@ -126,25 +126,22 @@ namespace Scene
 
 	void SceneGraph::RenderSceneHelper(const Render::RenderManagerPtr& renderer, 
 		the::tree<SceneNodePtr>::pre_iterator& it, 
-		const CameraPtr& camera, 
-		const LightPtrList& lights)
+		SceneNodeParams* snp)
 	{
 		if(it == graph_.end()) {
 			return;
 		}
-		CameraPtr cam = camera;
-		LightPtrList l = lights;
-		(*it)->RenderNode(renderer, cam, l);
-		RenderSceneHelper(renderer, ++it, cam, l);
+		// XXX the logic isn't quite right here, snp needs to be cleared at some point.
+		(*it)->RenderNode(renderer, snp);
+		RenderSceneHelper(renderer, ++it, snp);
 	}
 
 	void SceneGraph::RenderScene(const Render::RenderManagerPtr& renderer)
 	{
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		LOG_DEBUG("RenderScene: " << (*it)->NodeName());
-		CameraPtr camera;
-		LightPtrList lights;
-		RenderSceneHelper(renderer, it, camera, lights);
+		SceneNodeParams snp;
+		RenderSceneHelper(renderer, it, &snp);
 	}
 
 	void SceneGraph::Process(double elapsed_time)

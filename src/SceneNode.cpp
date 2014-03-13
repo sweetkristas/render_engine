@@ -76,17 +76,22 @@ namespace Scene
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, CameraPtr& camera, LightPtrList& lights)
+	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, SceneNodeParams* rp)
 	{
 		if(camera_) {
-			camera = camera_;
+			rp->camera = camera_;
 		}
 		for(auto l : lights_) {
-			lights[l.first] = l.second;
+			rp->lights[l.first] = l.second;
 		}
+		if(render_target_) {
+			rp->render_target = render_target_;
+		}
+		
 		for(auto o : objects_) {
-			o->SetCamera(camera);
-			o->SetLights(lights);
+			o->SetCamera(rp->camera);
+			o->SetLights(rp->lights);
+			o->SetRenderTarget(rp->render_target);
 			renderer->AddRenderableToQueue(o->Queue(), o->Order(), o);
 		}
 	}

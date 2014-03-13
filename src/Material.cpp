@@ -31,6 +31,23 @@ namespace Graphics
 	{
 	}
 
+	Material::Material(const std::string& name, 
+		const std::vector<TexturePtr>& textures, 
+		const BlendMode& blend, 
+		bool fog, 
+		bool lighting, 
+		bool depth_write, 
+		bool depth_check)
+		: name_(name),
+		tex_(textures),
+		blend_(blend),
+		use_lighting_(lighting),
+		use_fog_(fog),
+		do_depth_write_(depth_write),
+		do_depth_check_(depth_check)
+	{
+	}
+
 	void Material::Init(const variant& node)
 	{
 		name_ = node["name"].as_string();

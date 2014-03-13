@@ -104,6 +104,11 @@ namespace Render
 		material_ = material;
 	}
 
+	void Renderable::SetRenderTarget(const Render::RenderTargetPtr& rt)
+	{
+		render_target_ = rt;
+	}
+
 	void Renderable::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)
 	{
 		display_data_ = dd->CreateDisplayDeviceData(def);

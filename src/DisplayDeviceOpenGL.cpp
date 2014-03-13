@@ -328,6 +328,17 @@ namespace Graphics
 		return MaterialPtr(new OpenGLMaterial(node));
 	}
 
+	MaterialPtr DisplayDeviceOpenGL::CreateMaterial(const std::string& name, 
+		const std::vector<TexturePtr>& textures, 
+		const BlendMode& blend, 
+		bool fog, 
+		bool lighting, 
+		bool depth_write, 
+		bool depth_check)
+	{
+		return MaterialPtr(new OpenGLMaterial(name, textures, blend, fog, lighting, depth_write, depth_check));
+	}
+
 	RenderTargetPtr DisplayDeviceOpenGL::CreateRenderTarget(size_t width, size_t height, 
 			size_t color_plane_count, 
 			bool depth, 

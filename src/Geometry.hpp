@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "asserts.hpp"
@@ -91,6 +92,11 @@ namespace Geometry
 			top_left_.y -= p.y;
 			bottom_right_.x -= p.x;
 			bottom_right_.y -= p.y;
+		}
+
+		template<typename F>
+		Rect<F> as_type() const {
+			return Rect<F>::from_coordinates(F(top_left_.x), F(top_left_.y), F(bottom_right_.x), F(bottom_right_.y));
 		}
 
 		SDL_Rect sdl_rect() const {

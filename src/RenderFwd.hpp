@@ -36,4 +36,7 @@ namespace Render
 
 	class RenderManager;
 	typedef std::shared_ptr<RenderManager> RenderManagerPtr;
+    
+    class RenderTarget;
+    typedef std::shared_ptr<RenderTarget> RenderTargetPtr;
 }

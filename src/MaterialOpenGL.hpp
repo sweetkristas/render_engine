@@ -32,6 +32,7 @@ namespace Graphics
 	{
 	public:
 		OpenGLMaterial(const variant& node);
+		OpenGLMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
 		virtual ~OpenGLMaterial();
 	private:
 		void HandleApply() override;

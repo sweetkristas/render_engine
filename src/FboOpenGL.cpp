@@ -23,28 +23,54 @@
 
 #include <GL/glew.h>
 
+#include <cstddef>
+
 #include "asserts.hpp"
+#include "DisplayDevice.hpp"
 #include "FboOpenGL.hpp"
+#include "WindowManager.hpp"
 
 namespace Graphics
 {
-	FboOpenGL::FboOpenGL(size_t width, size_t height, 
-		size_t color_plane_count, 
+	namespace
+	{
+		unsigned next_power_of_2(unsigned n)
+		{
+			--n;
+			n = n|(n >> 1);
+			n = n|(n >> 2);
+			n = n|(n >> 4);
+			n = n|(n >> 8);
+			n = n|(n >> 16);
+			++n;
+			return n;
+		}
+	}
+
+	FboOpenGL::FboOpenGL(unsigned width, unsigned height, 
+		unsigned color_plane_count, 
 		bool depth, 
 		bool stencil, 
 		bool use_multi_sampling, 
-		size_t multi_samples)
+		unsigned multi_samples)
 		: RenderTarget(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples),
 		uses_ext_(false),
-		depth_stencil_buffer_id_(0)
+		depth_stencil_buffer_id_(0),
+		tex_width_(0),
+		tex_height_(0)
 	{
 	}
 
 	FboOpenGL::FboOpenGL(const variant& node)
 		: RenderTarget(node),
 		uses_ext_(false),
-		depth_stencil_buffer_id_(0)
+		depth_stencil_buffer_id_(0),
+		tex_width_(0),
+		tex_height_(0)
 	{
+		if(node.has_key("shader_hint")) {
+			shader_hint_ = node["shader_hint"].as_string();
+		}
 	}
 
 	void FboOpenGL::HandleCreate()
@@ -53,11 +79,15 @@ namespace Graphics
 		GLenum ds_attachment;
 		GetDSInfo(ds_attachment, depth_stencil_internal_format);
 
+		tex_width_ = next_power_of_2(Width());
+		tex_height_ = next_power_of_2(Height());
+
 		// check for fbo support
 		if(GLEW_ARB_framebuffer_object) {
 			// XXX we need to add some hints about what size depth and stencil buffers to use.
 			if(UsesMultiSampling()) {
-				int render_buffer_count = 1;
+				ASSERT_LOG(false, "skipped creation of multi-sample render buffers with multiple color planes, for now, as it was hurting my head to think about.");
+				/*int render_buffer_count = 1;
 				if(DepthPlane() || StencilPlane()) {
 					render_buffer_count = 2;
 				}
@@ -115,10 +145,10 @@ namespace Graphics
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, final_texture_id_[0], 0);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, final_texture_id_[1], 0);
 				status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-				ASSERT_NE(status, GL_FRAMEBUFFER_UNSUPPORTED);
-				ASSERT_EQ(status, GL_FRAMEBUFFER_COMPLETE);
+				ASSERT_LOG(status != GL_FRAMEBUFFER_UNSUPPORTED, "Framebuffer not supported error.");
+				ASSERT_LOG(status == GL_FRAMEBUFFER_COMPLETE, "Framebuffer completion status not indicated: " << status);
 
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
 
 			} else {
 				if(DepthPlane() || StencilPlane()) {
@@ -129,28 +159,20 @@ namespace Graphics
 					});
 					glGenRenderbuffers(1, depth_stencil_buffer_id_.get());
 					glBindRenderbuffer(GL_RENDERBUFFER, *depth_stencil_buffer_id_);
-					glRenderbufferStorage(GL_RENDERBUFFER, depth_stencil_internal_format, Width(), Height());
+					glRenderbufferStorage(GL_RENDERBUFFER, depth_stencil_internal_format, tex_width_, tex_height_);
 					glBindRenderbuffer(GL_RENDERBUFFER, 0);
 				}
 
-				// Use CreateTexture.
-				size_t color_planes = ColorPlanes();
-				color_buffer_id_ = std::shared_ptr<std::vector<GLuint>>(new std::vector<GLuint>, [color_planes](std::vector<GLuint>* ids){
-					glDeleteTextures(color_planes, &(*ids)[0]); 
-					ids->clear();
-					delete ids;
-				});
-				color_buffer_id_->resize(color_planes);
-				glGenTextures(color_planes, &(*color_buffer_id_)[0]);
-				for(size_t n = 0; n != color_planes; ++n) {
-					glBindTexture(GL_TEXTURE_2D, (*color_buffer_id_)[n]);
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width(), Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-					glBindTexture(GL_TEXTURE_2D, 0);
+				// Use CreateMaterial.
+				auto dd = WindowManager::GetDisplayDevice();
+				std::vector<TexturePtr> textures;
+				unsigned color_planes = ColorPlanes();
+				textures.reserve(color_planes);
+				for(unsigned n = 0; n != color_planes; ++n) {
+					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, 0, PixelFormat::PIXELFORMAT_BGRA8888));
+					textures.back()->SetRect(0, 0, Width(), Height());
 				}
+				SetMaterial(dd->CreateMaterial("fbo_mat", textures));
 
 				framebuffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id) {
 					glDeleteFramebuffers(1, id); 
@@ -176,24 +198,61 @@ namespace Graphics
 			// XXX wip
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Create the render variables.
+		using namespace Render;
+		auto& arv_ = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
+		arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vertex));
+		arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, texcoord));
+		arv_->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
+		AddAttributeRenderVariable(arv_);
+
+		std::vector<vertex_texcoord> vts;
+		auto tex = Material()->GetTexture();
+		// this is of course only-true if all the textures have the same
+		// size -- which they do.
+		const float x1 = tex[0]->CoordinateRect().x();
+		const float y1 = tex[0]->CoordinateRect().y();
+		const float x2 = tex[0]->CoordinateRect().x2();
+		const float y2 = tex[0]->CoordinateRect().y2();
+		vts.emplace_back(glm::vec2(0.0f, 0.0f), glm::vec2(x1, y2));
+		vts.emplace_back(glm::vec2(0.0f, Height()), glm::vec2(x1, y1));
+		vts.emplace_back(glm::vec2(Width(), 0.0f), glm::vec2(x2, y2));
+		vts.emplace_back(glm::vec2(Width(), Height()), glm::vec2(x2, y1));
+		arv_->Update(&vts);
+
+		auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
+		urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
+		AddUniformRenderVariable(urv);
+		urv->Update(glm::vec4(1.0f));
+		SetOrder(999999);
 	}
 
 	FboOpenGL::~FboOpenGL()
 	{
 	}
 
-	void FboOpenGL::Render()
+	Graphics::DisplayDeviceDef FboOpenGL::Attach(const Graphics::DisplayDevicePtr& dd)
+	{
+		Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+		if(!shader_hint_.empty()) {
+			def.SetHint("shader", shader_hint_);
+		}
+		return def;
+	}
+
+	void FboOpenGL::PreRender()
 	{
 		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
 		// XXX wip
 		if(sample_framebuffer_id_) {
 			// using multi-sampling
 			// blit from multisample FBO to final FBO
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_id_[1]);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id_[0]);
-			glBlitFramebuffer(0, 0, Width(), Height(), 0, 0, Width(), Height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_LINEAR);
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			//glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_id_[1]);
+			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id_[0]);
+			//glBlitFramebuffer(0, 0, Width(), Height(), 0, 0, Width(), Height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+			//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
 	}
 
@@ -201,11 +260,14 @@ namespace Graphics
 	{
 		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
+
+		glViewport(0, 0, Width(), Height());
 	}
 
 	void FboOpenGL::HandleUnapply()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// XXX reset viewport size
 	}
 
 	void FboOpenGL::GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format)

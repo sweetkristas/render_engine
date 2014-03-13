@@ -57,6 +57,17 @@ namespace Graphics
 		Init(node);
 	}
 
+	OpenGLMaterial::OpenGLMaterial(const std::string& name, 
+		const std::vector<TexturePtr>& textures, 
+		const BlendMode& blend, 
+		bool fog, 
+		bool lighting, 
+		bool depth_write, 
+		bool depth_check)
+		: Material(name, textures, blend, fog, lighting, depth_write, depth_check)
+	{
+	}
+
 	OpenGLMaterial::~OpenGLMaterial()
 	{
 	}

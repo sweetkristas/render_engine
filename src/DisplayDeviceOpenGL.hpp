@@ -53,6 +53,7 @@ namespace Graphics
 		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) override;
 
 		MaterialPtr CreateMaterial(const variant& node) override;
+		MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;
 
 		RenderTargetPtr CreateRenderTarget(size_t width, size_t height, 
 			size_t color_plane_count=1, 

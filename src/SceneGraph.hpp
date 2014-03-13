@@ -43,7 +43,7 @@ namespace Scene
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
 		void RenderScene(const Render::RenderManagerPtr& renderer);
-		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, const CameraPtr& camera, const LightPtrList& lights);
+		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, SceneNodeParams* snp);
 	
 		Graphics::DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
 

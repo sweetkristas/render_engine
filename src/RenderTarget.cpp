@@ -26,19 +26,20 @@
 
 namespace Graphics
 {
-	RenderTarget::RenderTarget(size_t width, size_t height, 
-		size_t color_plane_count, 
+	RenderTarget::RenderTarget(unsigned width, unsigned height, 
+		unsigned color_plane_count, 
 		bool depth, 
 		bool stencil, 
 		bool use_multi_sampling, 
-		size_t multi_samples)
+		unsigned multi_samples)
 		: width_(width),
 		height_(height),
 		color_attachments_(color_plane_count),
 		depth_attachment_(depth),
 		stencil_attachment_(stencil),
 		multi_sampling_(use_multi_sampling),
-		multi_samples_(multi_samples)
+		multi_samples_(multi_samples), 
+		Scene::SceneObject("render_target")
 	{
 	}
 
@@ -49,7 +50,8 @@ namespace Graphics
 		depth_attachment_(false),
 		stencil_attachment_(false),
 		multi_sampling_(false),
-		multi_samples_(0)
+		multi_samples_(0), 
+		Scene::SceneObject("render_target")
 	{
 		ASSERT_LOG(node.has_key("width"), "Render target must have a 'width' attribute.");
 		ASSERT_LOG(node.has_key("height"), "Render target must have a 'height' attribute.");

@@ -31,7 +31,9 @@ namespace Graphics
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
-		surface_(surface)
+		surface_(surface),
+		tex_width_(surface->width()),
+		tex_height_(surface->height())
 	{
 		InternalInit();
 		if(node.has_key("type")) {
@@ -135,6 +137,14 @@ namespace Graphics
 			//border_color_ = Color(node["border_color"]);
 			ASSERT_LOG(false, "'border_color' attribute not processed, need to implement variant processor for Graphics::Color()");
 		}
+		if(node.has_key("rect")) {
+			ASSERT_LOG(node["rect"].is_list(), "'rect' attribute must be a list of numbers.");
+			ASSERT_LOG(node["rect"].num_elements() >= 4, "'rect' attribute must have at least 4 elements.");
+			coords_ = rectf::FromCoordinates(node["rect"][0].as_float(), 
+				node["rect"][1].as_float(), 
+				node["rect"][2].as_float(), 
+				node["rect"][3].as_float());
+		}
 	}
 
 	Texture::Texture(const SurfacePtr& surface, TextureType type, int mipmap_levels)
@@ -142,16 +152,23 @@ namespace Graphics
 		mipmaps_(mipmap_levels), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
-		surface_(surface)
+		surface_(surface),
+		tex_width_(surface->width()),
+		tex_height_(surface->height())
 	{
 		InternalInit();
 	}
 
-	Texture::Texture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
+	Texture::Texture(unsigned width, 
+		unsigned height, 
+		PixelFormat::PixelFormatConstant fmt, 
+		Texture::TextureType type)
 		: type_(type), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
-		lod_bias_(0.0f)
+		lod_bias_(0.0f),
+		tex_width_(width),
+		tex_height_(height)
 	{
 		InternalInit();
 	}
@@ -199,5 +216,26 @@ namespace Graphics
 			filtering_[n] = f[n];
 		}
 		Init();
+	}
+
+	void Texture::SetRect(int x, int y, unsigned width, unsigned height)
+	{
+		coords_ = rectf(x/tex_width_, y/tex_height_, width/tex_width_, height/tex_height_);
+	}
+
+	void Texture::SetRect(const rect& r)
+	{
+		coords_ = rectf::FromCoordinates(r.x()/tex_width_,
+			r.y()/tex_height_,
+			r.x2()/tex_width_,
+			r.y2()/tex_height_);
+	}
+
+	void Texture::SetRect(const rectf& r)
+	{
+		coords_ = rectf::FromCoordinates(r.x()/tex_width_,
+			r.y()/tex_height_,
+			r.x2()/tex_width_,
+			r.y2()/tex_height_);
 	}
 }

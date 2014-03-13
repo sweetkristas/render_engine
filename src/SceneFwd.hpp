@@ -27,6 +27,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "RenderFwd.hpp"
+
 #include "glm/glm.hpp"
 
 namespace Scene
@@ -44,4 +46,11 @@ namespace Scene
 	typedef std::shared_ptr<SceneNode> SceneNodePtr;
 	class SceneGraph;
 	typedef std::shared_ptr<SceneGraph> SceneGraphPtr;
+
+	struct SceneNodeParams
+	{
+		CameraPtr camera;
+		LightPtrList lights;
+		Render::RenderTargetPtr render_target;
+	};
 }

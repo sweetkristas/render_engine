@@ -66,6 +66,9 @@ namespace Render
 		const Graphics::MaterialPtr& Material() const { return material_; }
 		void SetMaterial(const Graphics::MaterialPtr& material);
 
+		const Render::RenderTargetPtr& GetRenderTarget() const { return render_target_; }
+		void SetRenderTarget(const Render::RenderTargetPtr& rt);
+
 		void SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def);
 		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 
@@ -83,6 +86,7 @@ namespace Render
 		Scene::CameraPtr camera_;
 		Scene::LightPtrList lights_;
 		Graphics::MaterialPtr material_;
+		Render::RenderTargetPtr render_target_;
 
 		RenderVariableList attribute_render_vars_;
 		RenderVariableList uniform_render_vars_;

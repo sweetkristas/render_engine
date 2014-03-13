@@ -33,11 +33,12 @@ namespace Scene
 	public:
 		SceneObject(const std::string& name);
 		virtual ~SceneObject();
-		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) = 0;
 		size_t Queue() const { return queue_; }
 		void SetQueue(size_t q) { queue_ = q; }
 		const std::string& ObjectName() const { return name_; }
+		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) = 0;
 	private:
+
 		size_t queue_;
 		std::string name_;
 		SceneObject();

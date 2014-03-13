@@ -25,6 +25,7 @@
 
 #include <memory>
 #include "variant.hpp"
+#include "SceneObject.hpp"
 
 namespace Graphics
 {
@@ -33,43 +34,41 @@ namespace Graphics
 	//
 	//};
 
-	class RenderTarget
+	class RenderTarget : public Scene::SceneObject
 	{
 	public:
-		explicit RenderTarget(size_t width, size_t height, 
-			size_t color_plane_count=1, 
+		explicit RenderTarget(unsigned width, unsigned height, 
+			unsigned color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
-			size_t multi_samples=0);
+			unsigned multi_samples=0);
 		explicit RenderTarget(const variant& node);
 		virtual ~RenderTarget();
-		virtual void Render() = 0;
 
 		void Create();
 		void Apply();
 		void Unappy();
 
-		size_t Width() const { return width_; }
-		size_t Height() const { return height_; }
-		size_t ColorPlanes() const { return color_attachments_; }
+		unsigned Width() const { return width_; }
+		unsigned Height() const { return height_; }
+		unsigned ColorPlanes() const { return color_attachments_; }
 		bool DepthPlane() const { return depth_attachment_; }
 		bool StencilPlane() const { return stencil_attachment_; }
 		bool UsesMultiSampling() const { return multi_sampling_; }
-		size_t MultiSamples() const { return multi_samples_; }
+		unsigned MultiSamples() const { return multi_samples_; }
 	private:
 		virtual void HandleCreate() = 0;
-		virtual void SetAsRenderTarget() = 0;
 		virtual void HandleApply() = 0;
 		virtual void HandleUnapply() = 0;
 
-		size_t width_;
-		size_t height_;
-		size_t color_attachments_;
+		unsigned width_;
+		unsigned height_;
+		unsigned color_attachments_;
 		bool depth_attachment_;
 		bool stencil_attachment_;
 		bool multi_sampling_;
-		size_t multi_samples_;
+		unsigned multi_samples_;
 
 		RenderTarget();
 		RenderTarget(const RenderTarget&);

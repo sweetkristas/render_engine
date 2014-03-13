@@ -26,6 +26,7 @@
 #include <memory>
 #include <string>
 #include "Color.hpp"
+#include "Geometry.hpp"
 #include "Surface.hpp"
 #include "variant.hpp"
 
@@ -80,6 +81,12 @@ namespace Graphics
 		const Color& GetBorderColor() const { return border_color_; }
 		float GetLodBias() const { return lod_bias_; }
 
+		void SetRect(int x, int y, unsigned width, unsigned height);
+		void SetRect(const rect& r);
+		void SetRect(const rectf& r);
+
+		const rectf& CoordinateRect() const { return coords_; }
+
 		void InternalInit();
 
 		virtual void Init() = 0;
@@ -100,6 +107,9 @@ namespace Graphics
 		float lod_bias_;
 		Texture();
 		SurfacePtr surface_;
+		float tex_width_;
+		float tex_height_;
+		rectf coords_;
 	};
 
 	typedef std::shared_ptr<Texture> TexturePtr;
