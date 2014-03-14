@@ -14,6 +14,7 @@
 #include "Renderable.hpp"
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
+#include "RenderTarget.hpp"
 #include "RenderVariable.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
@@ -125,13 +126,17 @@ int main(int argc, char *argv[])
 	cairo_canvas->AddPath(text);
 	cairo_canvas->Fill();
 
-	/// XXXX Need to be able to set a render target, either a texture or an fbo object.
 	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
 	root->AttachNode(psystem);
 	psystem->SetNodeName("psc_node");
 	auto particle_cam = std::make_shared<Scene::Camera>("particle_cam", main_wnd);
 	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 	psystem->AttachCamera(particle_cam);
+	auto rt = Graphics::WindowManager::GetDisplayDevice()->RenderTargetInstance(400, 300);
+	rt->SetDisplayRect(0, 0, 400, 300);
+	rt->Create();
+	psystem->AttachRenderTarget(rt);
+	root->AttachObject(rt);
 
 	SDL_Event e;
 	bool done = false;

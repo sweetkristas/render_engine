@@ -27,7 +27,7 @@
 #include "variant.hpp"
 #include "SceneObject.hpp"
 
-namespace Graphics
+namespace Render
 {
 	//class ApplyRenderTarget
 	//{
@@ -48,10 +48,14 @@ namespace Graphics
 
 		void Create();
 		void Apply();
-		void Unappy();
+		void Unapply();
 
 		unsigned Width() const { return width_; }
 		unsigned Height() const { return height_; }
+		void SetDisplayRect(int x, int y, unsigned width, unsigned height);
+		void SetDisplayRect(const rect& r);
+		void SetDisplayRect(const rectf& r);
+		const rectf& DisplayRect() const { return display_rect_; }
 		unsigned ColorPlanes() const { return color_attachments_; }
 		bool DepthPlane() const { return depth_attachment_; }
 		bool StencilPlane() const { return stencil_attachment_; }
@@ -69,6 +73,8 @@ namespace Graphics
 		bool stencil_attachment_;
 		bool multi_sampling_;
 		unsigned multi_samples_;
+
+		rectf display_rect_;
 
 		RenderTarget();
 		RenderTarget(const RenderTarget&);

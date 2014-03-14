@@ -49,7 +49,8 @@ namespace Graphics
 		unsigned Height() const { return height_; }
 		unsigned Depth() const { return depth_; }
 
-		virtual void Init() override;
+		void Init() override;
+		unsigned ID() override;
 
 		void Update(int x, unsigned width, void* pixels) override;
 		void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) override;

@@ -169,7 +169,7 @@ namespace Graphics
 				unsigned color_planes = ColorPlanes();
 				textures.reserve(color_planes);
 				for(unsigned n = 0; n != color_planes; ++n) {
-					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, 0, PixelFormat::PIXELFORMAT_BGRA8888));
+					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, PixelFormat::PIXELFORMAT_BGRA8888));
 					textures.back()->SetRect(0, 0, Width(), Height());
 				}
 				SetMaterial(dd->CreateMaterial("fbo_mat", textures));
@@ -181,8 +181,10 @@ namespace Graphics
 				glGenFramebuffers(1, framebuffer_id_.get());
 				glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
 				// attach the texture to FBO color attachment point
-				for(size_t n = 0; n != color_planes; ++n) {
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+n, GL_TEXTURE_2D, (*color_buffer_id_)[0], 0);
+				unsigned n = 0;
+				for(auto t : textures) {
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+n, GL_TEXTURE_2D, t->ID(), 0);
+					++n;
 				}
 				if(depth_stencil_buffer_id_) {
 					glFramebufferRenderbuffer(GL_FRAMEBUFFER, ds_attachment, GL_RENDERBUFFER, *depth_stencil_buffer_id_);
@@ -215,10 +217,14 @@ namespace Graphics
 		const float y1 = tex[0]->CoordinateRect().y();
 		const float x2 = tex[0]->CoordinateRect().x2();
 		const float y2 = tex[0]->CoordinateRect().y2();
-		vts.emplace_back(glm::vec2(0.0f, 0.0f), glm::vec2(x1, y2));
-		vts.emplace_back(glm::vec2(0.0f, Height()), glm::vec2(x1, y1));
-		vts.emplace_back(glm::vec2(Width(), 0.0f), glm::vec2(x2, y2));
-		vts.emplace_back(glm::vec2(Width(), Height()), glm::vec2(x2, y1));
+		const float vx1 = DisplayRect().x();
+		const float vy1 = DisplayRect().y();
+		const float vx2 = DisplayRect().x2();
+		const float vy2 = DisplayRect().y2();
+		vts.emplace_back(glm::vec2(vx1, vy1), glm::vec2(x1, y2));
+		vts.emplace_back(glm::vec2(vx1, vy2), glm::vec2(x1, y1));
+		vts.emplace_back(glm::vec2(vx2, vy1), glm::vec2(x2, y2));
+		vts.emplace_back(glm::vec2(vx2, vy2), glm::vec2(x2, y1));
 		arv_->Update(&vts);
 
 		auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
@@ -261,13 +267,14 @@ namespace Graphics
 		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
 
+		glGetIntegerv(GL_VIEWPORT, viewport_);
 		glViewport(0, 0, Width(), Height());
 	}
 
 	void FboOpenGL::HandleUnapply()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		// XXX reset viewport size
+		glViewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
 	}
 
 	void FboOpenGL::GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format)

@@ -76,6 +76,14 @@ namespace Scene
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
+	void SceneNode::AttachRenderTarget(const Render::RenderTargetPtr& obj)
+	{
+		render_target_ = obj;
+		auto dd = scene_graph_->DisplayDevice();
+		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
+		obj->SetDisplayData(dd, obj->Attach(dd));		
+	}
+
 	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, SceneNodeParams* rp)
 	{
 		if(camera_) {

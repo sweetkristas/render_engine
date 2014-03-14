@@ -24,7 +24,7 @@
 #include "asserts.hpp"
 #include "RenderTarget.hpp"
 
-namespace Graphics
+namespace Render
 {
 	RenderTarget::RenderTarget(unsigned width, unsigned height, 
 		unsigned color_plane_count, 
@@ -78,6 +78,21 @@ namespace Graphics
 	{
 	}
 
+	void RenderTarget::SetDisplayRect(int x, int y, unsigned width, unsigned height)
+	{
+		display_rect_ = rectf(float(x), float(y), float(width), float(height));
+	}
+
+	void RenderTarget::SetDisplayRect(const rect& r)
+	{
+		display_rect_ = r.as_type<float>();
+	}
+
+	void RenderTarget::SetDisplayRect(const rectf& r)
+	{
+		display_rect_ = r;
+	}
+
 	void RenderTarget::Create()
 	{
 		HandleCreate();
@@ -88,7 +103,7 @@ namespace Graphics
 		HandleApply();
 	}
 
-	void RenderTarget::Unappy()
+	void RenderTarget::Unapply()
 	{
 		HandleUnapply();
 	}

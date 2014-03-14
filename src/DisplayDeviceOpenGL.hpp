@@ -55,13 +55,13 @@ namespace Graphics
 		MaterialPtr CreateMaterial(const variant& node) override;
 		MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;
 
-		RenderTargetPtr CreateRenderTarget(size_t width, size_t height, 
+		Render::RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
 			size_t multi_samples=0) override;
-		RenderTargetPtr CreateRenderTarget(const variant& node) override;
+		Render::RenderTargetPtr RenderTargetInstance(const variant& node) override;
 
 		void Init(size_t width, size_t height) override;
 		void PrintDeviceInfo() override;

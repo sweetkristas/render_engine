@@ -435,4 +435,10 @@ namespace Graphics
 		}
 		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
 	}
+
+	unsigned OpenGLTexture::ID()
+	{
+		return texture_id_[0];
+	}
+
 }

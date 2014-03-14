@@ -36,7 +36,7 @@ namespace Graphics
 		glm::vec2 texcoord;
 	};
 
-	class FboOpenGL : public RenderTarget
+	class FboOpenGL : public Render::RenderTarget
 	{
 	public:
 		explicit FboOpenGL(unsigned width, unsigned height, 
@@ -56,7 +56,6 @@ namespace Graphics
 		void GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format);
 		bool uses_ext_;
 		std::shared_ptr<GLuint> depth_stencil_buffer_id_;
-		std::shared_ptr<std::vector<GLuint>> color_buffer_id_;
 		std::shared_ptr<GLuint> framebuffer_id_;
 		std::shared_ptr<GLuint> sample_framebuffer_id_;
 		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
@@ -66,5 +65,6 @@ namespace Graphics
 		unsigned tex_width_;
 		unsigned tex_height_;
 		std::string shader_hint_;
+		GLint viewport_[4];
 	};
 }

@@ -11,7 +11,6 @@ List of things still needed to be done, not in any particular order.
 * Auto-convert surfaces to 16bpp if use_16bpp() is enabled in window manager (textures should just magically work now :) )
 * Add a way to specify a custom conversion function when converting a surface to a different format. -- may need to be templated?
 * set_window_icon/set_window_size/auto_window_size/change_fullscreen_mode need still to be implemented.
-* Need to add an fbo class and a way of changing the window render target to the fbo.
 * Finish implementing packed YUV texture support.
 * Finish implementing cubic texture support.
 * For planar YUV textures in PIXELFORMAT_YV12, need to swap V/U planes when rendering.
@@ -24,3 +23,4 @@ Finished things
 * -Add material over the top of textures.-
 * -Implement the an Abstract factory design for all the DisplayDevice and WindowManager backends.-
 * -Re-think the way render variables work.-
+* -Need to add an fbo class and a way of changing the window render target to the fbo.-

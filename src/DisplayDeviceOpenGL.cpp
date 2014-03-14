@@ -248,6 +248,10 @@ namespace Graphics
 			}
 		}
 
+		if(r->GetRenderTarget()) {
+			r->GetRenderTarget()->Apply();
+		}
+
 		pmat *= r->ModelMatrix();
 		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
 
@@ -296,6 +300,9 @@ namespace Graphics
 		if(r->Material()) {
 			r->Material()->Unapply();
 		}
+		if(r->GetRenderTarget()) {
+			r->GetRenderTarget()->Unapply();
+		}
 	}
 
 	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, const variant& node)
@@ -339,19 +346,19 @@ namespace Graphics
 		return MaterialPtr(new OpenGLMaterial(name, textures, blend, fog, lighting, depth_write, depth_check));
 	}
 
-	RenderTargetPtr DisplayDeviceOpenGL::CreateRenderTarget(size_t width, size_t height, 
+	Render::RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count, 
 			bool depth, 
 			bool stencil, 
 			bool use_multi_sampling, 
 			size_t multi_samples)
 	{
-		return RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
+		return Render::RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
 	}
 
-	RenderTargetPtr DisplayDeviceOpenGL::CreateRenderTarget(const variant& node)
+	Render::RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(const variant& node)
 	{
-		return RenderTargetPtr(new FboOpenGL(node));
+		return Render::RenderTargetPtr(new FboOpenGL(node));
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.
