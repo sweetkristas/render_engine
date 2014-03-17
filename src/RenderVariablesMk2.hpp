@@ -31,30 +31,59 @@ namespace RenderMk2
     class RenderVariable;
     typedef std::shared_ptr<RenderVariable> RenderVariablePtr;
 
-	template<class T>
-	struct RenderVariableRegistrar
-	{
+    class RenderVariable
+    {
+    public:
         enum class Type {
             UNIFORM,
             ATTRIBUTE,
             INDEX,            
         };
-		RenderVariableRegistrar(const Type& type, bool hardware)
+        RenderVariable();
+        virtual ~RenderVariable();
+        static RenderVariablePtr Factory(RenderVariableRegistrar::Type type, bool hardware_backed);
+        static RegisterFactoryFunction(RenderVariableRegistrar::Type, bool hardware, std:function<RenderVariablePtr()> fn);
+    private:
+        RenderVariable(const RenderVariable&);
+    };
+        
+    class AttributeRenderVariable : public RenderVariable
+    {
+    public:
+		AttributeRenderVariable(size_t count = 0,
+			bool dynamic = true, 
+			bool shareable = true, 
+			bool geometry_related = true) 
+			: RenderVariable(count, dynamic, shareable, geometry_related) {}
+		virtual ~AttributeRenderVariable() {}
+
+		void AddVariableDescription(AttributeRenderVariableDesc::VertexType vertex_type, 
+			unsigned num_elements, 
+			AttributeRenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset) {
+			AddVariableDesc(RenderVariableDescPtr(new AttributeRenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset)));
+		}
+		void AddVariableDescription(const std::string& vertex_type, 
+			unsigned num_elements, 
+			AttributeRenderVariableDesc::VariableType var_type, 
+			bool normalised, 
+			unsigned stride, 
+			unsigned offset) {
+			AddVariableDesc(RenderVariableDescPtr(new AttributeRenderVariableDesc(vertex_type, num_elements, var_type, normalised, stride, offset)));
+		}
+        virtual ~AttributeRenderVariable();
+    private:
+    };
+    
+	template<class T>
+	struct RenderVariableRegistrar
+	{
+		RenderVariableRegistrar(const RenderVariable::Type type, bool hardware)
 		{
 			// register the class factory function 
 			DisplayDevice::RegisterFactoryFunction(type, hardware, []() -> RenderVariablePtr { return RenderVariablePtr(new T());});
 		}
 	};
-    
-    class RenderVariable
-    {
-        public:
-            RenderVariable();
-            virtual ~RenderVariable();
-            static RenderVariablePtr Factory(RenderVariableRegistrar::Type type, bool hardware_backed);
-            static RegisterFactoryFunction(RenderVariableRegistrar::Type, bool hardware, std:function<RenderVariablePtr()> fn);
-        private:
-            RenderVariable(const RenderVariable&);
-    };
-    
 }
