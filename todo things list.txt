@@ -17,6 +17,7 @@ List of things still needed to be done, not in any particular order.
 * Fix lighting. 
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
 * Add hardware buffers for storing render variables.
+* Add instancing support see: http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
 
 Finished things
 

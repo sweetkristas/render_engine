@@ -54,6 +54,11 @@ namespace Render
 
 		glm::mat4 ModelMatrix() const;
 
+		void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
+		void SetColor(const Graphics::Color& color);
+		const Graphics::Color& GetColor() const { return color_; }
+		bool IsColorSet() const { return color_set_; }
+
 		size_t Order() const { return order_; }
 		void SetOrder(size_t o) { order_ = o; }
 
@@ -87,6 +92,8 @@ namespace Render
 		Scene::LightPtrList lights_;
 		Graphics::MaterialPtr material_;
 		Render::RenderTargetPtr render_target_;
+		Graphics::Color color_;
+		bool color_set_;
 
 		RenderVariableList attribute_render_vars_;
 		RenderVariableList uniform_render_vars_;

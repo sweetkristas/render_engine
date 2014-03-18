@@ -454,6 +454,8 @@ namespace Graphics
 
 		void technique::Init()
 		{
+			// XXX We need to render to a billboard style renderer ala 
+			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
 			using namespace Render;
 			arv_ = std::make_shared<AttributeRenderVariable<vertex_texture_color>>();
 			arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 3, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,vertex));

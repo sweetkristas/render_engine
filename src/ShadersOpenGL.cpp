@@ -21,6 +21,9 @@
 	   distribution.
 */
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "asserts.hpp"
 #include "ShadersOpenGL.hpp"
 
@@ -616,24 +619,38 @@ namespace Shader
 
 	void ShaderProgram::SetActives()
 	{
+		glUseProgram(object_);
 		// Cache some frequently used uniforms.
 		if(GetUniform("mvp_matrix") != -1) {
 			u_mvp_ = GetUniformIterator("mvp_matrix");
+		} else {
+			u_mvp_ = uniforms_.end();
 		}
 		if(GetUniform("color") != -1) {
 			u_color_ = GetUniformIterator("color");
+			SetUniformValue(u_color_, glm::value_ptr(glm::vec4(1.0f)));
+		} else {
+			u_color_ = uniforms_.end();
 		}
 		if(GetUniform("tex_map") != -1) {
 			u_tex_ = GetUniformIterator("tex_map");
+		} else {
+			u_tex_ = uniforms_.end();
 		}
 		if(GetAttribute("position") != -1) {
 			a_vertex_ = GetAttributeIterator("position");
+		} else {
+			a_vertex_ = attribs_.end();
 		}
 		if(GetAttribute("texcoord") != -1) {
 			a_texcoord_ = GetAttributeIterator("texcoord");
+		} else {
+			a_texcoord_ = attribs_.end();
 		}
 		if(GetAttribute("a_color") != -1) {
 			a_color_ = GetAttributeIterator("a_color");
+		} else {
+			a_color_ = attribs_.end();
 		}
 	}
 

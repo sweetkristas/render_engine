@@ -33,7 +33,8 @@ namespace Render
 		: order_(0),
 		position_(0.0f),
 		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
-		scale_(1.0f)
+		scale_(1.0f),
+		color_set_(false)
 	{
 	}
 
@@ -41,7 +42,8 @@ namespace Render
 		: order_(order), 
 		position_(0.0f),
 		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
-		scale_(1.0f)
+		scale_(1.0f),
+		color_set_(false)
 	{
 	}
 
@@ -107,6 +109,18 @@ namespace Render
 	void Renderable::SetRenderTarget(const Render::RenderTargetPtr& rt)
 	{
 		render_target_ = rt;
+	}
+
+	void Renderable::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	{
+		color_set_ = true;
+		color_ = Graphics::Color(r, g, b, a);
+	}
+
+	void Renderable::SetColor(const Graphics::Color& color)
+	{
+		color_set_ = true;
+		color_ = color;
 	}
 
 	void Renderable::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)

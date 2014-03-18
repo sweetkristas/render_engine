@@ -252,8 +252,14 @@ namespace Graphics
 			r->GetRenderTarget()->Apply();
 		}
 
-		pmat *= r->ModelMatrix();
-		shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
+		if(shader->GetMvpUniform() != shader->UniformsIteratorEnd()) {
+			pmat *= r->ModelMatrix();
+			shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
+		}
+
+		if(shader->GetColorUniform() != shader->UniformsIteratorEnd() && r->IsColorSet()) {
+			shader->SetUniformValue(shader->GetColorUniform(), r->GetColor().AsFloatVector());
+		}
 
 		// Loop through uniform render variables and set them.
 		for(auto& urv : r->UniformRenderVariables()) {

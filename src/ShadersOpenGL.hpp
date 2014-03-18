@@ -108,6 +108,9 @@ namespace Shader
 		ConstActivesMapIterator GetColorAttribute() const { return a_color_; }
 		ConstActivesMapIterator GetVertexAttribute() const { return a_vertex_; }
 		ConstActivesMapIterator GetTexcoordAttribute() const { return a_texcoord_; }
+		
+		ConstActivesMapIterator UniformsIteratorEnd() const { return uniforms_.end(); }
+		ConstActivesMapIterator AttributesIteratorEnd() const { return attribs_.end(); }
 
 	protected:
 		bool Link();

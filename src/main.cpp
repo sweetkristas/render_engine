@@ -42,9 +42,7 @@ namespace
 			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
 			AddAttributeRenderVariable(arv);
 
-			auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
-			urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
-			AddUniformRenderVariable(urv);
+			//SetColor(255,255,255);
 
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
@@ -52,8 +50,6 @@ namespace
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
 			arv->Update(&vertices);
-
-			urv->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 
 			SetOrder(0);
 		}
