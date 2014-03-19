@@ -57,6 +57,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\treetree\tree.hpp" />
     <ClInclude Include="..\src\asserts.hpp" />
+    <ClInclude Include="..\src\AttributeSet.hpp" />
     <ClInclude Include="..\src\CameraObject.hpp" />
     <ClInclude Include="..\src\Color.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />

@@ -4,6 +4,7 @@
 
 #include <glm/gtc/type_precision.hpp>
 
+#include "AttributeSet.hpp"
 #include "json.hpp"
 #include "logger.hpp"
 #include "profile_timer.hpp"
@@ -36,21 +37,56 @@ namespace
 	public:
 		SquareRenderable() : Scene::SceneObject("square") {
 			using namespace Render;
-			auto& arv = std::make_shared<AttributeRenderVariable<vertex_color>>();
+			/*auto& arv = std::make_shared<AttributeRenderVariable<vertex_color>>();
 			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex));
 			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color));
 			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
 			AddAttributeRenderVariable(arv);
-
-			//SetColor(255,255,255);
 
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			arv->Update(&vertices);
+			arv->Update(&vertices);*/
 
+			// first parameter is a hint to wether the buffer should be hardware backed.
+			// second parameter is whether we are using indexed drawing.
+			// third parameter is wether this is instanced.
+			auto ab = DisplayDevice::CreateAttributeSet(false, true, false);
+			// If these were instanced then there is an extra parameter on the end, which defaults to 1.
+			// A 0 indictes that there is no advancement per instance
+			auto pos = ab->AddAttributeDescription(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, 0, 0);
+			auto col = ab->AddAttributeDescription(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, 0, 0);
+			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLES);
+			AddAttributeSet(ab);
+
+			std::vector<glm::vec2> vertices;
+			vertices.emplace_back(0.0f, 0.0f);
+			vertices.emplace_back(0.0f, 1.0f);
+			vertices.emplace_back(1.0f, 0.0f);
+			vertices.emplace_back(1.0f, 1.0f);
+			pos->Update(vertices);
+
+			std::vector<glm::u8vec4> colors;
+			colors.emplace_back(255,0,0,255);
+			colors.emplace_back(0,255,0,255);
+			colors.emplace_back(0,0,255,255);
+			colors.emplace_back(255,0,0,255);
+			col->Update(colors);			
+
+			glm::u8vec4 x;
+
+			std::vector<uint8_t> indices;
+			indices.emplace_back(0);
+			indices.emplace_back(1);
+			indices.emplace_back(2);
+			indices.emplace_back(2);
+			indices.emplace_back(1);
+			indices.emplace_back(3);
+			ab->UpdateIndicies(indices);
+
+			//SetColor(255,255,255);
 			SetOrder(0);
 		}
 		virtual ~SquareRenderable() {}
