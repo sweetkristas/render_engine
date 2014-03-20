@@ -26,7 +26,7 @@
 #include "Material.hpp"
 #include "WindowManagerFwd.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class OpenGLMaterial : public Material
 	{

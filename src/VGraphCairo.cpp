@@ -29,7 +29,7 @@
 #include "VGraphCairo.hpp"
 #include "WindowManager.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Vector
 	{

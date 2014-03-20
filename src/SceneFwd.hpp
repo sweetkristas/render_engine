@@ -31,7 +31,7 @@
 
 #include "glm/glm.hpp"
 
-namespace Scene
+namespace KRE
 {
 	class Light;
 	typedef std::shared_ptr<Light> LightPtr;
@@ -51,6 +51,6 @@ namespace Scene
 	{
 		CameraPtr camera;
 		LightPtrList lights;
-		Render::RenderTargetPtr render_target;
+		RenderTargetPtr render_target;
 	};
 }

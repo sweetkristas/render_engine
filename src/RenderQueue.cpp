@@ -25,7 +25,7 @@
 #include "RenderQueue.hpp"
 #include "WindowManager.hpp"
 
-namespace Render
+namespace KRE
 {
 	RenderQueue::RenderQueue(const std::string& name) 
 		: name_(name)
@@ -55,7 +55,7 @@ namespace Render
 		}
 	}
 
-	void RenderQueue::Render(const Graphics::WindowManagerPtr& wm) const 
+	void RenderQueue::Render(const WindowManagerPtr& wm) const 
 	{
 		for(auto r : renderables_) {
 			wm->Render(r.second);

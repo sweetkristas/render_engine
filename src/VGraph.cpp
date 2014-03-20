@@ -27,7 +27,7 @@
 #include "VGraphOpenGL.hpp"
 #include "VGraphOpenGLFixed.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Vector
 	{

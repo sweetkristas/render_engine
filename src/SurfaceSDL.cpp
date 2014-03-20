@@ -26,7 +26,7 @@
 #include "asserts.hpp"
 #include "SurfaceSDL.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{

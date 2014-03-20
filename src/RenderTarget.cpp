@@ -24,7 +24,7 @@
 #include "asserts.hpp"
 #include "RenderTarget.hpp"
 
-namespace Render
+namespace KRE
 {
 	RenderTarget::RenderTarget(unsigned width, unsigned height, 
 		unsigned color_plane_count, 
@@ -39,7 +39,7 @@ namespace Render
 		stencil_attachment_(stencil),
 		multi_sampling_(use_multi_sampling),
 		multi_samples_(multi_samples), 
-		Scene::SceneObject("render_target")
+		SceneObject("render_target")
 	{
 	}
 
@@ -51,7 +51,7 @@ namespace Render
 		stencil_attachment_(false),
 		multi_sampling_(false),
 		multi_samples_(0), 
-		Scene::SceneObject("render_target")
+		SceneObject("render_target")
 	{
 		ASSERT_LOG(node.has_key("width"), "Render target must have a 'width' attribute.");
 		ASSERT_LOG(node.has_key("height"), "Render target must have a 'height' attribute.");

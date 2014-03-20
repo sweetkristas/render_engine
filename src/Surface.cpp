@@ -23,7 +23,7 @@
 
 #include "Surface.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{

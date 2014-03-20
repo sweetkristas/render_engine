@@ -25,7 +25,7 @@
 #include "Surface.hpp"
 #include "WindowManager.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	Material::Material()
 	{

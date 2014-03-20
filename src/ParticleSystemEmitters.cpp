@@ -27,7 +27,7 @@
 #include "ParticleSystemEmitters.hpp"
 #include "ParticleSystemParameters.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	/*namespace 
 	{

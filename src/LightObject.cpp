@@ -24,7 +24,7 @@
 #include "DisplayDevice.hpp"
 #include "LightObject.hpp"
 
-namespace Scene
+namespace KRE
 {
 	namespace
 	{
@@ -59,9 +59,9 @@ namespace Scene
 	{
 	}
 
-	Graphics::DisplayDeviceDef Light::Attach(const Graphics::DisplayDevicePtr& dd)
+	DisplayDeviceDef Light::Attach(const DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+		DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 		// XXX
 		return def;
 	}

@@ -27,7 +27,7 @@
 #include "DisplayDevice.hpp"
 #include "Renderable.hpp"
 
-namespace Render
+namespace KRE
 {
 	Renderable::Renderable()
 		: order_(0),
@@ -91,22 +91,22 @@ namespace Render
 		return glm::translate(glm::mat4(1.0f), position_) * glm::toMat4(rotation_) * glm::scale(glm::mat4(1.0f), scale_);
 	}
 
-	void Renderable::SetCamera(const Scene::CameraPtr& camera)
+	void Renderable::SetCamera(const CameraPtr& camera)
 	{
 		camera_ = camera;
 	}
 
-	void Renderable::SetLights(const Scene::LightPtrList& lights)
+	void Renderable::SetLights(const LightPtrList& lights)
 	{
 		lights_ = lights;
 	}
 
-	void Renderable::SetMaterial(const Graphics::MaterialPtr& material)
+	void Renderable::SetMaterial(const MaterialPtr& material)
 	{
 		material_ = material;
 	}
 
-	void Renderable::SetRenderTarget(const Render::RenderTargetPtr& rt)
+	void Renderable::SetRenderTarget(const RenderTargetPtr& rt)
 	{
 		render_target_ = rt;
 	}
@@ -114,16 +114,16 @@ namespace Render
 	void Renderable::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
 		color_set_ = true;
-		color_ = Graphics::Color(r, g, b, a);
+		color_ = Color(r, g, b, a);
 	}
 
-	void Renderable::SetColor(const Graphics::Color& color)
+	void Renderable::SetColor(const Color& color)
 	{
 		color_set_ = true;
 		color_ = color;
 	}
 
-	void Renderable::SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def)
+	void Renderable::SetDisplayData(const DisplayDevicePtr& dd, const DisplayDeviceDef& def)
 	{
 		display_data_ = dd->CreateDisplayDeviceData(def);
 	}

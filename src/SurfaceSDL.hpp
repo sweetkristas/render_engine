@@ -26,7 +26,7 @@
 #include "Surface.hpp"
 #include "SDL.h"
 
-namespace Graphics
+namespace KRE
 {
 	class SDLPixelFormat : public PixelFormat
 	{

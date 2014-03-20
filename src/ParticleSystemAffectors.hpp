@@ -25,7 +25,7 @@
 
 #include "ParticleSystemFwd.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Particles
 	{

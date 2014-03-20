@@ -26,7 +26,7 @@
 #include "Texture.hpp"
 #include "variant.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class OpenGLMaterial;
 

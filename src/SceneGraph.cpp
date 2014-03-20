@@ -29,7 +29,7 @@
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"
 
-namespace Scene
+namespace KRE
 {
 	namespace 
 	{
@@ -81,7 +81,7 @@ namespace Scene
 		ASSERT_LOG(false, "parent node not found when attaching a child node");
 	}
 
-	SceneGraphPtr SceneGraph::Create(const std::string& name, const Graphics::WindowManagerPtr& wnd) 
+	SceneGraphPtr SceneGraph::Create(const std::string& name, const WindowManagerPtr& wnd) 
 	{
 		// Create graph then insert a root node into the tree.
 		auto sg = std::make_shared<SceneGraph>(name);
@@ -124,7 +124,7 @@ namespace Scene
 		get_object_factory()[type] = fn;
 	}
 
-	void SceneGraph::RenderSceneHelper(const Render::RenderManagerPtr& renderer, 
+	void SceneGraph::RenderSceneHelper(const RenderManagerPtr& renderer, 
 		the::tree<SceneNodePtr>::pre_iterator& it, 
 		SceneNodeParams* snp)
 	{
@@ -136,7 +136,7 @@ namespace Scene
 		RenderSceneHelper(renderer, ++it, snp);
 	}
 
-	void SceneGraph::RenderScene(const Render::RenderManagerPtr& renderer)
+	void SceneGraph::RenderScene(const RenderManagerPtr& renderer)
 	{
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
 		LOG_DEBUG("RenderScene: " << (*it)->NodeName());

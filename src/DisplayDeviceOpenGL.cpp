@@ -24,6 +24,7 @@
 #include <GL/glew.h>
 
 #include "asserts.hpp"
+#include "AttributeSetOpenGL.hpp"
 #include "CameraObject.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 #include "FboOpenGL.hpp"
@@ -32,7 +33,7 @@
 #include "RenderVariable.hpp"
 #include "TextureOpenGL.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{
@@ -78,7 +79,7 @@ namespace Graphics
 
 	namespace 
 	{
-		GLenum ConvertRenderVariableType(Render::AttributeRenderVariableDesc::VariableType type)
+		GLenum ConvertRenderVariableType(AttributeRenderVariableDesc::VariableType type)
 		{
 			static std::vector<GLenum> res;
 			if(res.empty()) {
@@ -101,9 +102,9 @@ namespace Graphics
 			return res[type];
 		}
 
-		GLenum ConvertDrawingMode(Render::RenderVariable::DrawMode dm)
+		GLenum ConvertDrawingMode(RenderVariable::DrawMode dm)
 		{
-			// relies on all the values in Render::Renderable::DrawMode being contiguous
+			// relies on all the values in Renderable::DrawMode being contiguous
 			static std::vector<GLenum> res;
 			if(res.empty()) {
 				res.emplace_back(GL_POINTS);
@@ -202,7 +203,7 @@ namespace Graphics
 		// Process uniform render variables here
 		for(auto& rv : def.GetUniformRenderVars()) {
 			for(auto& rvd : rv->VariableDescritionList()) {
-				auto& urvd = std::dynamic_pointer_cast<Render::UniformRenderVariableDesc>(rvd);
+				auto& urvd = std::dynamic_pointer_cast<UniformRenderVariableDesc>(rvd);
 				ASSERT_LOG(urvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to UniformRenderVariableDesc.");
 					auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetUniformIterator(urvd->GetUniformTypeAsString()));
 					rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
@@ -212,7 +213,7 @@ namespace Graphics
 		// Process attribute render variables here
 		for(auto& rv : def.GetAttributeRenderVars()) {
 			for(auto& rvd : rv->VariableDescritionList()) {
-				auto& arvd = std::dynamic_pointer_cast<Render::AttributeRenderVariableDesc>(rvd);
+				auto& arvd = std::dynamic_pointer_cast<AttributeRenderVariableDesc>(rvd);
 				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
 				auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(arvd->GetVertexTypeAsString()));
 				rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
@@ -221,7 +222,7 @@ namespace Graphics
 		return DisplayDeviceDataPtr(dd);
 	}
 
-	void DisplayDeviceOpenGL::Render(const Render::RenderablePtr& r)
+	void DisplayDeviceOpenGL::Render(const RenderablePtr& r)
 	{
 		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->GetDisplayData());
 		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
@@ -279,7 +280,7 @@ namespace Graphics
 			for(auto& rvd : arv->VariableDescritionList()) {
 				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
 				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
-				auto& arvd = std::dynamic_pointer_cast<Render::AttributeRenderVariableDesc>(rvd);
+				auto& arvd = std::dynamic_pointer_cast<AttributeRenderVariableDesc>(rvd);
 				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
 
 				glEnableVertexAttribArray(rvdd->GetActiveMapIterator()->second.location);
@@ -352,19 +353,24 @@ namespace Graphics
 		return MaterialPtr(new OpenGLMaterial(name, textures, blend, fog, lighting, depth_write, depth_check));
 	}
 
-	Render::RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(size_t width, size_t height, 
+	RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count, 
 			bool depth, 
 			bool stencil, 
 			bool use_multi_sampling, 
 			size_t multi_samples)
 	{
-		return Render::RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
+		return RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
 	}
 
-	Render::RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(const variant& node)
+	RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(const variant& node)
 	{
-		return Render::RenderTargetPtr(new FboOpenGL(node));
+		return RenderTargetPtr(new FboOpenGL(node));
+	}
+
+	AttributeSetPtr DisplayDeviceOpenGL::HandleCreateAttributeSet(bool indexed, bool instanced)
+	{
+		return AttributeSetPtr(new AttributeSetOGL(indexed, instanced));
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.

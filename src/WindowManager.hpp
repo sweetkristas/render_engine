@@ -31,7 +31,7 @@
 #include "Renderable.hpp"
 #include "WindowManagerFwd.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class WindowManager
 	{
@@ -53,7 +53,7 @@ namespace Graphics
 		virtual void SetWindowTitle(const std::string& title) = 0;
 		virtual void SetWindowIcon(const std::string& name) = 0;
 
-		virtual void Render(const Render::RenderablePtr& r) = 0;
+		virtual void Render(const RenderablePtr& r) = 0;
 
 		virtual SurfacePtr CreateSurface(size_t width, 
 			size_t height, 

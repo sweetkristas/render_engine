@@ -25,7 +25,7 @@
 
 #include <cstdint>
 
-namespace Graphics
+namespace KRE
 {
 	class Color
 	{

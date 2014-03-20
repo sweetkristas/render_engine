@@ -25,7 +25,7 @@
 
 #include "Frustum.hpp"
 
-namespace Scene
+namespace KRE
 {
 	namespace
 	{

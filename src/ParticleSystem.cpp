@@ -32,7 +32,7 @@
 #include "spline.hpp"
 #include "WindowManager.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Particles
 	{
@@ -42,7 +42,7 @@ namespace Graphics
 
 		namespace 
 		{
-			Scene::SceneNodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
+			SceneNodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
 
 			std::default_random_engine& get_rng_engine() 
 			{
@@ -144,9 +144,9 @@ namespace Graphics
 			return q * v;
 		}
 
-		particle_system::particle_system(Scene::SceneGraph* sg, ParticleSystemContainer* parent, const variant& node)
+		particle_system::particle_system(SceneGraph* sg, ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), 
-			Scene::SceneNode(sg),
+			SceneNode(sg),
 			elapsed_time_(0.0f), 
 			scale_velocity_(1.0f), 
 			scale_time_(1.0f),
@@ -210,7 +210,7 @@ namespace Graphics
 
 		particle_system::particle_system(const particle_system& ps)
 			: emit_object(ps),
-			Scene::SceneNode(const_cast<particle_system&>(ps).ParentGraph()),
+			SceneNode(const_cast<particle_system&>(ps).ParentGraph()),
 			elapsed_time_(0),
 			scale_velocity_(ps.scale_velocity_),
 			scale_time_(ps.scale_time_),
@@ -256,7 +256,7 @@ namespace Graphics
 		}
 
 		technique::technique(ParticleSystemContainer* parent, const variant& node)
-			: Scene::SceneObject("technique"),
+			: SceneObject("technique"),
 			emit_object(parent, node), 
 			default_particle_width_(node["default_particle_width"].as_float(1.0f)),
 			default_particle_height_(node["default_particle_height"].as_float(1.0f)),
@@ -338,7 +338,7 @@ namespace Graphics
 		}
 
 		technique::technique(const technique& tq) 
-			: Scene::SceneObject(tq.ObjectName()),
+			: SceneObject(tq.ObjectName()),
 			emit_object(tq),
 			default_particle_width_(tq.default_particle_width_),
 			default_particle_height_(tq.default_particle_height_),
@@ -456,7 +456,7 @@ namespace Graphics
 		{
 			// XXX We need to render to a billboard style renderer ala 
 			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
-			using namespace Render;
+			using namespace KRE;
 			arv_ = std::make_shared<AttributeRenderVariable<vertex_texture_color>>();
 			arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 3, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,vertex));
 			arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,texcoord));
@@ -495,8 +495,8 @@ namespace Graphics
 			arv_->Update(&vtc);
 		}
 
-		ParticleSystemContainer::ParticleSystemContainer(Scene::SceneGraph* sg, const variant& node) 
-			: Scene::SceneNode(sg)
+		ParticleSystemContainer::ParticleSystemContainer(SceneGraph* sg, const variant& node) 
+			: SceneNode(sg)
 		{
 			if(node.has_key("systems")) {
 				if(node["systems"].is_list()) {

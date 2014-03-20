@@ -27,7 +27,7 @@
 #include "RenderTarget.hpp"
 #include "variant.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	struct vertex_texcoord
 	{
@@ -36,7 +36,7 @@ namespace Graphics
 		glm::vec2 texcoord;
 	};
 
-	class FboOpenGL : public Render::RenderTarget
+	class FboOpenGL : public RenderTarget
 	{
 	public:
 		explicit FboOpenGL(unsigned width, unsigned height, 
@@ -49,7 +49,7 @@ namespace Graphics
 		virtual ~FboOpenGL();
 		virtual void PreRender() override;
 	private:
-		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) override;
+		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
 		virtual void HandleCreate() override;
 		virtual void HandleApply() override;
 		virtual void HandleUnapply() override;
@@ -60,7 +60,7 @@ namespace Graphics
 		std::shared_ptr<GLuint> sample_framebuffer_id_;
 		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
 
-		std::shared_ptr<Render::AttributeRenderVariable<vertex_texcoord>> arv_;
+		std::shared_ptr<AttributeRenderVariable<vertex_texcoord>> arv_;
 
 		unsigned tex_width_;
 		unsigned tex_height_;

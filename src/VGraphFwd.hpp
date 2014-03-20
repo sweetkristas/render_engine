@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace Graphics
+namespace KRE
 {
 	namespace Vector
 	{

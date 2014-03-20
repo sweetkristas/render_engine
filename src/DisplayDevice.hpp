@@ -27,6 +27,7 @@
 #include <memory>
 #include <string>
 
+#include "AttributeSet.hpp"
 #include "Color.hpp"
 #include "DisplayDeviceFwd.hpp"
 #include "Material.hpp"
@@ -34,26 +35,26 @@
 #include "RenderTarget.hpp"
 #include "variant.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	typedef std::vector<std::string> HintList;
 	typedef std::map<std::string,HintList> HintMap;
 	class DisplayDeviceDef
 	{
 	public:
-		DisplayDeviceDef(const Render::RenderVariableList& arv, const Render::RenderVariableList& urv);
+		DisplayDeviceDef(const RenderVariableList& arv, const RenderVariableList& urv);
 		~DisplayDeviceDef();
 
-		const Render::RenderVariableList& GetAttributeRenderVars() const { return attrib_render_vars_; }
-		const Render::RenderVariableList& GetUniformRenderVars() const { return uniform_render_vars_; }
+		const RenderVariableList& GetAttributeRenderVars() const { return attrib_render_vars_; }
+		const RenderVariableList& GetUniformRenderVars() const { return uniform_render_vars_; }
 
 		void SetHint(const std::string& hint_name, const std::string& hint);
 		void SetHint(const std::string& hint_name, const HintList& hint);
 		HintMap GetHints() const { return hints_; }
 	private:
 		HintMap hints_;
-		const Render::RenderVariableList& attrib_render_vars_;
-		const Render::RenderVariableList& uniform_render_vars_;
+		const RenderVariableList& attrib_render_vars_;
+		const RenderVariableList& uniform_render_vars_;
 	};
 
 	class DisplayDeviceData
@@ -102,7 +103,7 @@ namespace Graphics
 		virtual void Init(size_t width, size_t height) = 0;
 		virtual void PrintDeviceInfo() = 0;
 
-		virtual void Render(const Render::RenderablePtr& r) = 0;
+		virtual void Render(const RenderablePtr& r) = 0;
 
 		virtual TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) = 0;
 		virtual TexturePtr CreateTexture(const SurfacePtr& surface, 
@@ -116,21 +117,26 @@ namespace Graphics
 		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
 		virtual MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
 
-		virtual Render::RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
+		virtual RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
 			size_t multi_samples=0) = 0;
-		virtual Render::RenderTargetPtr RenderTargetInstance(const variant& node) = 0;
+		virtual RenderTargetPtr RenderTargetInstance(const variant& node) = 0;
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
+		static AttributeSetPtr CreateAttributeSet(bool hardware_hint=false, bool indexed=false, bool instanced=false);
+
 		static DisplayDevicePtr Factory(const std::string& type);
+
+		static DisplayDevicePtr GetCurrent();
 
 		static void RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()>);
 	private:
 		DisplayDevice(const DisplayDevice&);
+		virtual AttributeSetPtr HandleCreateAttributeSet(bool indexed, bool instanced) = 0;
 	};
 
 	template<class T>

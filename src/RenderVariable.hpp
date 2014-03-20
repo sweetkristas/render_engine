@@ -32,7 +32,7 @@
 
 #include "DisplayDeviceFwd.hpp"
 
-namespace Render
+namespace KRE
 {
 	class RenderVariable;
 	typedef std::shared_ptr<RenderVariable> RenderVariablePtr;
@@ -43,12 +43,12 @@ namespace Render
 	public:
 		virtual ~RenderVariableDesc() {}
 
-		void SetDisplayData(const Graphics::DisplayDeviceDataPtr& dd) {
+		void SetDisplayData(const DisplayDeviceDataPtr& dd) {
 			display_data_ = dd;
 		}
-		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+		const DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 	private:
-		Graphics::DisplayDeviceDataPtr display_data_;
+		DisplayDeviceDataPtr display_data_;
 	};
 
 	typedef std::shared_ptr<RenderVariableDesc> RenderVariableDescPtr;

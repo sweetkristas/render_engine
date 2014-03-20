@@ -32,7 +32,7 @@
 #include "SDL_image.h"
 #include "WindowManager.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace 
 	{
@@ -235,7 +235,7 @@ namespace Graphics
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 
-		virtual void Render(const Render::RenderablePtr& r) override {
+		virtual void Render(const RenderablePtr& r) override {
 			ASSERT_LOG(display_ != NULL, "No display to render to.");
 			display_->Render(r);
 		}

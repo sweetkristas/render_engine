@@ -29,7 +29,7 @@
 #include "asserts.hpp"
 #include "HardwareBuffer.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	template<class T>
 	class OpenGLHardwareBuffer : public HardwareBuffer<T>

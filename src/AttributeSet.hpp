@@ -27,9 +27,11 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <vector>
+#include "asserts.hpp"
 #include "Util.hpp"
 
-namespace Render
+namespace KRE
 {
 	class AttributeDesc
 	{
@@ -57,71 +59,109 @@ namespace Render
 			UNSIGNED_INT_2_10_10_10_REV,
 			UNSIGNED_INT_10F_11F_11F_REV,
 		};
-		explicit AttributeDesc(Type type, VariableType var_type);
+		explicit AttributeDesc(Type type, 
+			unsigned num_elements,
+			VariableType var_type,
+			bool normalise,
+			ptrdiff_t stride=0,
+			ptrdiff_t offset=0,
+			size_t divisor=1);
+		explicit AttributeDesc(const std::string& type_name, 
+			unsigned num_elements,
+			VariableType var_type,
+			bool normalise,
+			ptrdiff_t stride=0,
+			ptrdiff_t offset=0,
+			size_t divisor=1);
+		Type AttrType() const { return type_; }
+		const std::string& AttrName() const { return type_name_; }
+		VariableType VarType() const { return var_type_; }
+		unsigned NumElements() const { return num_elements_; }
+		bool Normalise() const { return normalise_; }
+		ptrdiff_t Stride() const { return stride_; }
+		ptrdiff_t Offset() const { return offset_; }
+		size_t Divisor() const { return divisor_; }
 	private:
 		Type type_;
+		std::string type_name_;
 		VariableType var_type_;
-	};
-
-	template<typename T>
-	class Attribute
-	{
-	public:
-		explicit Attribute(AttributeDesc::Type type, 
-			AttributeDesc::VariableType var_type, 
-			unsigned num_elements, 
-			bool normalise, 
-			ptrdiff_t stride, 
-			ptrdiff_t offset, 
-			size_t divisor)
-			: desc_(type, var_type),
-			num_elements_(num_elements),
-			normalise_(normalise),
-			stride_(stride),
-			offset(offset_),
-			divisor_(divisor) {}
-		virtual ~Attribute() {}
-		
-		virtual void Update(std::vector<T>* value) = 0;
-		virtual void Update(std::vector<T>&& value)  = 0;
-		void SetOffset(ptrdiff_t offs);
-	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(Attribute);
-		AttributeDesc desc_;
 		unsigned num_elements_;
 		bool normalise_;
 		ptrdiff_t stride_;
 		ptrdiff_t offset_;
 		size_t divisor_;
 	};
-	template<typename T>
-	typedef std::shared_ptr<Attribute<T>> AttributePtr<T>;
 
-	template<typename T>
-	class AttributeImpl
+	// This is ugly since the Update() method requires a void*
+	// I've tried several things to try and make this nice,
+	// but not found anything that really fits nicely.
+	class Attribute
 	{
 	public:
-		explicit AttributeImpl(AttributeDesc::Type type, 
-			AttributeDesc::VariableType var_type, 
-			unsigned num_elements, 
-			bool normalise, 
-			ptrdiff_t stride, 
-			ptrdiff_t offset, 
-			size_t divisor)
-			: Attribute<T>(type, var_type, num_elements, normalise, stride, offset, divisor) {}
-		virtual ~AttributeImpl() {}
-
-		virtual void Update(std::vector<T>* value) override {
-			value_.swap(*value);
+		enum class AccessFreqHint {
+			//! Data store modified once and used in-frequently
+			STREAM,
+			//! Data store modified once and used many times
+			STATIC,
+			//! Data store modified repeatedly and used many times.
+			DYNAMIC,
+		};
+		enum class AccessTypeHint {
+			//! Modified by application, used by display device for drawing.
+			DRAW,
+			//! Modified by display device, returned to application.
+			READ,
+			//! Data is modified by display device and used by display device for copying.
+			COPY,
+		};
+		Attribute(AccessFreqHint freq, AccessTypeHint type) 
+			: access_freq_(freq),
+			access_type_(type) {
 		}
-		virtual void Update(std::vector<T>&& value) override {
-			value_ = value;
+		virtual ~Attribute() {}
+		
+		void AddAttributeDescription(const AttributeDesc& attrdesc) {
+			desc_.emplace_back(attrdesc);
 		}
+		const std::vector<AttributeDesc>& GetAttrDesc() const { return desc_; }
+		virtual void Update(const void* value, ptrdiff_t offset, size_t size) {
+			ASSERT_LOG(offset + size < Size(), 
+				"When buffering data offset+size exceeds data store size: " 
+				<< offset+size 
+				<< " > " 
+				<< Size());
+			memcpy(&mem_[offset], value, size);
+		}
+		virtual const void* Value() const { return &mem_[0]; }
+		virtual size_t Size() const { return mem_.size(); }
+		void SetOffset(ptrdiff_t offs) {
+			offs_ = offs;
+		}
+		ptrdiff_t GetOffset() const { return offs_; } 
+		virtual void Bind() {}
+		virtual void Unbind() {}
+		AccessFreqHint AccessFrequency() const { return access_freq_; }
+		AccessTypeHint AccessType() const { return access_type_; }
 	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeImpl);
-		std::vector<T> value_;
+		DISALLOW_COPY_ASSIGN_AND_DEFAULT(Attribute);
+		AccessFreqHint access_freq_;
+		AccessTypeHint access_type_;
+		std::vector<AttributeDesc> desc_;
+		ptrdiff_t offs_;
+		std::vector<uint8_t> mem_;
 	};
+	typedef std::shared_ptr<Attribute> AttributePtr;
 
+	struct AttributeBinder
+	{
+		AttributeBinder(AttributePtr ap) : ap_(ap)  {
+			ap->Bind();
+		}
+		~AttributeBinder() {
+			ap_->Unbind();
+		}
+		AttributePtr ap_;
+	};
 
 	class AttributeSet
 	{
@@ -138,18 +178,54 @@ namespace Render
 			QUADS,
 			POLYGON,		
 		};
-	
-		explicit AttributeSet(bool hardware_hint=false, bool indexed=false, bool instanced=false);
+		enum class IndexType {
+			INDEX_NONE,
+			INDEX_UCHAR,
+			INDEX_USHORT,
+			INDEX_ULONG,
+		};
+		explicit AttributeSet(bool indexed, bool instanced);
 		virtual ~AttributeSet();
-		template<typename T>
-		AttributePtr<T> AddAttributeDescription<T>(AttributeDesc::Type type, AttributeDesc::VariableType var_type, unsigned num_elements, bool normalise, ptrdiff_t stride, ptrdiff_t offset, size_t divisor=1);
+
+		virtual AttributePtr CreateAttribute(Attribute::AccessFreqHint freq=Attribute::AccessFreqHint::DYNAMIC, 
+			Attribute::AccessTypeHint type=Attribute::AccessTypeHint::DRAW);
+		
 		void SetDrawMode(DrawMode dm);
 		DrawMode GetDrawMode() { return draw_mode_; }
-		virtual void UpdateIndicies(const std::vector<uint8_t>&) = 0;
-		virtual void UpdateIndicies(const std::vector<uint16_t>&) = 0;
-		virtual void UpdateIndicies(const std::vector<uint32_t>&) = 0;
+
+		bool IsIndexed() const { return indexed_draw_; }
+		bool IsInstanced() const { return instanced_draw_; }
+		IndexType GetIndexType() const { return index_type_; }
+		const void* GetIndexArray() const { 
+			switch(index_type_) {
+			case IndexType::INDEX_UCHAR:	return &index8_[0];
+			case IndexType::INDEX_USHORT:	return &index16_[0];
+			case IndexType::INDEX_ULONG:	return &index32_[0];
+			}
+			ASSERT_LOG(false, "Index type not set to valid value.");
+		};
+		void SetInstanceCount(size_t instance_count) { instance_count_ = instance_count; }
+		size_t GetInstanceCount() const { return instance_count_; }
+
+		void UpdateIndicies(const std::vector<uint8_t>& value);
+		void UpdateIndicies(const std::vector<uint16_t>& value);
+		void UpdateIndicies(const std::vector<uint32_t>& value);
+		void UpdateIndicies(std::vector<uint8_t>* value);
+		void UpdateIndicies(std::vector<uint16_t>* value);
+		void UpdateIndicies(std::vector<uint32_t>* value);
+	protected:
+		std::vector<AttributePtr>& GetAttributes() { return attributes_; }
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSet);
 		DrawMode draw_mode_;
+		bool indexed_draw_;
+		bool instanced_draw_;
+		IndexType index_type_;
+		size_t instance_count_;
+		std::vector<uint8_t> index8_;
+		std::vector<uint16_t> index16_;
+		std::vector<uint32_t> index32_;
+		std::vector<AttributePtr> attributes_;
 	};
+	typedef std::shared_ptr<AttributeSet> AttributeSetPtr;
 }

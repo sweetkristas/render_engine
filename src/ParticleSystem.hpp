@@ -35,7 +35,7 @@
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	struct vertex_texture_color
 	{
@@ -111,7 +111,7 @@ namespace Graphics
 			//emit_object(const emit_object&);
 		};
 
-		class technique  : public emit_object, public Scene::SceneObject
+		class technique  : public emit_object, public SceneObject
 		{
 		public:
 			explicit technique(ParticleSystemContainer* parent, const variant& node);
@@ -142,8 +142,8 @@ namespace Graphics
 		private:
 			void Init();
 
-			std::shared_ptr<Render::AttributeRenderVariable<vertex_texture_color>> arv_;
-			std::shared_ptr<Render::UniformRenderVariable<glm::vec4>> urv_;
+			std::shared_ptr<AttributeRenderVariable<vertex_texture_color>> arv_;
+			std::shared_ptr<UniformRenderVariable<glm::vec4>> urv_;
 
 			float default_particle_width_;
 			float default_particle_height_;
@@ -173,10 +173,10 @@ namespace Graphics
 			technique();
 		};
 
-		class particle_system : public emit_object, public Scene::SceneNode
+		class particle_system : public emit_object, public SceneNode
 		{
 		public:
-			explicit particle_system(Scene::SceneGraph* sg, ParticleSystemContainer* parent, const variant& node);
+			explicit particle_system(SceneGraph* sg, ParticleSystemContainer* parent, const variant& node);
 			particle_system(const particle_system& ps);
 			virtual ~particle_system();
 
@@ -209,10 +209,10 @@ namespace Graphics
 			particle_system();
 		};
 
-		class ParticleSystemContainer : public Scene::SceneNode
+		class ParticleSystemContainer : public SceneNode
 		{
 		public:
-			explicit ParticleSystemContainer(Scene::SceneGraph* sg, const variant& node);
+			explicit ParticleSystemContainer(SceneGraph* sg, const variant& node);
 			virtual ~ParticleSystemContainer();
 
 			void activate_particle_system(const std::string& name);

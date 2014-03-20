@@ -29,7 +29,7 @@
 #include "asserts.hpp"
 #include "RenderVariable.hpp"
 
-namespace Render
+namespace KRE
 {
 	void RenderVariable::AddVariableDesc(const RenderVariableDescPtr& desc)
 	{

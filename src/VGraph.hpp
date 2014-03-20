@@ -36,7 +36,7 @@
 #	define M_PI	3.14159265358979323846
 #endif
 
-namespace Graphics
+namespace KRE
 {
 	namespace Vector
 	{

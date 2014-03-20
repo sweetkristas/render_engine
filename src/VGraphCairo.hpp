@@ -28,7 +28,7 @@
 #include "Texture.hpp"
 #include "VGraph.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Vector
 	{

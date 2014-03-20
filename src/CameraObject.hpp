@@ -28,15 +28,15 @@
 #include "WindowManagerFwd.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Scene
+namespace KRE
 {
 	class Camera : public SceneObject
 	{
 	public:
 		enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGONAL };
-		Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd);
+		Camera(const std::string& name, const WindowManagerPtr& wnd);
 		explicit Camera(const std::string& name, int left, int right, int top, int bottom);
-		explicit Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip);
+		explicit Camera(const std::string& name, const WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip);
 		virtual ~Camera();
 
 		void SetMouseSpeed(float ms) { mouse_speed_ = ms; }
@@ -86,7 +86,7 @@ namespace Scene
 		void ComputeView();
 		void ComputeProjection();
 
-		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) override;
+		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
 	private:
 		// special case handling if LookAt function is called.
 		// Since we then are specifying the position/target/up

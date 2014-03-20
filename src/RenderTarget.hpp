@@ -27,14 +27,14 @@
 #include "variant.hpp"
 #include "SceneObject.hpp"
 
-namespace Render
+namespace KRE
 {
 	//class ApplyRenderTarget
 	//{
 	//
 	//};
 
-	class RenderTarget : public Scene::SceneObject
+	class RenderTarget : public SceneObject
 	{
 	public:
 		explicit RenderTarget(unsigned width, unsigned height, 

@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace Graphics
+namespace KRE
 {
 	class Surface;
 	typedef std::shared_ptr<Surface> SurfacePtr;

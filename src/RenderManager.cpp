@@ -26,7 +26,7 @@
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
 
-namespace Render
+namespace KRE
 {
 	RenderManager::RenderManager()
 	{
@@ -52,7 +52,7 @@ namespace Render
 		render_queues_.erase(it);
 	}
 
-	void RenderManager::Render(const Graphics::WindowManagerPtr& wm) const
+	void RenderManager::Render(const WindowManagerPtr& wm) const
 	{
 		for(auto& q : render_queues_) {
 			q.second->PreRender();

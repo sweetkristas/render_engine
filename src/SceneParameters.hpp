@@ -25,7 +25,7 @@
 
 #include "SceneFwd.hpp"
 
-namespace Scene
+namespace KRE
 {
 	// Multi-valued parameter.
 	class Parameter

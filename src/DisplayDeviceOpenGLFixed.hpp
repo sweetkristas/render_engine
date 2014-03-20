@@ -23,6 +23,6 @@
 
 #pragma once
 
-namespace Graphics
+namespace KRE
 {
 }

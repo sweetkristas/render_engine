@@ -29,7 +29,7 @@
 #include "Geometry.hpp"
 #include "WindowManagerFwd.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class PixelFormat
 	{

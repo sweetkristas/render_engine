@@ -25,12 +25,13 @@
 
 #include <glm/gtx/quaternion.hpp>
 
+#include"AttributeSet.hpp"
 #include "Material.hpp"
 #include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
 #include "SceneFwd.hpp"
 
-namespace Render
+namespace KRE
 {
 	class Renderable
 	{
@@ -55,32 +56,34 @@ namespace Render
 		glm::mat4 ModelMatrix() const;
 
 		void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
-		void SetColor(const Graphics::Color& color);
-		const Graphics::Color& GetColor() const { return color_; }
+		void SetColor(const Color& color);
+		const Color& GetColor() const { return color_; }
 		bool IsColorSet() const { return color_set_; }
 
 		size_t Order() const { return order_; }
 		void SetOrder(size_t o) { order_ = o; }
 
-		const Scene::CameraPtr& Camera() const { return camera_; }
-		void SetCamera(const Scene::CameraPtr& camera);
+		const CameraPtr& Camera() const { return camera_; }
+		void SetCamera(const CameraPtr& camera);
 
-		const Scene::LightPtrList& Lights() const { return lights_; }
-		void SetLights(const Scene::LightPtrList& lights);
+		const LightPtrList& Lights() const { return lights_; }
+		void SetLights(const LightPtrList& lights);
 
-		const Graphics::MaterialPtr& Material() const { return material_; }
-		void SetMaterial(const Graphics::MaterialPtr& material);
+		const MaterialPtr& Material() const { return material_; }
+		void SetMaterial(const MaterialPtr& material);
 
-		const Render::RenderTargetPtr& GetRenderTarget() const { return render_target_; }
-		void SetRenderTarget(const Render::RenderTargetPtr& rt);
+		const RenderTargetPtr& GetRenderTarget() const { return render_target_; }
+		void SetRenderTarget(const RenderTargetPtr& rt);
 
-		void SetDisplayData(const Graphics::DisplayDevicePtr& dd, const Graphics::DisplayDeviceDef& def);
-		const Graphics::DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+		void SetDisplayData(const DisplayDevicePtr& dd, const DisplayDeviceDef& def);
+		const DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 
 		void AddAttributeRenderVariable(const RenderVariablePtr& rv);
 		void AddUniformRenderVariable(const RenderVariablePtr& rv);
 		const RenderVariableList& AttributeRenderVariables() const { return attribute_render_vars_; }
 		const RenderVariableList& UniformRenderVariables() const { return uniform_render_vars_; }
+
+		void AddAttributeSet(const AttributeSetPtr& attrset);
 
 		virtual void PreRender() {}
 	private:
@@ -88,17 +91,17 @@ namespace Render
 		glm::vec3 position_;
 		glm::quat rotation_;
 		glm::vec3 scale_;
-		Scene::CameraPtr camera_;
-		Scene::LightPtrList lights_;
-		Graphics::MaterialPtr material_;
-		Render::RenderTargetPtr render_target_;
-		Graphics::Color color_;
+		CameraPtr camera_;
+		LightPtrList lights_;
+		MaterialPtr material_;
+		RenderTargetPtr render_target_;
+		Color color_;
 		bool color_set_;
 
 		RenderVariableList attribute_render_vars_;
 		RenderVariableList uniform_render_vars_;
 
-		Graphics::DisplayDeviceDataPtr display_data_;
+		DisplayDeviceDataPtr display_data_;
 		Renderable(const Renderable&);
 	};
 }

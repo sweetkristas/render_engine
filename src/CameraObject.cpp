@@ -38,7 +38,7 @@
 #include "DisplayDevice.hpp"
 #include "WindowManager.hpp"
 
-namespace Scene
+namespace KRE
 {
 	namespace 
 	{
@@ -51,7 +51,7 @@ namespace Scene
 		const float default_far_clip			= 300.0f;
 	}
 
-	Camera::Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd)
+	Camera::Camera(const std::string& name, const WindowManagerPtr& wnd)
 		: SceneObject(name), 
 		fov_(default_fov), 
 		horizontal_angle_(default_horizontal_angle), 
@@ -76,7 +76,7 @@ namespace Scene
 		ComputeProjection();
 	}
 
-	/*Camera::Camera(const variant& node, const Graphics::WindowManagerPtr& wnd)
+	/*Camera::Camera(const variant& node, const WindowManagerPtr& wnd)
 		: SceneObject(node["name"].as_string()), 
 		fov_(default_fov), 
 		horizontal_angle_(default_horizontal_angle), 
@@ -182,7 +182,7 @@ namespace Scene
 		ComputeProjection();
 	}
 
-	Camera::Camera(const std::string& name, const Graphics::WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip)
+	Camera::Camera(const std::string& name, const WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip)
 		: SceneObject(name), 
 		fov_(fov), 
 		horizontal_angle_(default_horizontal_angle), 
@@ -495,9 +495,9 @@ namespace Scene
 		}
 	}
 
-	Graphics::DisplayDeviceDef Camera::Attach(const Graphics::DisplayDevicePtr& dd)
+	DisplayDeviceDef Camera::Attach(const DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+		DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 		// XXX
 		return def;
 	}

@@ -23,7 +23,7 @@
 
 #include "DisplayDeviceSDL.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{

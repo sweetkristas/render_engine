@@ -30,7 +30,7 @@
 #include "FboOpenGL.hpp"
 #include "WindowManager.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{
@@ -202,7 +202,7 @@ namespace Graphics
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Create the render variables.
-		using namespace Render;
+		using namespace KRE;
 		auto& arv_ = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
 		arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vertex));
 		arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, texcoord));
@@ -238,9 +238,9 @@ namespace Graphics
 	{
 	}
 
-	Graphics::DisplayDeviceDef FboOpenGL::Attach(const Graphics::DisplayDevicePtr& dd)
+	DisplayDeviceDef FboOpenGL::Attach(const DisplayDevicePtr& dd)
 	{
-		Graphics::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+		DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 		if(!shader_hint_.empty()) {
 			def.SetHint("shader", shader_hint_);
 		}

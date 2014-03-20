@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 
-namespace Render
+namespace KRE
 {
 	class Renderable;
 	typedef std::shared_ptr<Renderable> RenderablePtr;

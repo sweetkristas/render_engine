@@ -32,7 +32,7 @@
 
 #include "variant.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Particles
 	{

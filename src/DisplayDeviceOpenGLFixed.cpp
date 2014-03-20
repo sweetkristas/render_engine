@@ -23,7 +23,7 @@
 
 #include "DisplayDeviceOpenGLFixed.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{

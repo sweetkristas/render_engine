@@ -23,7 +23,7 @@
 
 #pragma once
 
-namespace Graphics
+namespace KRE
 {
 	namespace Particles
 	{

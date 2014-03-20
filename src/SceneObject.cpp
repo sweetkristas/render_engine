@@ -25,7 +25,7 @@
 #include "SceneGraph.hpp"
 #include "SceneObject.hpp"
 
-namespace Scene
+namespace KRE
 {
 	SceneObject::SceneObject(const std::string& name)
 		: name_(name), queue_(0)

@@ -23,7 +23,7 @@
 
 #include "Color.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	Color::Color()
 	{

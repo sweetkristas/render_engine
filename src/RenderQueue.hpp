@@ -29,7 +29,7 @@
 #include "RenderFwd.hpp"
 #include "WindowManagerFwd.hpp"
 
-namespace Render
+namespace KRE
 {
 	class RenderQueue
 	{
@@ -43,7 +43,7 @@ namespace Render
 		void Dequeue(uint64_t order);
 
 		void PreRender();
-		void Render(const Graphics::WindowManagerPtr& wm) const;
+		void Render(const WindowManagerPtr& wm) const;
 		void PostRender();
 	private:
 		std::map<uint64_t, RenderablePtr> renderables_;

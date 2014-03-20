@@ -28,7 +28,7 @@
 #include "WindowManager.hpp"
 #include "treetree/tree.hpp"
 
-namespace Scene
+namespace KRE
 {
 	typedef std::function<SceneObjectPtr(const std::string&)> ObjectTypeFunction;
 
@@ -38,20 +38,20 @@ namespace Scene
 		SceneGraph(const std::string& name);
 		~SceneGraph();
 		void AttachNode(SceneNode* parent, SceneNodePtr node);
-		static SceneGraphPtr Create(const std::string& name, const Graphics::WindowManagerPtr& wnd);
+		static SceneGraphPtr Create(const std::string& name, const WindowManagerPtr& wnd);
 		SceneNodePtr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
-		void RenderScene(const Render::RenderManagerPtr& renderer);
-		void RenderSceneHelper(const Render::RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, SceneNodeParams* snp);
+		void RenderScene(const RenderManagerPtr& renderer);
+		void RenderSceneHelper(const RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, SceneNodeParams* snp);
 	
-		Graphics::DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
+		DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
 
 		void Process(double);
 
 		static void RegisterFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)>);
 	private:
-		Graphics::WindowManagerPtr wnd_;
+		WindowManagerPtr wnd_;
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;
 		SceneGraph(const SceneGraph&);

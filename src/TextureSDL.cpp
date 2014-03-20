@@ -23,7 +23,7 @@
 
 #include "TextureSDL.hpp"
 
-namespace Graphics
+namespace KRE
 {
 
 }

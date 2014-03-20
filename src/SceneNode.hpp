@@ -29,7 +29,7 @@
 #include "RenderFwd.hpp"
 #include "SceneFwd.hpp"
 
-namespace Scene
+namespace KRE
 {
 	class SceneNode
 	{
@@ -40,11 +40,11 @@ namespace Scene
 		void AttachLight(size_t ref, const LightPtr& obj);
 		void AttachCamera(const CameraPtr& obj);
 		void AttachObject(const SceneObjectPtr& obj);
-		void AttachRenderTarget(const Render::RenderTargetPtr& obj);
+		void AttachRenderTarget(const RenderTargetPtr& obj);
 		const CameraPtr& Camera() const { return camera_; }
 		const LightPtrList& Lights() const { return lights_; }
-		const Render::RenderTargetPtr GetRenderTarget() const { return render_target_; }
-		void RenderNode(const Render::RenderManagerPtr& renderer, SceneNodeParams* rp);
+		const RenderTargetPtr GetRenderTarget() const { return render_target_; }
+		void RenderNode(const RenderManagerPtr& renderer, SceneNodeParams* rp);
 		SceneGraph* ParentGraph() { return scene_graph_; }
 		virtual void Process(double);
 		virtual void NodeAttached();
@@ -56,7 +56,7 @@ namespace Scene
 		std::vector<SceneObjectPtr> objects_;
 		LightPtrList lights_;
 		CameraPtr camera_;
-		Render::RenderTargetPtr render_target_;
+		RenderTargetPtr render_target_;
 		SceneNode();
 		SceneNode(const SceneNode&);
 		SceneNode& operator=(const SceneNode&);

@@ -30,7 +30,7 @@
 #include "Surface.hpp"
 #include "variant.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class Texture
 	{

@@ -27,7 +27,7 @@
 #include "DisplayDevice.hpp"
 #include "logger.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace 
 	{
@@ -48,6 +48,12 @@ namespace Graphics
 			static DisplayDeviceRegistry res;
 			return res;
 		}
+
+		DisplayDevicePtr& current_display_device()
+		{
+			static DisplayDevicePtr res;
+			return res;
+		};
 	}
 
 	DisplayDevice::DisplayDevice()
@@ -69,9 +75,16 @@ namespace Graphics
 		auto it = get_display_registry().find(type);
 		if(it == get_display_registry().end()) {			
 			LOG_WARN("Requested display driver '" << type << "' not found, using default: " << get_display_registry().begin()->first);
+			current_display_device() = get_display_registry().begin()->second();
 			return get_display_registry().begin()->second();
 		}
+		current_display_device() = it->second();
 		return it->second();
+	}
+
+	static DisplayDevicePtr DisplayDevice::GetCurrent()
+	{
+		return current_display_device();
 	}
 
 	void DisplayDevice::RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()> create_fn)
@@ -83,7 +96,18 @@ namespace Graphics
 		get_display_registry()[type] = create_fn;
 	}
 
-	DisplayDeviceDef::DisplayDeviceDef(const Render::RenderVariableList& arv, const Render::RenderVariableList& urv)
+	AttributeSetPtr DisplayDevice::CreateAttributeSet(bool hardware_hint, bool indexed, bool instanced)
+	{
+		if(hardware_hint) {
+			auto as = DisplayDevice::GetCurrent()->HandleCreateAttributeSet(indexed, instanced);
+			if(as) {
+				return as;
+			}
+		}
+		return AttributeSetPtr(new AttributeSet(indexed, instanced));
+	}
+
+	DisplayDeviceDef::DisplayDeviceDef(const RenderVariableList& arv, const RenderVariableList& urv)
 		: attrib_render_vars_(arv), uniform_render_vars_(urv)
 	{
 	}

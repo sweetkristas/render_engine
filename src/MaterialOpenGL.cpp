@@ -25,7 +25,7 @@
 #include "MaterialOpenGL.hpp"
 #include "TextureOpenGL.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace
 	{

@@ -23,7 +23,7 @@
 
 #include "ParticleSystemObservers.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	namespace Particles
 	{

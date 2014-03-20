@@ -29,7 +29,7 @@
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"
 
-namespace Scene
+namespace KRE
 {
 	SceneNode::SceneNode(SceneGraph* sg)
 		: scene_graph_(sg)
@@ -76,7 +76,7 @@ namespace Scene
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::AttachRenderTarget(const Render::RenderTargetPtr& obj)
+	void SceneNode::AttachRenderTarget(const RenderTargetPtr& obj)
 	{
 		render_target_ = obj;
 		auto dd = scene_graph_->DisplayDevice();
@@ -84,7 +84,7 @@ namespace Scene
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::RenderNode(const Render::RenderManagerPtr& renderer, SceneNodeParams* rp)
+	void SceneNode::RenderNode(const RenderManagerPtr& renderer, SceneNodeParams* rp)
 	{
 		if(camera_) {
 			rp->camera = camera_;

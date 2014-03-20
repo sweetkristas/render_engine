@@ -26,10 +26,10 @@
 #include <memory>
 #include "RenderVariable.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	template<class T>
-	class HardwareBuffer : public Render::AttributeRenderVariable<T>
+	class HardwareBuffer : public AttributeRenderVariable<T>
 	{
 		HardwareBuffer(size_t count = 0,
 			bool dynamic = true, 

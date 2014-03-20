@@ -26,9 +26,9 @@
 #include "Renderable.hpp"
 #include "SceneFwd.hpp"
 
-namespace Scene
+namespace KRE
 {
-	class SceneObject : public Render::Renderable
+	class SceneObject : public Renderable
 	{
 	public:
 		SceneObject(const std::string& name);
@@ -36,7 +36,7 @@ namespace Scene
 		size_t Queue() const { return queue_; }
 		void SetQueue(size_t q) { queue_ = q; }
 		const std::string& ObjectName() const { return name_; }
-		virtual Graphics::DisplayDeviceDef Attach(const Graphics::DisplayDevicePtr& dd) = 0;
+		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) = 0;
 	private:
 
 		size_t queue_;

@@ -24,7 +24,7 @@
 #include "asserts.hpp"
 #include "Texture.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	Texture::Texture(const SurfacePtr& surface, const variant& node)
 		: type_(TEXTURE_2D), 
@@ -135,7 +135,7 @@ namespace Graphics
 		}
 		if(node.has_key("border_color")) {
 			//border_color_ = Color(node["border_color"]);
-			ASSERT_LOG(false, "'border_color' attribute not processed, need to implement variant processor for Graphics::Color()");
+			ASSERT_LOG(false, "'border_color' attribute not processed, need to implement variant processor for Color()");
 		}
 		if(node.has_key("rect")) {
 			ASSERT_LOG(node["rect"].is_list(), "'rect' attribute must be a list of numbers.");

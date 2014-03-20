@@ -28,7 +28,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Scene
+namespace KRE
 {
 	class Frustum
 	{

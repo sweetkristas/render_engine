@@ -27,7 +27,7 @@
 
 #include "Texture.hpp"
 
-namespace Graphics
+namespace KRE
 {
 	class OpenGLTexture : public Texture
 	{
