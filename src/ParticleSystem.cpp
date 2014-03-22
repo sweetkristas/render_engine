@@ -456,7 +456,7 @@ namespace KRE
 		{
 			// XXX We need to render to a billboard style renderer ala 
 			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
-			using namespace KRE;
+			/*using namespace KRE;
 			arv_ = std::make_shared<AttributeRenderVariable<vertex_texture_color>>();
 			arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 3, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,vertex));
 			arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,texcoord));
@@ -467,21 +467,22 @@ namespace KRE
 			auto& urv_ = std::make_shared<UniformRenderVariable<glm::vec4>>();
 			urv_->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
 			AddUniformRenderVariable(urv_);
-			urv_->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));
+			urv_->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));*/
 
 			SetOrder(1);
 		}
 
 		DisplayDeviceDef technique::Attach(const DisplayDevicePtr& dd) {
-			DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
-			def.SetHint("shader", "vtc_shader");
+			//DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+			//def.SetHint("shader", "vtc_shader");
+			DisplayDeviceDef def(GetAttributeSet());
 			return def;
 		}
 
 		void technique::PreRender()
 		{
 			//LOG_DEBUG("technique::PreRender, particle count: " << active_particles_.size());
-			std::vector<vertex_texture_color> vtc;
+			/*std::vector<vertex_texture_color> vtc;
 			vtc.reserve(active_particles_.size());
 			for(auto& p : active_particles_) {
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y,p.current.position.z), glm::vec2(0.0f,0.0f), p.current.color);
@@ -492,7 +493,7 @@ namespace KRE
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(0.0f,1.0f), p.current.color);
 				vtc.emplace_back(glm::vec3(p.current.position.x+p.current.dimensions.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(1.0f,1.0f), p.current.color);
 			}
-			arv_->Update(&vtc);
+			arv_->Update(&vtc);*/
 		}
 
 		ParticleSystemContainer::ParticleSystemContainer(SceneGraph* sg, const variant& node) 

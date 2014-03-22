@@ -128,13 +128,13 @@ namespace KRE
 		display_data_ = dd->CreateDisplayDeviceData(def);
 	}
 
-	void Renderable::AddAttributeRenderVariable(const RenderVariablePtr& rv)
+	void Renderable::AddAttributeSet(const AttributeSetPtr& attrset)
 	{
-		attribute_render_vars_.emplace_back(rv);
+		attributes_.emplace_back(attrset);
 	}
 
-	void Renderable::AddUniformRenderVariable(const RenderVariablePtr& rv)
-	{
-		uniform_render_vars_.emplace_back(rv);
-	}
+	//void Renderable::AddUniformSet(const UniformSetPtr& uniset)
+	//{
+	//	uniforms_.emplace_back(uniset);
+	//}
 }

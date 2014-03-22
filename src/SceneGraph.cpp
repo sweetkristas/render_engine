@@ -139,7 +139,7 @@ namespace KRE
 	void SceneGraph::RenderScene(const RenderManagerPtr& renderer)
 	{
 		the::tree<SceneNodePtr>::pre_iterator it = graph_.begin();
-		LOG_DEBUG("RenderScene: " << (*it)->NodeName());
+		//LOG_DEBUG("RenderScene: " << (*it)->NodeName());
 		SceneNodeParams snp;
 		RenderSceneHelper(renderer, it, &snp);
 	}

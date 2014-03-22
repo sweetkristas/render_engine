@@ -29,6 +29,7 @@
 #include <memory>
 #include <vector>
 #include "asserts.hpp"
+#include "DisplayDeviceFwd.hpp"
 #include "Util.hpp"
 
 namespace KRE
@@ -62,14 +63,14 @@ namespace KRE
 		explicit AttributeDesc(Type type, 
 			unsigned num_elements,
 			VariableType var_type,
-			bool normalise,
+			bool normalise=false,
 			ptrdiff_t stride=0,
 			ptrdiff_t offset=0,
 			size_t divisor=1);
 		explicit AttributeDesc(const std::string& type_name, 
 			unsigned num_elements,
 			VariableType var_type,
-			bool normalise,
+			bool normalise=false,
 			ptrdiff_t stride=0,
 			ptrdiff_t offset=0,
 			size_t divisor=1);
@@ -81,6 +82,8 @@ namespace KRE
 		ptrdiff_t Stride() const { return stride_; }
 		ptrdiff_t Offset() const { return offset_; }
 		size_t Divisor() const { return divisor_; }
+		void SetDisplayData(const DisplayDeviceDataPtr& ddp) { display_data_ = ddp; }
+		const DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 	private:
 		Type type_;
 		std::string type_name_;
@@ -90,6 +93,7 @@ namespace KRE
 		ptrdiff_t stride_;
 		ptrdiff_t offset_;
 		size_t divisor_;
+		DisplayDeviceDataPtr display_data_;
 	};
 
 	// This is ugly since the Update() method requires a void*
@@ -116,23 +120,28 @@ namespace KRE
 		};
 		Attribute(AccessFreqHint freq, AccessTypeHint type) 
 			: access_freq_(freq),
-			access_type_(type) {
+			access_type_(type),
+			offs_(0) {
 		}
 		virtual ~Attribute() {}
 		
 		void AddAttributeDescription(const AttributeDesc& attrdesc) {
 			desc_.emplace_back(attrdesc);
 		}
-		const std::vector<AttributeDesc>& GetAttrDesc() const { return desc_; }
+		std::vector<AttributeDesc>& GetAttrDesc() { return desc_; }
 		virtual void Update(const void* value, ptrdiff_t offset, size_t size) {
-			ASSERT_LOG(offset + size < Size(), 
+			if(mem_.empty()) {
+				ASSERT_LOG(offset == 0, "Must have 0 offset upon initialisation");
+				mem_.resize(size);
+			}
+			ASSERT_LOG(offset + size <= Size(), 
 				"When buffering data offset+size exceeds data store size: " 
 				<< offset+size 
 				<< " > " 
 				<< Size());
 			memcpy(&mem_[offset], value, size);
 		}
-		virtual const void* Value() const { return &mem_[0]; }
+		virtual const intptr_t Value() const { return reinterpret_cast<intptr_t>(&mem_[0]); }
 		virtual size_t Size() const { return mem_.size(); }
 		void SetOffset(ptrdiff_t offs) {
 			offs_ = offs;
@@ -196,7 +205,7 @@ namespace KRE
 		bool IsIndexed() const { return indexed_draw_; }
 		bool IsInstanced() const { return instanced_draw_; }
 		IndexType GetIndexType() const { return index_type_; }
-		const void* GetIndexArray() const { 
+		virtual const void* GetIndexArray() const { 
 			switch(index_type_) {
 			case IndexType::INDEX_UCHAR:	return &index8_[0];
 			case IndexType::INDEX_USHORT:	return &index16_[0];
@@ -204,6 +213,8 @@ namespace KRE
 			}
 			ASSERT_LOG(false, "Index type not set to valid value.");
 		};
+		void SetCount(size_t count) { count_= count; }
+		size_t GetCount() const { return count_; }
 		void SetInstanceCount(size_t instance_count) { instance_count_ = instance_count; }
 		size_t GetInstanceCount() const { return instance_count_; }
 
@@ -213,7 +224,13 @@ namespace KRE
 		void UpdateIndicies(std::vector<uint8_t>* value);
 		void UpdateIndicies(std::vector<uint16_t>* value);
 		void UpdateIndicies(std::vector<uint32_t>* value);
-	protected:
+
+		virtual void BindIndex() {};
+		virtual void UnbindIndex() {};
+
+		void SetOffset(ptrdiff_t offset) { offset_ = offset; }
+		ptrdiff_t GetOffset() const { return offset_; }
+
 		std::vector<AttributePtr>& GetAttributes() { return attributes_; }
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSet);
@@ -226,6 +243,8 @@ namespace KRE
 		std::vector<uint16_t> index16_;
 		std::vector<uint32_t> index32_;
 		std::vector<AttributePtr> attributes_;
+		size_t count_;
+		ptrdiff_t offset_;
 	};
 	typedef std::shared_ptr<AttributeSet> AttributeSetPtr;
 }

@@ -497,7 +497,7 @@ namespace KRE
 
 	DisplayDeviceDef Camera::Attach(const DisplayDevicePtr& dd)
 	{
-		DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+		DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
 		// XXX
 		return def;
 	}

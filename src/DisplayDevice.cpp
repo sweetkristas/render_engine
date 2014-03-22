@@ -82,7 +82,7 @@ namespace KRE
 		return it->second();
 	}
 
-	static DisplayDevicePtr DisplayDevice::GetCurrent()
+	DisplayDevicePtr DisplayDevice::GetCurrent()
 	{
 		return current_display_device();
 	}
@@ -107,8 +107,8 @@ namespace KRE
 		return AttributeSetPtr(new AttributeSet(indexed, instanced));
 	}
 
-	DisplayDeviceDef::DisplayDeviceDef(const RenderVariableList& arv, const RenderVariableList& urv)
-		: attrib_render_vars_(arv), uniform_render_vars_(urv)
+	DisplayDeviceDef::DisplayDeviceDef(const std::vector<AttributeSetPtr>& as)
+		: attributes_(as)//, uniforms_(us)
 	{
 	}
 

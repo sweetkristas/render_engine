@@ -79,47 +79,55 @@ namespace KRE
 
 	namespace 
 	{
-		GLenum ConvertRenderVariableType(AttributeRenderVariableDesc::VariableType type)
+		GLenum ConvertRenderVariableType(AttributeDesc::VariableType type)
 		{
-			static std::vector<GLenum> res;
-			if(res.empty()) {
-				res.push_back(GL_BYTE);					// TYPE_BOOL
-				res.push_back(GL_HALF_FLOAT);			// TYPE_HALF_FLOAT
-				res.push_back(GL_FLOAT);				// TYPE_FLOAT
-				res.push_back(GL_DOUBLE);				// TYPE_DOUBLE
-				res.push_back(GL_FIXED);				// TYPE_FIXED
-				res.push_back(GL_SHORT);				// TYPE_SHORT
-				res.push_back(GL_UNSIGNED_SHORT);		// TYPE_UNSIGNED_SHORT
-				res.push_back(GL_BYTE);					// TYPE_BYTE
-				res.push_back(GL_UNSIGNED_BYTE);		// TYPE_UNSIGNED_BYTE
-				res.push_back(GL_INT);					// TYPE_INT
-				res.push_back(GL_UNSIGNED_INT);			// TYPE_UNSIGNED_INT
-				res.push_back(GL_INT_2_10_10_10_REV);	// TYPE_INT_2_10_10_10
-				res.push_back(GL_UNSIGNED_INT_2_10_10_10_REV);	// TYPE_UNSIGNED_INT_2_10_10_10
-				res.push_back(GL_UNSIGNED_INT_10F_11F_11F_REV);	// TYPE_UNSIGNED_INT_10F_11F_11F
+			switch(type) {
+				case AttributeDesc::VariableType::BOOL:							return GL_BYTE;
+				case AttributeDesc::VariableType::HALF_FLOAT:					return GL_HALF_FLOAT;
+				case AttributeDesc::VariableType::FLOAT:						return GL_FLOAT;
+				case AttributeDesc::VariableType::DOUBLE:						return GL_DOUBLE;
+				case AttributeDesc::VariableType::FIXED:						return GL_FIXED;
+				case AttributeDesc::VariableType::SHORT:						return GL_SHORT;
+				case AttributeDesc::VariableType::UNSIGNED_SHORT:				return GL_UNSIGNED_SHORT;
+				case AttributeDesc::VariableType::BYTE:							return GL_BYTE;
+				case AttributeDesc::VariableType::UNSIGNED_BYTE:				return GL_UNSIGNED_BYTE;
+				case AttributeDesc::VariableType::INT:							return GL_INT;
+				case AttributeDesc::VariableType::UNSIGNED_INT:					return GL_UNSIGNED_INT;
+				case AttributeDesc::VariableType::INT_2_10_10_10_REV:			return GL_INT_2_10_10_10_REV;
+				case AttributeDesc::VariableType::UNSIGNED_INT_2_10_10_10_REV:	return GL_UNSIGNED_INT_2_10_10_10_REV;
+				case AttributeDesc::VariableType::UNSIGNED_INT_10F_11F_11F_REV:	return GL_UNSIGNED_INT_10F_11F_11F_REV;
 			}
-			ASSERT_LOG(std::vector<GLenum>::size_type(type) < res.size(), "ConvertRenderVariableType: Unable to find type " << type);
-			return res[type];
+			ASSERT_LOG(false, "Unrecognised value for variable type.");
+			return GL_NONE;
 		}
 
-		GLenum ConvertDrawingMode(RenderVariable::DrawMode dm)
+		GLenum ConvertDrawingMode(AttributeSet::DrawMode dm)
 		{
-			// relies on all the values in Renderable::DrawMode being contiguous
-			static std::vector<GLenum> res;
-			if(res.empty()) {
-				res.emplace_back(GL_POINTS);
-				res.emplace_back(GL_LINE_STRIP);
-				res.emplace_back(GL_LINE_LOOP);
-				res.emplace_back(GL_LINES);
-				res.emplace_back(GL_TRIANGLE_STRIP);
-				res.emplace_back(GL_TRIANGLE_FAN);
-				res.emplace_back(GL_TRIANGLES);
-				res.emplace_back(GL_QUAD_STRIP);
-				res.emplace_back(GL_QUADS);
-				res.emplace_back(GL_POLYGON);
+			switch(dm) {
+				case AttributeSet::DrawMode::POINTS:			return GL_POINTS;
+				case AttributeSet::DrawMode::LINE_STRIP:		return GL_LINE_STRIP;
+				case AttributeSet::DrawMode::LINE_LOOP:			return GL_LINE_LOOP;
+				case AttributeSet::DrawMode::LINES:				return GL_LINES;
+				case AttributeSet::DrawMode::TRIANGLE_STRIP:	return GL_TRIANGLE_STRIP;
+				case AttributeSet::DrawMode::TRIANGLE_FAN:		return GL_TRIANGLE_FAN;
+				case AttributeSet::DrawMode::TRIANGLES:			return GL_TRIANGLES;
+				case AttributeSet::DrawMode::QUAD_STRIP:		return GL_QUAD_STRIP;
+				case AttributeSet::DrawMode::QUADS:				return GL_QUADS;
+				case AttributeSet::DrawMode::POLYGON:			return GL_POLYGON;
 			}
-			ASSERT_LOG(std::vector<GLenum>::size_type(dm) < res.size(), "ConvertDrawingMode: Unable to find type " << dm);
-			return res[dm];
+			ASSERT_LOG(false, "Unrecognised value for drawing mode.");
+			return GL_NONE;
+		}
+
+		GLenum ConvertIndexType(AttributeSet::IndexType it) 
+		{
+			switch(it) {
+				case AttributeSet::IndexType::INDEX_UCHAR:		return GL_UNSIGNED_BYTE;
+				case AttributeSet::IndexType::INDEX_USHORT:		return GL_UNSIGNED_SHORT;
+				case AttributeSet::IndexType::INDEX_ULONG:		return GL_UNSIGNED_INT;
+			}
+			ASSERT_LOG(false, "Unrecognised value for index type.");
+			return GL_NONE;
 		}
 	}
 
@@ -199,26 +207,18 @@ namespace KRE
 		if(use_default_shader) {
 			dd->SetShader(Shader::ShaderProgram::DefaultSystemShader());
 		}
+		
+		// XXX Set uniforms from block here.
 
-		// Process uniform render variables here
-		for(auto& rv : def.GetUniformRenderVars()) {
-			for(auto& rvd : rv->VariableDescritionList()) {
-				auto& urvd = std::dynamic_pointer_cast<UniformRenderVariableDesc>(rvd);
-				ASSERT_LOG(urvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to UniformRenderVariableDesc.");
-					auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetUniformIterator(urvd->GetUniformTypeAsString()));
-					rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
+		for(auto& as : def.GetAttributeSet()) {
+			for(auto& attr : as->GetAttributes()) {
+				for(auto& desc : attr->GetAttrDesc()) {
+					auto ddp = DisplayDeviceDataPtr(new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(desc.AttrName())));
+					desc.SetDisplayData(ddp);
+				}
 			}
 		}
 
-		// Process attribute render variables here
-		for(auto& rv : def.GetAttributeRenderVars()) {
-			for(auto& rvd : rv->VariableDescritionList()) {
-				auto& arvd = std::dynamic_pointer_cast<AttributeRenderVariableDesc>(rvd);
-				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
-				auto rvdd = new RenderVariableDeviceData(dd->GetShader()->GetAttributeIterator(arvd->GetVertexTypeAsString()));
-				rvd->SetDisplayData(DisplayDeviceDataPtr(rvdd));
-			}
-		}
 		return DisplayDeviceDataPtr(dd);
 	}
 
@@ -263,46 +263,62 @@ namespace KRE
 		}
 
 		// Loop through uniform render variables and set them.
-		for(auto& urv : r->UniformRenderVariables()) {
+		/*for(auto& urv : r->UniformRenderVariables()) {
 			for(auto& rvd : urv->VariableDescritionList()) {
 				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
 				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
 				shader->SetUniformValue(rvdd->GetActiveMapIterator(), urv->Value());
 			}
-		}
+		}*/
 
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
-		for(auto arv : r->AttributeRenderVariables()) {
-			GLenum draw_mode = ConvertDrawingMode(arv->GetDrawMode());
+		for(auto as : r->GetAttributeSet()) {
+			GLenum draw_mode = ConvertDrawingMode(as->GetDrawMode());
 			std::vector<GLuint> enabled_attribs;
 
-			for(auto& rvd : arv->VariableDescritionList()) {
-				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
-				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
-				auto& arvd = std::dynamic_pointer_cast<AttributeRenderVariableDesc>(rvd);
-				ASSERT_LOG(arvd != NULL, "RenderVariableDesc was wrong type, couldn't cast to AttributeRenderVariableDesc.");
-
-				glEnableVertexAttribArray(rvdd->GetActiveMapIterator()->second.location);
-				glVertexAttribPointer(rvdd->GetActiveMapIterator()->second.location, 
-					arvd->NumElements(), 
-					ConvertRenderVariableType(arvd->GetVariableType()), 
-					arvd->Normalised(), 
-					arvd->Stride(), 
-					(void*)((intptr_t)arv->Value() + (intptr_t) + arvd->Offset()));
-				enabled_attribs.emplace_back(rvdd->GetActiveMapIterator()->second.location);
+			for(auto& attr : as->GetAttributes()) {
+				//auto attrogl = std::dynamic_pointer_cast<AttributeOGL>(attr);
+				attr->Bind();
+				for(auto& attrdesc : attr->GetAttrDesc()) {
+					auto ddp = std::dynamic_pointer_cast<RenderVariableDeviceData>(attrdesc.GetDisplayData());
+					ASSERT_LOG(ddp != NULL, "Converting attribute device data was NULL.");
+					glEnableVertexAttribArray(ddp->GetActiveMapIterator()->second.location);
+					
+					glVertexAttribPointer(ddp->GetActiveMapIterator()->second.location, 
+						attrdesc.NumElements(), 
+						ConvertRenderVariableType(attrdesc.VarType()), 
+						attrdesc.Normalise(), 
+						attrdesc.Stride(), 
+						reinterpret_cast<const GLvoid*>(attr->Value() + attr->GetOffset() + attrdesc.Offset()));
+					enabled_attribs.emplace_back(ddp->GetActiveMapIterator()->second.location);
+				}
 			}
 
-			if(arv->IsIndexedDraw()) {
-				// XXX
-				//glDrawElements(draw_mode, rv->Count(), rv->IndexType(), rv->Indicies());
+			if(as->IsInstanced()) {
+				if(as->IsIndexed()) {
+					as->BindIndex();
+					// XXX as->GetIndexArray() should be as->GetIndexArray()+as->GetOffset()
+					glDrawElementsInstanced(draw_mode, as->GetCount(), ConvertIndexType(as->GetIndexType()), as->GetIndexArray(), as->GetInstanceCount());
+					as->UnbindIndex();
+				} else {
+					glDrawArraysInstanced(draw_mode, as->GetOffset(), as->GetCount(), as->GetInstanceCount());
+				}
 			} else {
-				// XXX we probably need to grab an offset parameter, from rv, instead of the 0 below.
-				glDrawArrays(draw_mode, 0, arv->Count());
+				if(as->IsIndexed()) {
+					as->BindIndex();
+					// XXX as->GetIndexArray() should be as->GetIndexArray()+as->GetOffset()
+					glDrawElements(draw_mode, as->GetCount(), ConvertIndexType(as->GetIndexType()), as->GetIndexArray());
+					as->UnbindIndex();
+				} else {
+					glDrawArrays(draw_mode, as->GetOffset(), as->GetCount());
+				}
 			}
+
 			for(auto attrib : enabled_attribs) {
 				glDisableVertexAttribArray(attrib);
 			}
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 		if(r->Material()) {
 			r->Material()->Unapply();

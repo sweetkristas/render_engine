@@ -25,7 +25,7 @@
 
 #include <glm/gtx/quaternion.hpp>
 
-#include"AttributeSet.hpp"
+#include "AttributeSet.hpp"
 #include "Material.hpp"
 #include "RenderQueue.hpp"
 #include "RenderVariable.hpp"
@@ -78,12 +78,10 @@ namespace KRE
 		void SetDisplayData(const DisplayDevicePtr& dd, const DisplayDeviceDef& def);
 		const DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
 
-		void AddAttributeRenderVariable(const RenderVariablePtr& rv);
-		void AddUniformRenderVariable(const RenderVariablePtr& rv);
-		const RenderVariableList& AttributeRenderVariables() const { return attribute_render_vars_; }
-		const RenderVariableList& UniformRenderVariables() const { return uniform_render_vars_; }
-
 		void AddAttributeSet(const AttributeSetPtr& attrset);
+		//void AddUniformSet(const UniformSetPtr& uniset);
+		const std::vector<AttributeSetPtr>& GetAttributeSet() const { return attributes_; }
+		//const std::vector<UniformSetPtr>& GetUniformSet() const { return uniforms_; }
 
 		virtual void PreRender() {}
 	private:
@@ -98,8 +96,8 @@ namespace KRE
 		Color color_;
 		bool color_set_;
 
-		RenderVariableList attribute_render_vars_;
-		RenderVariableList uniform_render_vars_;
+		std::vector<AttributeSetPtr> attributes_;
+		//std::vector<UniformSetPtr> uniforms_;
 
 		DisplayDeviceDataPtr display_data_;
 		Renderable(const Renderable&);

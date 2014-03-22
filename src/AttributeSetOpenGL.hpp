@@ -35,7 +35,7 @@ namespace KRE
 		AttributeOGL(AccessFreqHint freq, AccessTypeHint type);
 		virtual ~AttributeOGL();
 		void Update(const void* value, ptrdiff_t offset, size_t size) override;
-		const void* Value() const override;
+		const intptr_t Value() const override;
 		size_t Size() const override { return size_; }
 		void Bind() override;
 		void Unbind() override;
@@ -65,6 +65,9 @@ namespace KRE
 		explicit AttributeSetOGL(bool indexed, bool instanced);
 		virtual ~AttributeSetOGL();	
 		AttributePtr CreateAttribute(Attribute::AccessFreqHint freq, Attribute::AccessTypeHint type) override;
+		const void* GetIndexArray() const override { return NULL; }
+		void BindIndex() override;
+		void UnbindIndex() override;
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSetOGL);
 		GLuint index_buffer_id_;

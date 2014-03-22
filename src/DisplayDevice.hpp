@@ -42,19 +42,19 @@ namespace KRE
 	class DisplayDeviceDef
 	{
 	public:
-		DisplayDeviceDef(const RenderVariableList& arv, const RenderVariableList& urv);
+		DisplayDeviceDef(const std::vector<AttributeSetPtr>& as/*, const std::vector<UniformSetPtr>& us*/);
 		~DisplayDeviceDef();
 
-		const RenderVariableList& GetAttributeRenderVars() const { return attrib_render_vars_; }
-		const RenderVariableList& GetUniformRenderVars() const { return uniform_render_vars_; }
+		const std::vector<AttributeSetPtr>& GetAttributeSet() const { return attributes_; }
+		//const std::vector<UniformSetPtr>& GetUniformSet() const { return uniforms_; }
 
 		void SetHint(const std::string& hint_name, const std::string& hint);
 		void SetHint(const std::string& hint_name, const HintList& hint);
 		HintMap GetHints() const { return hints_; }
 	private:
 		HintMap hints_;
-		const RenderVariableList& attrib_render_vars_;
-		const RenderVariableList& uniform_render_vars_;
+		const std::vector<AttributeSetPtr>& attributes_;
+		//const std::vector<UniformSetPtr>& uniforms_;
 	};
 
 	class DisplayDeviceData

@@ -79,7 +79,7 @@ namespace KRE
 			size_ = size;
 		} else {
 			ASSERT_LOG(Size() != 0, "No buffer previously bound.");
-			ASSERT_LOG(offset + size < Size(), 
+			ASSERT_LOG(offset + size <= Size(), 
 				"When buffering data offset+size exceeds data store size: " 
 				<< offset+size 
 				<< " > " 
@@ -89,7 +89,7 @@ namespace KRE
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	const void* AttributeOGL::Value() const
+	const intptr_t AttributeOGL::Value() const
 	{
 		return NULL;
 	}
@@ -123,5 +123,15 @@ namespace KRE
 	{
 		GetAttributes().emplace_back(new AttributeOGL(freq, type));
 		return GetAttributes().back();
+	}
+
+	void AttributeSetOGL::BindIndex()
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_id_);
+	}
+
+	void AttributeSetOGL::UnbindIndex()
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 }

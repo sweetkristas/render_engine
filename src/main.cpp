@@ -37,19 +37,23 @@ namespace
 	public:
 		SquareRenderable() : KRE::SceneObject("square") {
 			using namespace KRE;
-			/*auto& arv = std::make_shared<AttributeRenderVariable<vertex_color>>();
-			arv->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex));
-			arv->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color));
-			arv->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
-			AddAttributeRenderVariable(arv);
+
+			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
+			auto pc = ab->CreateAttribute();
+			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
+			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
+			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+			AddAttributeSet(ab);
 
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			arv->Update(&vertices);*/
+			pc->Update(&vertices, 0, sizeof(vertex_color) * vertices.size());
+			ab->SetCount(vertices.size());
 
+			/*
 			// first parameter is a hint to wether the buffer should be hardware backed.
 			// second parameter is whether we are using indexed drawing.
 			// third parameter is wether this is instanced.
@@ -68,6 +72,7 @@ namespace
 			vertices.emplace_back(0.0f, 1.0f);
 			vertices.emplace_back(1.0f, 0.0f);
 			vertices.emplace_back(1.0f, 1.0f);
+			//ab->SetCount(vertices.size());
 			pos->Update(&vertices[0], 0, vertices.size() * sizeof(glm::vec2));
 
 			std::vector<glm::u8vec4> colors;
@@ -87,6 +92,7 @@ namespace
 			indices.emplace_back(1);
 			indices.emplace_back(3);
 			ab->UpdateIndicies(indices);
+			*/
 
 			//SetColor(255,255,255);
 			SetOrder(0);
@@ -94,7 +100,7 @@ namespace
 		virtual ~SquareRenderable() {}
 	protected:
 		KRE::DisplayDeviceDef Attach(const KRE::DisplayDevicePtr& dd) {
-			KRE::DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
+			KRE::DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
 			def.SetHint("shader", "attr_color_shader");
 			return def;
 		}
@@ -147,32 +153,32 @@ int main(int argc, char *argv[])
 	auto rq = std::make_shared<RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
-	auto cairo_canvas = Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
-	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
-	cairo_canvas->Paint();
-	cairo_canvas->Fill();
-	auto path = cairo_canvas->NewPath();
-	path->Circle(256, 256, 100);
-	cairo_canvas->AddPath(path);
-	cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
-	cairo_canvas->Fill();
-	auto text = cairo_canvas->NewPath();
-	text->MoveTo(10, 10);
-	text->TextPath("ABCDabcde");
-	cairo_canvas->AddPath(text);
-	cairo_canvas->Fill();
+	//auto cairo_canvas = Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
+	//cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
+	//cairo_canvas->Paint();
+	//cairo_canvas->Fill();
+	//auto path = cairo_canvas->NewPath();
+	//path->Circle(256, 256, 100);
+	//cairo_canvas->AddPath(path);
+	//cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
+	//cairo_canvas->Fill();
+	//auto text = cairo_canvas->NewPath();
+	//text->MoveTo(10, 10);
+	//text->TextPath("ABCDabcde");
+	//cairo_canvas->AddPath(text);
+	//cairo_canvas->Fill();
 
-	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	root->AttachNode(psystem);
-	psystem->SetNodeName("psc_node");
-	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
-	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	psystem->AttachCamera(particle_cam);
-	auto rt = WindowManager::GetDisplayDevice()->RenderTargetInstance(400, 300);
-	rt->SetDisplayRect(0, 0, 400, 300);
-	rt->Create();
-	psystem->AttachRenderTarget(rt);
-	root->AttachObject(rt);
+	//auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	//root->AttachNode(psystem);
+	//psystem->SetNodeName("psc_node");
+	//auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
+	//particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	//psystem->AttachCamera(particle_cam);
+	//auto rt = WindowManager::GetDisplayDevice()->RenderTargetInstance(400, 300);
+	//rt->SetDisplayRect(0, 0, 400, 300);
+	//rt->Create();
+	//psystem->AttachRenderTarget(rt);
+	//root->AttachObject(rt);
 
 	SDL_Event e;
 	bool done = false;
