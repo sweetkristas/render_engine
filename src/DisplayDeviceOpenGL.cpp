@@ -122,6 +122,7 @@ namespace KRE
 		GLenum ConvertIndexType(AttributeSet::IndexType it) 
 		{
 			switch(it) {
+				case AttributeSet::IndexType::INDEX_NONE:		break;
 				case AttributeSet::IndexType::INDEX_UCHAR:		return GL_UNSIGNED_BYTE;
 				case AttributeSet::IndexType::INDEX_USHORT:		return GL_UNSIGNED_SHORT;
 				case AttributeSet::IndexType::INDEX_ULONG:		return GL_UNSIGNED_INT;

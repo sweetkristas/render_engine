@@ -35,7 +35,7 @@ namespace KRE
 	{
 	public:
 		explicit SceneNode(SceneGraph* sg);
-		~SceneNode();
+		virtual ~SceneNode();
 		void AttachNode(const SceneNodePtr& node);
 		void AttachLight(size_t ref, const LightPtr& obj);
 		void AttachCamera(const CameraPtr& obj);

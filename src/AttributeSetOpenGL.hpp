@@ -35,7 +35,7 @@ namespace KRE
 		AttributeOGL(AccessFreqHint freq, AccessTypeHint type);
 		virtual ~AttributeOGL();
 		void Update(const void* value, ptrdiff_t offset, size_t size) override;
-		const intptr_t Value() const override;
+		intptr_t Value() const override;
 		size_t Size() const override { return size_; }
 		void Bind() override;
 		void Unbind() override;

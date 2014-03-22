@@ -89,9 +89,9 @@ namespace KRE
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	const intptr_t AttributeOGL::Value() const
+	intptr_t AttributeOGL::Value() const
 	{
-		return NULL;
+		return 0;
 	}
 
 	void AttributeOGL::Bind()

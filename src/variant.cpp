@@ -3,6 +3,15 @@
 #include "json.hpp"
 #include "variant.hpp"
 
+namespace
+{
+	const variant& null_variant()
+	{
+		static variant res;
+		return res;
+	}
+}
+
 variant::variant()
 	: type_(VARIANT_TYPE_NULL), i_(0), f_(0.0f), b_(false)
 {
@@ -95,6 +104,7 @@ int64_t variant::as_int() const
 		return int64_t(f_);
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1 : 0;
+	default: break;
 	}
 	ASSERT_LOG(false, "as_int() type conversion error from " << type_as_string() << " to int");
 	return 0;
@@ -109,6 +119,7 @@ int64_t variant::as_int(int64_t value) const
 		return int64_t(f_);
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1 : 0;
+	default: break;
 	}
 	return value;
 }
@@ -129,6 +140,7 @@ std::string variant::as_string() const
 		s << f_;
 		return s.str();
 	}
+	default: break;
 	}
 	ASSERT_LOG(false, "as_string() type conversion error from " << type_as_string() << " to string");
 	return "";
@@ -143,6 +155,7 @@ float variant::as_float() const
 		return f_;
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1.0f : 0.0f;
+	default: break;
 	}
 	ASSERT_LOG(false, "as_float() type conversion error from " << type_as_string() << " to float");
 	return 0;
@@ -157,6 +170,7 @@ float variant::as_float(float value) const
 		return f_;
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1.0f : 0.0f;
+	default: break;
 	}
 	return value;
 }
@@ -176,6 +190,7 @@ bool variant::as_bool() const
 		return l_.empty() ? false : true;
 	case VARIANT_TYPE_MAP:
 		return m_.empty() ? false : true;
+	default: break;
 	}
 	ASSERT_LOG(false, "as_bool() type conversion error from " << type_as_string() << " to boolean");
 	return 0;
@@ -241,6 +256,7 @@ bool variant::operator<(const variant& n) const
 			}
 		}
 		return l_.size() < n.l_.size();
+	default: break;
 	}
 	ASSERT_LOG(false, "operator< unknown type: " << type_as_string());
 	return false;
@@ -269,6 +285,7 @@ const variant& variant::operator[](const variant& v) const
 	} else {
 		ASSERT_LOG(false, "Tried to index a variant that isn't a list or map: " << type_as_string());
 	}
+	return null_variant();
 }
 
 const variant& variant::operator[](const std::string& key) const
@@ -279,7 +296,7 @@ const variant& variant::operator[](const std::string& key) const
 	if(it != m_.end()) {
 		return it->second;
 	}
-	return variant();
+	return null_variant();
 }
 
 bool variant::has_key(const variant& v) const
@@ -344,6 +361,7 @@ bool variant::operator==(const variant& n) const
 			}
 		}
 		return true;
+	default: break;
 	}
 	return false;
 }

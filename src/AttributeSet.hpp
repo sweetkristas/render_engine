@@ -25,6 +25,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -139,9 +140,9 @@ namespace KRE
 				<< offset+size 
 				<< " > " 
 				<< Size());
-			memcpy(&mem_[offset], value, size);
+			std::memcpy(&mem_[offset], value, size);
 		}
-		virtual const intptr_t Value() const { return reinterpret_cast<intptr_t>(&mem_[0]); }
+		virtual intptr_t Value() const { return reinterpret_cast<intptr_t>(&mem_[0]); }
 		virtual size_t Size() const { return mem_.size(); }
 		void SetOffset(ptrdiff_t offs) {
 			offs_ = offs;
@@ -207,6 +208,7 @@ namespace KRE
 		IndexType GetIndexType() const { return index_type_; }
 		virtual const void* GetIndexArray() const { 
 			switch(index_type_) {
+			case IndexType::INDEX_NONE:		break;
 			case IndexType::INDEX_UCHAR:	return &index8_[0];
 			case IndexType::INDEX_USHORT:	return &index16_[0];
 			case IndexType::INDEX_ULONG:	return &index32_[0];

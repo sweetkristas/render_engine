@@ -1,12 +1,11 @@
-#include <boost/lexical_cast.hpp>
-#include <boost/tuple/tuple.hpp>
-
 #include <deque>
 #include <cstdint>
+#include <tuple>
 
 #include "filesystem.hpp"
 #include "formatter.hpp"
 #include "json.hpp"
+#include "lexical_cast.hpp"
 
 namespace json
 {
@@ -118,12 +117,12 @@ namespace json
 			pushed_back_tokens.push_back(std::make_pair(tok, value));
 		}
 		
-		boost::tuple<json_token, variant> get_next_token()
+		std::tuple<json_token, variant> get_next_token()
 		{
 			if(pushed_back_tokens.empty() == false) {
 				std::pair<json_token, variant> pr = pushed_back_tokens.front();
 				pushed_back_tokens.pop_front();
-				return boost::make_tuple(pr.first, pr.second);
+				return std::make_tuple(pr.first, pr.second);
 			}
 
 			bool running = true;
@@ -135,20 +134,20 @@ namespace json
 					if(in_string) {
 						throw parse_error(formatter() << "End of data inside string");
 					}
-					return boost::make_tuple(DOCUMENT_END, variant());
+					return std::make_tuple(DOCUMENT_END, variant());
 				}
 				if(in_string) {
 					if(*it_ == '"') {
 						++it_;
 						variant string_node(new_string);
 						//if(new_string == "true") {
-						//	return boost::make_tuple(LIT_TRUE, variant::from_bool(true));
+						//	return std::make_tuple(LIT_TRUE, variant::from_bool(true));
 						//} else if(new_string == "false") {
-						//	return boost::make_tuple(LIT_FALSE, variant::from_bool(false));
+						//	return std::make_tuple(LIT_FALSE, variant::from_bool(false));
 						//} else if(new_string == "null") {
-						//	return boost::make_tuple(LIT_NULL, variant());
+						//	return std::make_tuple(LIT_NULL, variant());
 						//}
-						return boost::make_tuple(STRING_LITERAL, string_node);
+						return std::make_tuple(STRING_LITERAL, string_node);
 					} else if(*it_ == '\\') {
 						++it_;
 						if(it_ == lex_str_.end()) {
@@ -209,34 +208,34 @@ namespace json
 					if(*it_ == '{' || *it_ == '}' || *it_ == '[' || *it_ == ']' || *it_ == ',' || *it_ == ':' || *it_ == '"' || is_space(*it_)) {
 						if(new_string.empty() == false) {
 							if(new_string == "true") {
-								return boost::make_tuple(LIT_TRUE, variant::from_bool(true));
+								return std::make_tuple(LIT_TRUE, variant::from_bool(true));
 							} else if(new_string == "false") {
-								return boost::make_tuple(LIT_FALSE, variant::from_bool(false));
+								return std::make_tuple(LIT_FALSE, variant::from_bool(false));
 							} else if(new_string == "null") {
-								return boost::make_tuple(LIT_NULL, variant());
+								return std::make_tuple(LIT_NULL, variant());
 							} else {
-								return boost::make_tuple(LITERAL, variant(new_string));
+								return std::make_tuple(LITERAL, variant(new_string));
 							}
 						}
 					}
 					if(*it_ == '{') {
 						++it_;
-						return boost::make_tuple(LEFT_BRACE, variant());
+						return std::make_tuple(LEFT_BRACE, variant());
 					} else if(*it_ == '}') {
 						++it_;
-						return boost::make_tuple(RIGHT_BRACE, variant());
+						return std::make_tuple(RIGHT_BRACE, variant());
 					} else if(*it_ == '[') {
 						++it_;
-						return boost::make_tuple(LEFT_BRACKET, variant());
+						return std::make_tuple(LEFT_BRACKET, variant());
 					} else if(*it_ == ']') {
 						++it_;
-						return boost::make_tuple(RIGHT_BRACKET, variant());
+						return std::make_tuple(RIGHT_BRACKET, variant());
 					} else if(*it_ == ',') {
 						++it_;
-						return boost::make_tuple(COMMA, variant());
+						return std::make_tuple(COMMA, variant());
 					} else if(*it_ == ':') {
 						++it_;
-						return boost::make_tuple(COLON, variant());
+						return std::make_tuple(COLON, variant());
 					} else if(*it_ == '"') {
 						in_string = true;
 						++it_;
@@ -279,15 +278,15 @@ namespace json
 						if(is_float) {
 							//std::cerr << "Convert \"" << num << "\" to float" << std::endl;
 							try {
-								return boost::make_tuple(FLOAT, variant(boost::lexical_cast<float>(num)));
-							} catch (boost::bad_lexical_cast&) {
+								return std::make_tuple(FLOAT, variant(lex::lexical_cast<float>(num)));
+							} catch (lex::bad_lexical_cast&) {
 								throw parse_error(formatter() << "error converting value to float: " << num);
 							}
 						} else {
 							//std::cerr << "Convert \"" << num << "\" to int" << std::endl;
 							try {
-								return boost::make_tuple(INTEGER, variant(boost::lexical_cast<int64_t>(num)));
-							} catch (boost::bad_lexical_cast&) {
+								return std::make_tuple(INTEGER, variant(lex::lexical_cast<int64_t>(num)));
+							} catch (lex::bad_lexical_cast&) {
 								throw parse_error(formatter() << "error converting value to integer: " << num);
 							}
 						}
@@ -299,7 +298,7 @@ namespace json
 					}
 				}
 			}
-			return boost::make_tuple(DOCUMENT_END, variant());
+			return std::make_tuple(DOCUMENT_END, variant());
 		}
 
 	private:
@@ -320,7 +319,7 @@ namespace json
 			while(running) {
 				lexer::json_token tok;
 				variant token_value;
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				if(lexer::is_simple_value(tok)) {
 					res.push_back(token_value);
 				} else if(tok == lexer::LEFT_BRACE) {
@@ -330,11 +329,11 @@ namespace json
 				} else {
 					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok));
 				}
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				if(tok == lexer::RIGHT_BRACKET) {
 					running = false;
 				} else if(tok == lexer::COMMA) {
-					boost::tie(tok, token_value) = lex.get_next_token();
+					std::tie(tok, token_value) = lex.get_next_token();
 					if(tok == lexer::RIGHT_BRACKET) {
 						running = false;
 					} else {
@@ -352,18 +351,18 @@ namespace json
 			while(running) {
 				lexer::json_token tok;
 				variant token_value;
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				variant key;
 				if(tok == lexer::LITERAL || tok == lexer::STRING_LITERAL) {
 					key = token_value;
 				} else {
 					throw parse_error(formatter() << "Unexpected token type: " << lexer::token_as_string(tok) << " expected string or literal");
 				}
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				if(tok != lexer::COLON) {
 					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok));
 				}
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				if(lexer::is_simple_value(tok)) {
 					res[key] = token_value;
 				} else if(tok == lexer::LEFT_BRACE) {
@@ -373,11 +372,11 @@ namespace json
 				} else {
 					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok));
 				}
-				boost::tie(tok, token_value) = lex.get_next_token();
+				std::tie(tok, token_value) = lex.get_next_token();
 				if(tok == lexer::RIGHT_BRACE) {
 					running = false;
 				} else if(tok == lexer::COMMA) {
-					boost::tie(tok, token_value) = lex.get_next_token();
+					std::tie(tok, token_value) = lex.get_next_token();
 					if(tok == lexer::RIGHT_BRACE) {
 						running = false;
 					} else {
@@ -394,7 +393,7 @@ namespace json
 		lexer lex(s);
 		lexer::json_token tok;
 		variant token_value;
-		boost::tie(tok, token_value) = lex.get_next_token();
+		std::tie(tok, token_value) = lex.get_next_token();
 		if(tok == lexer::LEFT_BRACE) {
 			return read_object(lex);
 		} else if(tok == lexer::LEFT_BRACKET) {

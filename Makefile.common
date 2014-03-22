@@ -5,32 +5,47 @@
 
 # Game engine
 objects = \
+	src/AttributeSet.o \
+	src/AttributeSetOGL.o \
 	src/CameraObject.o \
 	src/Color.o \
 	src/DisplayDevice.o \
 	src/DisplayDeviceOpenGL.o \
 	src/DisplayDeviceOpenGLFixed.o \
 	src/DisplayDeviceSDL.o \
+	src/FboOpenGL.o \
+	src/filesystem.o \
 	src/Frustum.o \
+	src/HardwareBuffer.o \
+	src/json.o \
 	src/LightObject.o \
 	src/logger.o \
 	src/main.o \
+	src/Material.o \
+	src/MaterialOpenGL.o \
+	src/ParticleSystemAffectors.o \
+	src/ParticleSystem.o \
+	src/ParticleSystemEmitters.o \
+	src/ParticleSystemObservers.o \
+	src/ParticleSystemParameters.o \
 	src/Renderable.o \
 	src/RenderManager.o \
 	src/RenderQueue.o \
+	src/RenderTarget.o \
 	src/RenderVariable.o \
 	src/SceneGraph.o \
 	src/SceneNode.o \
 	src/SceneObject.o \
 	src/SceneParameters.o \
-	src/Shaders.o \
+	src/ShadersOpenGL.o \
 	src/Surface.o \
 	src/SurfaceSDL.o \
 	src/Texture.o \
 	src/TextureOpenGL.o \
 	src/TextureSDL.o \
-	src/VGraph.o \
+	src/variant.o \
 	src/VGraphCairo.o \
+	src/VGraph.o \
 	src/VGraphOpenGL.o \
 	src/VGraphOpenGLFixed.o \
 	src/WindowManager.o

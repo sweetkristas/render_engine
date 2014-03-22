@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <regex>
 #include "Geometry.hpp"
+#include "lexical_cast.hpp"
 
 namespace Geometry
 {
@@ -97,20 +98,7 @@ namespace Geometry
 	template<typename T> inline
 	Rect<T>::Rect(const std::vector<T>& v)
 	{
-		switch(v.size()) {
-			case 2:
-				*this = Rect<T>::FromCoordinates(v[0], v[1], v[0], v[1]);
-				break;
-			case 3:
-				*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[1]);
-				break;
-			case 4:
-				*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[3]);
-				break;
-			default:
-				*this = Rect<T>();
-				break;
-		}
+		from_vector(v);
 	}
 
 	template<typename T> inline
@@ -131,7 +119,7 @@ namespace Geometry
 		int num_items = 0;
 		std::vector<std::string> buf = split(str, ",| |;");
 		for(int n = 0; n != 4 && n != buf.size(); ++n) {
-			items[num_items++] = boost::lexical_cast<T>(buf[n]);
+			items[num_items++] = lex::lexical_cast<T>(buf[n]);
 		}
 
 		switch(num_items) {

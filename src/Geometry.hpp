@@ -66,6 +66,23 @@ namespace Geometry
 			return FromCoordinates(x1,y1,x2,y2);
 		}
 
+		void from_vector(const std::vector<T>& v) {
+			switch(v.size()) {
+				case 2:
+					*this = Rect<T>::FromCoordinates(v[0], v[1], v[0], v[1]);
+					break;
+				case 3:
+					*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[1]);
+					break;
+				case 4:
+					*this = Rect<T>::FromCoordinates(v[0], v[1], v[2], v[3]);
+					break;
+				default:
+					*this = Rect<T>();
+					break;
+			}
+		}
+
 		T x() const { return top_left_.x; }
 		T y() const { return top_left_.y; }
 		T x2() const { return bottom_right_.x; }
@@ -116,7 +133,7 @@ namespace Geometry
 			for(size_t n = 0; n != v.num_elements(); ++n) {
 				vec.push_back(int(v.as_int()));
 			}
-			*this = Rect<int>::Rect(vec);
+			from_vector(vec);
 			return;
 		} else if(v.is_map()) {
 			ASSERT_LOG((v.has_key("x") && v.has_key("y") && v.has_key("w") && v.has_key("h"))
@@ -140,7 +157,7 @@ namespace Geometry
 			for(size_t n = 0; n != v.num_elements(); ++n) {
 				vec.push_back(float(v.as_float()));
 			}
-			*this = Rect<float>::Rect(vec);
+			from_vector(vec);
 			return;
 		} else if(v.is_map()) {
 			ASSERT_LOG((v.has_key("x") && v.has_key("y") && v.has_key("w") && v.has_key("h"))
