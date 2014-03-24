@@ -29,22 +29,21 @@
 
 namespace KRE
 {
-	class AttributeOGL : public Attribute
+	class HardwareAttributeOGL : public HardwareAttribute
 	{
 	public:
-		AttributeOGL(AccessFreqHint freq, AccessTypeHint type);
-		virtual ~AttributeOGL();
+		HardwareAttributeOGL(AttributeBase* parent);
+		virtual ~HardwareAttributeOGL();
 		void Update(const void* value, ptrdiff_t offset, size_t size) override;
-		intptr_t Value() const override;
-		size_t Size() const override { return size_; }
 		void Bind() override;
 		void Unbind() override;
+		intptr_t Value() override { return 0; }
 	private:
-		DISALLOW_COPY_AND_ASSIGN(AttributeOGL);
 		GLuint buffer_id_;
-		size_t size_;
 		GLenum access_pattern_;
+		size_t size_;
 	};
+
 
 	class AttributeSetOGL : public AttributeSet
 	{
@@ -64,7 +63,6 @@ namespace KRE
 	
 		explicit AttributeSetOGL(bool indexed, bool instanced);
 		virtual ~AttributeSetOGL();	
-		AttributePtr CreateAttribute(Attribute::AccessFreqHint freq, Attribute::AccessTypeHint type) override;
 		const void* GetIndexArray() const override { return NULL; }
 		void BindIndex() override;
 		void UnbindIndex() override;

@@ -27,28 +27,28 @@ namespace KRE
 {
 	namespace
 	{
-		GLenum convert_access_type_and_frequency(Attribute::AccessFreqHint f, Attribute::AccessTypeHint t)
+		GLenum convert_access_type_and_frequency(AccessFreqHint f, AccessTypeHint t)
 		{
 			switch(f) {
-			case Attribute::AccessFreqHint::STATIC:
+			case AccessFreqHint::STATIC:
 				switch(t) {
-				case Attribute::AccessTypeHint::DRAW: return GL_STATIC_DRAW;
-				case Attribute::AccessTypeHint::READ: return GL_STATIC_READ;
-				case Attribute::AccessTypeHint::COPY: return GL_STATIC_COPY;
+				case AccessTypeHint::DRAW: return GL_STATIC_DRAW;
+				case AccessTypeHint::READ: return GL_STATIC_READ;
+				case AccessTypeHint::COPY: return GL_STATIC_COPY;
 				}
 				break;
-			case Attribute::AccessFreqHint::STREAM:
+			case AccessFreqHint::STREAM:
 				switch(t) {
-				case Attribute::AccessTypeHint::DRAW: return GL_STREAM_DRAW;
-				case Attribute::AccessTypeHint::READ: return GL_STREAM_READ;
-				case Attribute::AccessTypeHint::COPY: return GL_STREAM_COPY;
+				case AccessTypeHint::DRAW: return GL_STREAM_DRAW;
+				case AccessTypeHint::READ: return GL_STREAM_READ;
+				case AccessTypeHint::COPY: return GL_STREAM_COPY;
 				}
 				break;
-			case Attribute::AccessFreqHint::DYNAMIC:
+			case AccessFreqHint::DYNAMIC:
 				switch(t) {
-				case Attribute::AccessTypeHint::DRAW: return GL_DYNAMIC_DRAW;
-				case Attribute::AccessTypeHint::READ: return GL_DYNAMIC_READ;
-				case Attribute::AccessTypeHint::COPY: return GL_DYNAMIC_COPY;
+				case AccessTypeHint::DRAW: return GL_DYNAMIC_DRAW;
+				case AccessTypeHint::READ: return GL_DYNAMIC_READ;
+				case AccessTypeHint::COPY: return GL_DYNAMIC_COPY;
 				}
 				break;
 			}
@@ -57,19 +57,22 @@ namespace KRE
 		}
 	}
 
-	AttributeOGL::AttributeOGL(AccessFreqHint freq, AccessTypeHint type)
-		: Attribute(freq, type),
-		access_pattern_(convert_access_type_and_frequency(freq, type))
+
+	HardwareAttributeOGL::HardwareAttributeOGL(AttributeBase* parent)
+		: HardwareAttribute(parent), 
+		buffer_id_(-1),
+		access_pattern_(convert_access_type_and_frequency(parent->AccessFrequency(), parent->AccessType())),
+		size_(0)
 	{
 		glGenBuffers(1, &buffer_id_);
 	}
 
-	AttributeOGL::~AttributeOGL()
+	HardwareAttributeOGL::~HardwareAttributeOGL()
 	{
 		glDeleteBuffers(1, &buffer_id_);
 	}
 
-	void AttributeOGL::Update(const void* value, ptrdiff_t offset, size_t size)
+	void HardwareAttributeOGL::Update(const void* value, ptrdiff_t offset, size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_id_);
 		if(offset == 0) {
@@ -78,31 +81,30 @@ namespace KRE
 			glBufferSubData(GL_ARRAY_BUFFER, 0, size, value);
 			size_ = size;
 		} else {
-			ASSERT_LOG(Size() != 0, "No buffer previously bound.");
-			ASSERT_LOG(offset + size <= Size(), 
+			if(size_ == 0) {
+				glBufferData(GL_ARRAY_BUFFER, size+offset, 0, access_pattern_);
+			}
+			ASSERT_LOG(offset + size <= size_, 
 				"When buffering data offset+size exceeds data store size: " 
 				<< offset+size 
 				<< " > " 
-				<< Size());
+				<< size_);
 			glBufferSubData(GL_ARRAY_BUFFER, offset, size, value);
+			size_ = size + offset;
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	intptr_t AttributeOGL::Value() const
-	{
-		return 0;
-	}
-
-	void AttributeOGL::Bind()
+	void HardwareAttributeOGL::Bind()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_id_);
 	}
 
-	void AttributeOGL::Unbind()
+	void HardwareAttributeOGL::Unbind()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+
 
 	AttributeSetOGL::AttributeSetOGL(bool indexed, bool instanced)
 		: AttributeSet(indexed, instanced)
@@ -117,12 +119,6 @@ namespace KRE
 		if(IsIndexed()) {
 			glDeleteBuffers(1, &index_buffer_id_);
 		}
-	}
-
-	AttributePtr AttributeSetOGL::CreateAttribute(Attribute::AccessFreqHint freq, Attribute::AccessTypeHint type)
-	{
-		GetAttributes().emplace_back(new AttributeOGL(freq, type));
-		return GetAttributes().back();
 	}
 
 	void AttributeSetOGL::BindIndex()

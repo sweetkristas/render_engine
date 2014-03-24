@@ -23,9 +23,10 @@
 
 #pragma once
 
+#include <algorithm>
+#include <iterator>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -35,6 +36,41 @@
 
 namespace KRE
 {
+	class AttributeBase;
+	typedef std::shared_ptr<AttributeBase> AttributeBasePtr;
+
+	// abstract base class for Hardware-buffered attributes.
+	class HardwareAttribute
+	{
+	public:
+		HardwareAttribute(AttributeBase* parent) : parent_(parent) {}
+		virtual ~HardwareAttribute() {}
+		virtual void Update(const void* value, ptrdiff_t offset, size_t size) = 0;
+		virtual void Bind() {}
+		virtual void Unbind() {}
+		virtual intptr_t Value() = 0;		
+	private:
+		AttributeBase* parent_;
+	};
+	typedef std::shared_ptr<HardwareAttribute> HardwareAttributePtr;
+
+	class HardwareAttributeImpl : HardwareAttribute
+	{
+	public:
+		HardwareAttributeImpl(AttributeBase* parent) : HardwareAttribute(parent) {}
+		virtual ~HardwareAttributeImpl() {}
+		void Update(const void* value, ptrdiff_t offset, size_t size) {
+			if(offset == 0) {
+				value_ = reinterpret_cast<intptr_t>(value);
+			}
+		}
+		void Bind() {}
+		void Unbind() {}
+		intptr_t Value() override { return value_; }
+	private:
+		intptr_t value_;
+	};
+
 	class AttributeDesc
 	{
 	public:
@@ -97,80 +133,128 @@ namespace KRE
 		DisplayDeviceDataPtr display_data_;
 	};
 
-	// This is ugly since the Update() method requires a void*
-	// I've tried several things to try and make this nice,
-	// but not found anything that really fits nicely.
-	class Attribute
+	enum class AccessFreqHint {
+		//! Data store modified once and used in-frequently
+		STREAM,
+		//! Data store modified once and used many times
+		STATIC,
+		//! Data store modified repeatedly and used many times.
+		DYNAMIC,
+	};
+	enum class AccessTypeHint {
+		//! Modified by application, used by display device for drawing.
+		DRAW,
+		//! Modified by display device, returned to application.
+		READ,
+		//! Data is modified by display device and used by display device for copying.
+		COPY,
+	};
+
+	class AttributeBase
 	{
 	public:
-		enum class AccessFreqHint {
-			//! Data store modified once and used in-frequently
-			STREAM,
-			//! Data store modified once and used many times
-			STATIC,
-			//! Data store modified repeatedly and used many times.
-			DYNAMIC,
-		};
-		enum class AccessTypeHint {
-			//! Modified by application, used by display device for drawing.
-			DRAW,
-			//! Modified by display device, returned to application.
-			READ,
-			//! Data is modified by display device and used by display device for copying.
-			COPY,
-		};
-		Attribute(AccessFreqHint freq, AccessTypeHint type) 
+		AttributeBase(AccessFreqHint freq, AccessTypeHint type)
 			: access_freq_(freq),
 			access_type_(type),
 			offs_(0) {
 		}
-		virtual ~Attribute() {}
-		
+		virtual ~AttributeBase() {}
 		void AddAttributeDescription(const AttributeDesc& attrdesc) {
 			desc_.emplace_back(attrdesc);
 		}
 		std::vector<AttributeDesc>& GetAttrDesc() { return desc_; }
-		virtual void Update(const void* value, ptrdiff_t offset, size_t size) {
-			if(mem_.empty()) {
-				ASSERT_LOG(offset == 0, "Must have 0 offset upon initialisation");
-				mem_.resize(size);
-			}
-			ASSERT_LOG(offset + size <= Size(), 
-				"When buffering data offset+size exceeds data store size: " 
-				<< offset+size 
-				<< " > " 
-				<< Size());
-			std::memcpy(&mem_[offset], value, size);
-		}
-		virtual intptr_t Value() const { return reinterpret_cast<intptr_t>(&mem_[0]); }
-		virtual size_t Size() const { return mem_.size(); }
 		void SetOffset(ptrdiff_t offs) {
 			offs_ = offs;
 		}
 		ptrdiff_t GetOffset() const { return offs_; } 
-		virtual void Bind() {}
-		virtual void Unbind() {}
 		AccessFreqHint AccessFrequency() const { return access_freq_; }
 		AccessTypeHint AccessType() const { return access_type_; }
+		HardwareAttributePtr GetDeviceBufferData() const { return hardware_; }
 	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(Attribute);
 		AccessFreqHint access_freq_;
 		AccessTypeHint access_type_;
-		std::vector<AttributeDesc> desc_;
 		ptrdiff_t offs_;
-		std::vector<uint8_t> mem_;
+		std::vector<AttributeDesc> desc_;
+		HardwareAttributePtr hardware_;
 	};
-	typedef std::shared_ptr<Attribute> AttributePtr;
 
-	struct AttributeBinder
+	template<typename T, 
+		template<typename E, 
+		         typename = std::allocator<E>> 
+		class Container = std::vector>
+	class Attribute : public AttributeBase
 	{
-		AttributeBinder(AttributePtr ap) : ap_(ap)  {
-			ap->Bind();
+	public:
+		typedef typename Container<T>::reference reference;
+		typedef typename Container<T>::const_reference const_reference;
+		typedef typename Container<T>::iterator iterator;
+		typedef typename Container<T>::const_iterator const_iterator;
+		typedef typename Container<T>::size_type size_type;
+		typedef T value_type;
+
+		Attribute(bool hardware, AccessFreqHint freq=AccessFreqHint::DYNAMIC, AccessTypeHint type=AccessTypeHint::DRAW) 
+			:  AttributeBase(freq, type) {
+			if(hardware) {
+				//hardware_ = DisplayDevice::CreateAttributeBuffer();
+			}
 		}
-		~AttributeBinder() {
-			ap_->Unbind();
+		virtual ~Attribute() {}
+		
+		void Update(const Container<T>& values) {
+			//if(hardware_) {
+			//
+			//}
+			elements_ = values;
 		}
-		AttributePtr ap_;
+		void Update(const Container<T>& src, iterator& dst) {
+			//if(hardware_) {
+			//
+			//}
+			std::copy(src.begin(), src.end(), dst);
+		}
+		void Update(Container<T>* values) {
+			//if(hardware_) {
+			//
+			//}
+			elements_.swap(*values);
+		}
+		size_t size() const { 
+			return elements_.size();
+		}
+		void Bind() {
+			if(hardware_) {
+				hardware_->Bind();
+			}
+		}		
+		void Unbind() {
+			if(hardware_) {
+				hardware_->Unbind();
+			}
+		}
+		const_iterator begin() const {
+			return elements_.begin();
+		}
+		const_iterator end() const {
+			return elements_.end();
+		}
+		const_iterator cbegin() const {
+			return elements_.cbegin();
+		}
+		const_iterator cend() const {
+			return elements_.cend();
+		}
+		iterator begin() {
+			return elements_.begin();
+		}
+		iterator end() {
+			return elements_.end();
+		}
+		void SetOffset(const_iterator& it) {
+			SetOffset(std::distance(elements_.begin(), it));
+		}
+	private:
+		DISALLOW_COPY_ASSIGN_AND_DEFAULT(Attribute);
+		Container<T> elements_;
 	};
 
 	class AttributeSet
@@ -197,9 +281,6 @@ namespace KRE
 		explicit AttributeSet(bool indexed, bool instanced);
 		virtual ~AttributeSet();
 
-		virtual AttributePtr CreateAttribute(Attribute::AccessFreqHint freq=Attribute::AccessFreqHint::DYNAMIC, 
-			Attribute::AccessTypeHint type=Attribute::AccessTypeHint::DRAW);
-		
 		void SetDrawMode(DrawMode dm);
 		DrawMode GetDrawMode() { return draw_mode_; }
 
@@ -227,13 +308,17 @@ namespace KRE
 		void UpdateIndicies(std::vector<uint16_t>* value);
 		void UpdateIndicies(std::vector<uint32_t>* value);
 
+		void AddAttribute(const AttributeBasePtr& attrib) {
+			attributes_.emplace_back(attrib);
+		}
+
 		virtual void BindIndex() {};
 		virtual void UnbindIndex() {};
 
 		void SetOffset(ptrdiff_t offset) { offset_ = offset; }
 		ptrdiff_t GetOffset() const { return offset_; }
 
-		std::vector<AttributePtr>& GetAttributes() { return attributes_; }
+		std::vector<AttributeBasePtr>& GetAttributes() { return attributes_; }
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSet);
 		DrawMode draw_mode_;
@@ -244,7 +329,7 @@ namespace KRE
 		std::vector<uint8_t> index8_;
 		std::vector<uint16_t> index16_;
 		std::vector<uint32_t> index32_;
-		std::vector<AttributePtr> attributes_;
+		std::vector<AttributeBasePtr> attributes_;
 		size_t count_;
 		ptrdiff_t offset_;
 	};

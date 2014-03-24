@@ -279,8 +279,9 @@ namespace KRE
 			std::vector<GLuint> enabled_attribs;
 
 			for(auto& attr : as->GetAttributes()) {
+				auto attr_hw = attr->GetDeviceBufferData();
 				//auto attrogl = std::dynamic_pointer_cast<AttributeOGL>(attr);
-				attr->Bind();
+				attr_hw->Bind();
 				for(auto& attrdesc : attr->GetAttrDesc()) {
 					auto ddp = std::dynamic_pointer_cast<RenderVariableDeviceData>(attrdesc.GetDisplayData());
 					ASSERT_LOG(ddp != NULL, "Converting attribute device data was NULL.");
@@ -291,7 +292,7 @@ namespace KRE
 						ConvertRenderVariableType(attrdesc.VarType()), 
 						attrdesc.Normalise(), 
 						attrdesc.Stride(), 
-						reinterpret_cast<const GLvoid*>(attr->Value() + attr->GetOffset() + attrdesc.Offset()));
+						reinterpret_cast<const GLvoid*>(attr_hw->Value() + attr->GetOffset() + attrdesc.Offset()));
 					enabled_attribs.emplace_back(ddp->GetActiveMapIterator()->second.location);
 				}
 			}

@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <deque>
 #include <list>
 #include <vector>
 
@@ -39,9 +40,10 @@ namespace
 			using namespace KRE;
 
 			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
-			auto pc = ab->CreateAttribute();
+			auto pc = new Attribute<vertex_color>(false, AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
 			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
 			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
+			ab->AddAttribute(AttributeBasePtr(pc));
 			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
 			AddAttributeSet(ab);
 
@@ -50,8 +52,10 @@ namespace
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			pc->Update(&vertices, 0, sizeof(vertex_color) * vertices.size());
+			pc->Update(&vertices);
 			ab->SetCount(vertices.size());
+
+			//pc->Update(vertices, pc->begin()+5);
 
 			/*
 			// first parameter is a hint to wether the buffer should be hardware backed.
