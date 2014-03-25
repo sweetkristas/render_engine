@@ -202,18 +202,22 @@ namespace KRE
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Create the render variables.
-		/*using namespace KRE;
-		auto& arv_ = std::make_shared<AttributeRenderVariable<vertex_texcoord>>();
-		arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vertex));
-		arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, texcoord));
-		arv_->SetDrawMode(RenderVariable::TRIANGLE_STRIP);
-		AddAttributeRenderVariable(arv_);*/
 
-		//std::vector<vertex_texcoord> vts;
-		//auto tex = Material()->GetTexture();
+		auto as = DisplayDevice::CreateAttributeSet(false, false, false);
+		as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+		as->SetCount(4);
+		AddAttributeSet(as);
+
+		arv_ = std::make_shared<Attribute<vertex_texcoord>>(AccessFreqHint::STATIC);
+		arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vertex)));
+		arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, texcoord)));
+		as->AddAttribute(arv_);
+
+		std::vector<vertex_texcoord> vts;
+		auto tex = Material()->GetTexture();
 		// this is of course only-true if all the textures have the same
 		// size -- which they do.
-		/*const float x1 = tex[0]->CoordinateRect().x();
+		const float x1 = tex[0]->CoordinateRect().x();
 		const float y1 = tex[0]->CoordinateRect().y();
 		const float x2 = tex[0]->CoordinateRect().x2();
 		const float y2 = tex[0]->CoordinateRect().y2();
@@ -225,7 +229,7 @@ namespace KRE
 		vts.emplace_back(glm::vec2(vx1, vy2), glm::vec2(x1, y1));
 		vts.emplace_back(glm::vec2(vx2, vy1), glm::vec2(x2, y2));
 		vts.emplace_back(glm::vec2(vx2, vy2), glm::vec2(x2, y1));
-		arv_->Update(&vts);*/
+		arv_->Update(&vts);
 
 		/*auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
 		urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);

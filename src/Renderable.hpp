@@ -28,7 +28,6 @@
 #include "AttributeSet.hpp"
 #include "Material.hpp"
 #include "RenderQueue.hpp"
-#include "RenderVariable.hpp"
 #include "SceneFwd.hpp"
 
 namespace KRE

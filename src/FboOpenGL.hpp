@@ -24,6 +24,7 @@
 #pragma once
 
 #include <vector>
+#include "AttributeSet.hpp"
 #include "RenderTarget.hpp"
 #include "variant.hpp"
 
@@ -60,7 +61,7 @@ namespace KRE
 		std::shared_ptr<GLuint> sample_framebuffer_id_;
 		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
 
-		std::shared_ptr<AttributeRenderVariable<vertex_texcoord>> arv_;
+		std::shared_ptr<Attribute<vertex_texcoord>> arv_;
 
 		unsigned tex_width_;
 		unsigned tex_height_;

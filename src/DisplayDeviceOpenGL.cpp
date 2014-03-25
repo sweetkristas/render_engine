@@ -30,7 +30,6 @@
 #include "FboOpenGL.hpp"
 #include "LightObject.hpp"
 #include "MaterialOpenGL.hpp"
-#include "RenderVariable.hpp"
 #include "TextureOpenGL.hpp"
 
 namespace KRE
@@ -371,7 +370,7 @@ namespace KRE
 		return MaterialPtr(new OpenGLMaterial(name, textures, blend, fog, lighting, depth_write, depth_check));
 	}
 
-	RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(size_t width, size_t height, 
+	RenderTargetPtr DisplayDeviceOpenGL::HandleCreateRenderTarget(size_t width, size_t height, 
 			size_t color_plane_count, 
 			bool depth, 
 			bool stencil, 
@@ -381,7 +380,7 @@ namespace KRE
 		return RenderTargetPtr(new FboOpenGL(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples));
 	}
 
-	RenderTargetPtr DisplayDeviceOpenGL::RenderTargetInstance(const variant& node)
+	RenderTargetPtr DisplayDeviceOpenGL::HandleCreateRenderTarget(const variant& node)
 	{
 		return RenderTargetPtr(new FboOpenGL(node));
 	}
@@ -389,6 +388,11 @@ namespace KRE
 	AttributeSetPtr DisplayDeviceOpenGL::HandleCreateAttributeSet(bool indexed, bool instanced)
 	{
 		return AttributeSetPtr(new AttributeSetOGL(indexed, instanced));
+	}
+
+	HardwareAttributePtr DisplayDeviceOpenGL::HandleCreateAttribute(AttributeBase* parent)
+	{
+		return HardwareAttributePtr(new HardwareAttributeOGL(parent));
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.

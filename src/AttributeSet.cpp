@@ -22,6 +22,7 @@
 */
 
 #include "AttributeSet.hpp"
+#include "DisplayDevice.hpp"
 
 namespace KRE
 {
@@ -45,17 +46,12 @@ namespace KRE
 		draw_mode_ = dm;
 	}
 
-	AttributePtr AttributeSet::CreateAttribute(Attribute::AccessFreqHint freq, Attribute::AccessTypeHint type)
-	{
-		attributes_.emplace_back(new Attribute(freq,type));
-		return attributes_.back();
-	}
-
 	void AttributeSet::UpdateIndicies(const std::vector<uint8_t>& value) 
 	{
 		index_type_ = IndexType::INDEX_UCHAR;
 		index8_ = value;
 		count_ = index8_.size();
+		HandleIndexUpdate();
 	}
 
 	void AttributeSet::UpdateIndicies(const std::vector<uint16_t>& value) 
@@ -63,6 +59,7 @@ namespace KRE
 		index_type_ = IndexType::INDEX_USHORT;
 		index16_ = value;
 		count_ = index16_.size();
+		HandleIndexUpdate();
 	}
 
 	void AttributeSet::UpdateIndicies(const std::vector<uint32_t>& value) 
@@ -70,25 +67,37 @@ namespace KRE
 		index_type_ = IndexType::INDEX_ULONG;
 		index32_ = value;
 		count_ = index32_.size();
+		HandleIndexUpdate();
 	}
 
 	void AttributeSet::UpdateIndicies(std::vector<uint8_t>* value)
 	{
 		index_type_ = IndexType::INDEX_UCHAR;
 		index8_.swap(*value);
+		HandleIndexUpdate();
 	}
 
 	void AttributeSet::UpdateIndicies(std::vector<uint16_t>* value)
 	{
 		index_type_ = IndexType::INDEX_USHORT;
 		index16_.swap(*value);
+		HandleIndexUpdate();
 	}
 
 	void AttributeSet::UpdateIndicies(std::vector<uint32_t>* value)
 	{
 		index_type_ = IndexType::INDEX_ULONG;
 		index32_.swap(*value);
+		HandleIndexUpdate();
 	}
+
+	void AttributeSet::AddAttribute(const AttributeBasePtr& attrib) 
+	{
+		attributes_.emplace_back(attrib);
+		auto hwbuffer = DisplayDevice::CreateAttributeBuffer(IsHardwareBacked(), attrib.get());
+		attrib->SetDeviceBufferData(hwbuffer);
+	}
+
 
 	AttributeDesc::AttributeDesc(Type type, 
 		unsigned num_elements,

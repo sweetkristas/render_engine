@@ -66,8 +66,10 @@ namespace KRE
 		const void* GetIndexArray() const override { return NULL; }
 		void BindIndex() override;
 		void UnbindIndex() override;
+		bool IsHardwareBacked() const override { return true; }
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSetOGL);
+		void HandleIndexUpdate() override;
 		GLuint index_buffer_id_;
 	};
 	typedef std::shared_ptr<AttributeSet> AttributeSetPtr;

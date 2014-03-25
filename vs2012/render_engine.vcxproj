@@ -20,7 +20,6 @@
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
     <ClCompile Include="..\src\FboOpenGL.cpp" />
-    <ClCompile Include="..\src\HardwareBuffer.cpp" />
     <ClCompile Include="..\src\RenderTarget.cpp" />
     <ClCompile Include="..\src\filesystem.cpp" />
     <ClCompile Include="..\src\Frustum.cpp" />
@@ -38,7 +37,6 @@
     <ClCompile Include="..\src\Renderable.cpp" />
     <ClCompile Include="..\src\RenderManager.cpp" />
     <ClCompile Include="..\src\RenderQueue.cpp" />
-    <ClCompile Include="..\src\RenderVariable.cpp" />
     <ClCompile Include="..\src\SceneGraph.cpp" />
     <ClCompile Include="..\src\SceneNode.cpp" />
     <ClCompile Include="..\src\SceneObject.cpp" />
@@ -69,8 +67,6 @@
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
     <ClInclude Include="..\src\FboOpenGL.hpp" />
-    <ClInclude Include="..\src\HardwareBuffer.hpp" />
-    <ClInclude Include="..\src\HardwareBufferOpenGL.hpp" />
     <ClInclude Include="..\src\RenderTarget.hpp" />
     <ClInclude Include="..\src\filesystem.hpp" />
     <ClInclude Include="..\src\formatter.hpp" />
@@ -92,7 +88,6 @@
     <ClInclude Include="..\src\RenderFwd.hpp" />
     <ClInclude Include="..\src\RenderManager.hpp" />
     <ClInclude Include="..\src\RenderQueue.hpp" />
-    <ClInclude Include="..\src\RenderVariable.hpp" />
     <ClInclude Include="..\src\SceneFwd.hpp" />
     <ClInclude Include="..\src\SceneGraph.hpp" />
     <ClInclude Include="..\src\SceneNode.hpp" />

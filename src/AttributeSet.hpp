@@ -54,7 +54,7 @@ namespace KRE
 	};
 	typedef std::shared_ptr<HardwareAttribute> HardwareAttributePtr;
 
-	class HardwareAttributeImpl : HardwareAttribute
+	class HardwareAttributeImpl : public HardwareAttribute
 	{
 	public:
 		HardwareAttributeImpl(AttributeBase* parent) : HardwareAttribute(parent) {}
@@ -169,15 +169,26 @@ namespace KRE
 		ptrdiff_t GetOffset() const { return offs_; } 
 		AccessFreqHint AccessFrequency() const { return access_freq_; }
 		AccessTypeHint AccessType() const { return access_type_; }
-		HardwareAttributePtr GetDeviceBufferData() const { return hardware_; }
+		HardwareAttributePtr GetDeviceBufferData() { return hardware_; }
+		void SetDeviceBufferData(const HardwareAttributePtr& hardware) { 
+			hardware_ = hardware; 
+			HandleAttachHardwareBuffer();
+		}
 	private:
+		virtual void HandleAttachHardwareBuffer() = 0;
 		AccessFreqHint access_freq_;
 		AccessTypeHint access_type_;
 		ptrdiff_t offs_;
 		std::vector<AttributeDesc> desc_;
 		HardwareAttributePtr hardware_;
+		bool hardware_buffer_;
 	};
 
+	/* Templated attribute buffer. Is sub-optimal in that we double buffer attributes
+		if there is a real hardware buffer attached. But mitigating that it is easy
+		for us to generate a new hardware buffer from existing data in the case of
+		a context tear down.
+	*/
 	template<typename T, 
 		template<typename E, 
 		         typename = std::allocator<E>> 
@@ -192,44 +203,41 @@ namespace KRE
 		typedef typename Container<T>::size_type size_type;
 		typedef T value_type;
 
-		Attribute(bool hardware, AccessFreqHint freq=AccessFreqHint::DYNAMIC, AccessTypeHint type=AccessTypeHint::DRAW) 
+		Attribute(AccessFreqHint freq, AccessTypeHint type=AccessTypeHint::DRAW) 
 			:  AttributeBase(freq, type) {
-			if(hardware) {
-				//hardware_ = DisplayDevice::CreateAttributeBuffer();
-			}
 		}
 		virtual ~Attribute() {}
 		
 		void Update(const Container<T>& values) {
-			//if(hardware_) {
-			//
-			//}
 			elements_ = values;
+			if(GetDeviceBufferData()) {
+				GetDeviceBufferData()->Update(&elements_[0], 0, elements_.size() * sizeof(T));
+			}
 		}
 		void Update(const Container<T>& src, iterator& dst) {
-			//if(hardware_) {
-			//
-			//}
 			std::copy(src.begin(), src.end(), dst);
+			if(GetDeviceBufferData()) {
+				GetDeviceBufferData()->Update(&elements_[0], 
+					std::distance(elemets_.begin(), dst), 
+					std::distance(src.begin(), src.end()) * sizeof(T));
+			}
 		}
 		void Update(Container<T>* values) {
-			//if(hardware_) {
-			//
-			//}
 			elements_.swap(*values);
+			if(GetDeviceBufferData()) {
+				GetDeviceBufferData()->Update(&elements_[0], 0, elements_.size() * sizeof(T));
+			}
 		}
 		size_t size() const { 
 			return elements_.size();
 		}
 		void Bind() {
-			if(hardware_) {
-				hardware_->Bind();
-			}
+			ASSERT_LOG(GetDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
+			GetDeviceBufferData()->Bind();
 		}		
 		void Unbind() {
-			if(hardware_) {
-				hardware_->Unbind();
-			}
+			ASSERT_LOG(GetDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
+			GetDeviceBufferData()->Unbind();
 		}
 		const_iterator begin() const {
 			return elements_.begin();
@@ -254,6 +262,13 @@ namespace KRE
 		}
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(Attribute);
+		void HandleAttachHardwareBuffer() override {
+			// This just makes sure that if we add any elements
+			// before an attach then they are all updated correctly.
+			if(elements_.size() > 0) {
+				GetDeviceBufferData()->Update(&elements_[0], 0, elements_.size() * sizeof(T));
+			}
+		}
 		Container<T> elements_;
 	};
 
@@ -296,6 +311,15 @@ namespace KRE
 			}
 			ASSERT_LOG(false, "Index type not set to valid value.");
 		};
+		size_t GetTotalArraySize() const {
+			switch(index_type_) {
+			case IndexType::INDEX_NONE:		break;
+			case IndexType::INDEX_UCHAR:	return index8_.size() * sizeof(uint8_t);
+			case IndexType::INDEX_USHORT:	return index16_.size() * sizeof(uint16_t);
+			case IndexType::INDEX_ULONG:	return index32_.size() * sizeof(uint32_t);
+			}
+			ASSERT_LOG(false, "Index type not set to valid value.");
+		}
 		void SetCount(size_t count) { count_= count; }
 		size_t GetCount() const { return count_; }
 		void SetInstanceCount(size_t instance_count) { instance_count_ = instance_count; }
@@ -308,9 +332,7 @@ namespace KRE
 		void UpdateIndicies(std::vector<uint16_t>* value);
 		void UpdateIndicies(std::vector<uint32_t>* value);
 
-		void AddAttribute(const AttributeBasePtr& attrib) {
-			attributes_.emplace_back(attrib);
-		}
+		void AddAttribute(const AttributeBasePtr& attrib);
 
 		virtual void BindIndex() {};
 		virtual void UnbindIndex() {};
@@ -318,9 +340,22 @@ namespace KRE
 		void SetOffset(ptrdiff_t offset) { offset_ = offset; }
 		ptrdiff_t GetOffset() const { return offset_; }
 
+		virtual bool IsHardwareBacked() const { return false; }
+
 		std::vector<AttributeBasePtr>& GetAttributes() { return attributes_; }
+	protected:
+		const void* GetIndexData() const { 
+			switch(index_type_) {
+			case IndexType::INDEX_NONE:		break;
+			case IndexType::INDEX_UCHAR:	return &index8_[0];
+			case IndexType::INDEX_USHORT:	return &index16_[0];
+			case IndexType::INDEX_ULONG:	return &index32_[0];
+			}
+			ASSERT_LOG(false, "Index type not set to valid value.");
+		};
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSet);
+		virtual void HandleIndexUpdate() {}
 		DrawMode draw_mode_;
 		bool indexed_draw_;
 		bool instanced_draw_;

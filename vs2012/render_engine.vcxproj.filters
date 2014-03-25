@@ -60,9 +60,6 @@
     <ClCompile Include="..\src\RenderQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\RenderVariable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\SceneGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -162,9 +159,6 @@
     <ClCompile Include="..\src\FboOpenGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\HardwareBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\AttributeSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -198,9 +192,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\RenderQueue.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\RenderVariable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\SceneGraph.hpp">
@@ -330,12 +321,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\FboOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\HardwareBuffer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\HardwareBufferOpenGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Util.hpp">

@@ -17,7 +17,6 @@
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
 #include "RenderTarget.hpp"
-#include "RenderVariable.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "WindowManager.hpp"
@@ -40,7 +39,7 @@ namespace
 			using namespace KRE;
 
 			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
-			auto pc = new Attribute<vertex_color>(false, AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
+			auto pc = new Attribute<vertex_color>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
 			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
 			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
 			ab->AddAttribute(AttributeBasePtr(pc));
@@ -52,8 +51,15 @@ namespace
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			pc->Update(&vertices);
 			ab->SetCount(vertices.size());
+			pc->Update(&vertices);
+
+			//std::vector<uint8_t> indices;
+			//indices.emplace_back(0);
+			//indices.emplace_back(1);
+			//indices.emplace_back(2);
+			//indices.emplace_back(3);
+			//ab->UpdateIndicies(indices);
 
 			//pc->Update(vertices, pc->begin()+5);
 
@@ -172,17 +178,17 @@ int main(int argc, char *argv[])
 	//cairo_canvas->AddPath(text);
 	//cairo_canvas->Fill();
 
-	//auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	//root->AttachNode(psystem);
+	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	root->AttachNode(psystem);
 	//psystem->SetNodeName("psc_node");
-	//auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
-	//particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	//psystem->AttachCamera(particle_cam);
-	//auto rt = WindowManager::GetDisplayDevice()->RenderTargetInstance(400, 300);
-	//rt->SetDisplayRect(0, 0, 400, 300);
-	//rt->Create();
-	//psystem->AttachRenderTarget(rt);
-	//root->AttachObject(rt);
+	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
+	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	psystem->AttachCamera(particle_cam);
+	auto rt = DisplayDevice::RenderTargetInstance(400, 300);
+	rt->SetDisplayRect(0, 0, 400, 300);
+	rt->Create();
+	psystem->AttachRenderTarget(rt);
+	root->AttachObject(rt);
 
 	SDL_Event e;
 	bool done = false;

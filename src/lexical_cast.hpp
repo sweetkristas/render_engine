@@ -17,6 +17,9 @@ namespace lex
 	    std::istringstream iss;
 	    iss.str(str);
 	    iss >> var;
+		if(iss.rdstate() & std::istream::eofbit) {
+			return var;
+		}
 	    if(!(iss.rdstate() & std::istream::goodbit)) {
 	    	throw bad_lexical_cast("bad_lexical_cast");
 	    }

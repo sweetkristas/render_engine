@@ -456,18 +456,23 @@ namespace KRE
 		{
 			// XXX We need to render to a billboard style renderer ala 
 			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
-			/*using namespace KRE;
-			arv_ = std::make_shared<AttributeRenderVariable<vertex_texture_color>>();
-			arv_->AddVariableDescription(AttributeRenderVariableDesc::POSITION, 3, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,vertex));
-			arv_->AddVariableDescription(AttributeRenderVariableDesc::TEXTURE, 2, AttributeRenderVariableDesc::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color,texcoord));
-			arv_->AddVariableDescription(AttributeRenderVariableDesc::COLOR, 4, AttributeRenderVariableDesc::UNSIGNED_BYTE, true, sizeof(vertex_texture_color), offsetof(vertex_texture_color,color));
-			arv_->SetDrawMode(RenderVariable::TRIANGLES);
-			AddAttributeRenderVariable(arv_);
-
-			auto& urv_ = std::make_shared<UniformRenderVariable<glm::vec4>>();
+			/*auto& urv_ = std::make_shared<UniformRenderVariable<glm::vec4>>();
 			urv_->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
 			AddUniformRenderVariable(urv_);
 			urv_->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));*/
+
+			// XXX make instanced.
+
+			auto as = DisplayDevice::CreateAttributeSet(true);
+			as->SetDrawMode(AttributeSet::DrawMode::TRIANGLES);
+			AddAttributeSet(as);
+
+			arv_ = std::make_shared<Attribute<vertex_texture_color>>(AccessFreqHint::DYNAMIC);
+			arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 3, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color, vertex)));
+			arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color, texcoord)));
+			arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_texture_color), offsetof(vertex_texture_color, color)));
+
+			as->AddAttribute(arv_);
 
 			SetOrder(1);
 		}
@@ -476,13 +481,14 @@ namespace KRE
 			//DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 			//def.SetHint("shader", "vtc_shader");
 			DisplayDeviceDef def(GetAttributeSet());
+			def.SetHint("shader", "vtc_shader");
 			return def;
 		}
 
 		void technique::PreRender()
 		{
 			//LOG_DEBUG("technique::PreRender, particle count: " << active_particles_.size());
-			/*std::vector<vertex_texture_color> vtc;
+			std::vector<vertex_texture_color> vtc;
 			vtc.reserve(active_particles_.size());
 			for(auto& p : active_particles_) {
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y,p.current.position.z), glm::vec2(0.0f,0.0f), p.current.color);
@@ -493,7 +499,9 @@ namespace KRE
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(0.0f,1.0f), p.current.color);
 				vtc.emplace_back(glm::vec3(p.current.position.x+p.current.dimensions.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(1.0f,1.0f), p.current.color);
 			}
-			arv_->Update(&vtc);*/
+			arv_->Update(&vtc);
+
+			GetAttributeSet().back()->SetCount(active_particles_.size());
 		}
 
 		ParticleSystemContainer::ParticleSystemContainer(SceneGraph* sg, const variant& node) 

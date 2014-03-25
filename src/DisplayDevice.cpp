@@ -107,6 +107,37 @@ namespace KRE
 		return AttributeSetPtr(new AttributeSet(indexed, instanced));
 	}
 
+	HardwareAttributePtr DisplayDevice::CreateAttributeBuffer(bool hw_backed, AttributeBase* parent)
+	{
+		if(hw_backed) {
+			auto attrib = DisplayDevice::GetCurrent()->HandleCreateAttribute(parent);
+			if(attrib) {
+				return attrib;
+			}
+		}
+		return HardwareAttributePtr(new HardwareAttributeImpl(parent));
+	}
+
+	RenderTargetPtr DisplayDevice::RenderTargetInstance(size_t width, size_t height, 
+		size_t color_plane_count, 
+		bool depth, 
+		bool stencil, 
+		bool use_multi_sampling, 
+		size_t multi_samples)
+	{
+		return DisplayDevice::GetCurrent()->HandleCreateRenderTarget(width, height, 
+			color_plane_count, 
+			depth, 
+			stencil, 
+			use_multi_sampling, 
+			multi_samples);
+	}
+
+	RenderTargetPtr DisplayDevice::RenderTargetInstance(const variant& node)
+	{
+		return DisplayDevice::GetCurrent()->HandleCreateRenderTarget(node);
+	}
+
 	DisplayDeviceDef::DisplayDeviceDef(const std::vector<AttributeSetPtr>& as)
 		: attributes_(as)//, uniforms_(us)
 	{

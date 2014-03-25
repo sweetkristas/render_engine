@@ -117,17 +117,18 @@ namespace KRE
 		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
 		virtual MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
 
-		virtual RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
+		static RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
-			size_t multi_samples=0) = 0;
-		virtual RenderTargetPtr RenderTargetInstance(const variant& node) = 0;
+			size_t multi_samples=0);
+		static RenderTargetPtr RenderTargetInstance(const variant& node);
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) = 0;
 
 		static AttributeSetPtr CreateAttributeSet(bool hardware_hint=false, bool indexed=false, bool instanced=false);
+		static HardwareAttributePtr CreateAttributeBuffer(bool hw_backed, AttributeBase* parent);
 
 		static DisplayDevicePtr Factory(const std::string& type);
 
@@ -137,6 +138,15 @@ namespace KRE
 	private:
 		DisplayDevice(const DisplayDevice&);
 		virtual AttributeSetPtr HandleCreateAttributeSet(bool indexed, bool instanced) = 0;
+		virtual HardwareAttributePtr HandleCreateAttribute(AttributeBase* parent) = 0;
+
+		virtual RenderTargetPtr HandleCreateRenderTarget(size_t width, size_t height, 
+			size_t color_plane_count, 
+			bool depth, 
+			bool stencil, 
+			bool use_multi_sampling, 
+			size_t multi_samples) = 0;
+		virtual RenderTargetPtr HandleCreateRenderTarget(const variant& node) = 0;
 	};
 
 	template<class T>

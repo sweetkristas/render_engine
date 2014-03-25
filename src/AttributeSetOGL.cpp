@@ -130,4 +130,11 @@ namespace KRE
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+
+	void AttributeSetOGL::HandleIndexUpdate()
+	{
+		BindIndex();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, GetTotalArraySize(), GetIndexData(), GL_STATIC_DRAW);
+		UnbindIndex();
+	}
 }

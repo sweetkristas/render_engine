@@ -30,6 +30,7 @@
 #include <glm/gtc/type_precision.hpp>
 
 #include "asserts.hpp"
+#include "AttributeSet.hpp"
 #include "Material.hpp"
 #include "ParticleSystemFwd.hpp"
 #include "SceneNode.hpp"
@@ -142,8 +143,7 @@ namespace KRE
 		private:
 			void Init();
 
-			std::shared_ptr<AttributeRenderVariable<vertex_texture_color>> arv_;
-			std::shared_ptr<UniformRenderVariable<glm::vec4>> urv_;
+			std::shared_ptr<Attribute<vertex_texture_color>> arv_;
 
 			float default_particle_width_;
 			float default_particle_height_;
