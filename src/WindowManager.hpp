@@ -104,6 +104,8 @@ namespace KRE
 		
 		Color ClearColor() const { return clear_color_; }
 
+		virtual void Clear(DisplayDevice::ClearFlags f) = 0;
+
 		TexturePtr CreateTexture(const variant& node);
 		TexturePtr CreateTexture(const std::string& filename, 
 			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 

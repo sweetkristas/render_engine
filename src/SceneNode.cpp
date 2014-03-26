@@ -94,6 +94,7 @@ namespace KRE
 		}
 		if(render_target_) {
 			rp->render_target = render_target_;
+			render_target_->Clear();
 		}
 		
 		for(auto o : objects_) {

@@ -33,7 +33,8 @@ namespace KRE
 		lod_bias_(0.0f),
 		surface_(surface),
 		tex_width_(surface->width()),
-		tex_height_(surface->height())
+		tex_height_(surface->height()),
+		coords_()
 	{
 		InternalInit();
 		if(node.has_key("type")) {
@@ -154,7 +155,8 @@ namespace KRE
 		lod_bias_(0.0f),
 		surface_(surface),
 		tex_width_(surface->width()),
-		tex_height_(surface->height())
+		tex_height_(surface->height()),
+		coords_()
 	{
 		InternalInit();
 	}
@@ -168,7 +170,8 @@ namespace KRE
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		tex_width_(width),
-		tex_height_(height)
+		tex_height_(height),
+		coords_()
 	{
 		InternalInit();
 	}

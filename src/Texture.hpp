@@ -87,6 +87,9 @@ namespace KRE
 
 		const rectf& CoordinateRect() const { return coords_; }
 
+		float CWidth() const { return coords_.w(); }
+		float CHeight() const { return coords_.h(); }
+
 		void InternalInit();
 
 		virtual void Init() = 0;

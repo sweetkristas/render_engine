@@ -281,6 +281,14 @@ namespace KRE
 		glViewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
 	}
 
+	void FboOpenGL::HandleClear()
+	{
+		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
+		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 	void FboOpenGL::GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format)
 	{
 		if(DepthPlane() || StencilPlane()) {

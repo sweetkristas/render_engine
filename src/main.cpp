@@ -190,6 +190,13 @@ int main(int argc, char *argv[])
 	psystem->AttachRenderTarget(rt);
 	root->AttachObject(rt);
 
+	//auto surf = main_wnd->CreateSurface("images/card-back.png");
+	auto tex = main_wnd->CreateTexture("card-back2.png", KRE::Texture::TEXTURE_2D, 4);
+	tex->SetFiltering(KRE::Texture::Filtering::LINEAR, KRE::Texture::Filtering::LINEAR, KRE::Texture::Filtering::POINT);
+	//auto tex = main_wnd->CreateTexture("card-back.png");
+	float angle = 1.0f;
+	float angle_step = 0.5f;
+
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
@@ -201,11 +208,19 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		main_wnd->Clear(DisplayDevice::ClearFlags::DISPLAY_CLEAR_ALL);
+
 		// Called once a cycle before rendering.
 		scene->Process(SDL_GetTicks() / 1000.0f);
 
-		scene->RenderScene(rman);
-		rman->Render(main_wnd);
+		//scene->RenderScene(rman);
+		//rman->Render(main_wnd);
+
+		main_wnd->BlitTexture(tex, 100, 100, 146, 260, angle);
+		//angle += angle_step;
+		while(angle >= 360.0f) {
+			angle -= 360.0f;
+		}
 
 		//cairo_canvas->Render(main_wnd);
 

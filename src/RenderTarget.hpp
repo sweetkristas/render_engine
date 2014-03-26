@@ -49,6 +49,7 @@ namespace KRE
 		void Create();
 		void Apply();
 		void Unapply();
+		void Clear();
 
 		unsigned Width() const { return width_; }
 		unsigned Height() const { return height_; }
@@ -65,6 +66,7 @@ namespace KRE
 		virtual void HandleCreate() = 0;
 		virtual void HandleApply() = 0;
 		virtual void HandleUnapply() = 0;
+		virtual void HandleClear() = 0;
 
 		unsigned width_;
 		unsigned height_;

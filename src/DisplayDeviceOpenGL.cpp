@@ -396,7 +396,7 @@ namespace KRE
 	}
 
 	// XXX Need a way to deal with blits with Camera/Lighting.
-	void DisplayDeviceOpenGL::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
+	void DisplayDeviceOpenGL::DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
 		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
 		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
@@ -423,7 +423,7 @@ namespace KRE
 			vx2, vy2,
 		};
 
-		glm::mat4 model = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vy1)/2.0f,-(vy1+vy1)/2.0f,0.0f));
 		glm::mat4 mvp = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f) * model;
 		auto shader = Shader::ShaderProgram::DefaultSystemShader();
 		shader->MakeActive();

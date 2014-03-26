@@ -84,6 +84,7 @@ namespace KRE
 
 	DisplayDevicePtr DisplayDevice::GetCurrent()
 	{
+		ASSERT_LOG(current_display_device() != NULL, "display device is NULL");
 		return current_display_device();
 	}
 
@@ -94,6 +95,11 @@ namespace KRE
 			LOG_WARN("Overwriting the Display Device Driver: " << type);
 		}
 		get_display_registry()[type] = create_fn;
+	}
+
+	void DisplayDevice::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
+	{
+		DisplayDevice::GetCurrent()->DoBlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
 	}
 
 	AttributeSetPtr DisplayDevice::CreateAttributeSet(bool hardware_hint, bool indexed, bool instanced)

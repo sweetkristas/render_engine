@@ -169,6 +169,10 @@ namespace KRE
 			window_.reset();
 		}
 
+		void Clear(DisplayDevice::ClearFlags f) override {
+			display_->Clear(DisplayDevice::DISPLAY_CLEAR_ALL);
+		}
+
 		void Swap() override {
 			// This is a little bit hacky -- ideally the display device should swap buffers.
 			// But SDL provides a device independent way of doing it which is really nice.

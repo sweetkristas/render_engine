@@ -107,4 +107,9 @@ namespace KRE
 	{
 		HandleUnapply();
 	}
+
+	void RenderTarget::Clear()
+	{
+		HandleClear();
+	}
 }

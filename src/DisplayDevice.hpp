@@ -112,7 +112,8 @@ namespace KRE
 		virtual TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) = 0;
 		virtual TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TEXTURE_2D) = 0;
 		virtual TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) = 0;
-		virtual void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
+
+		static void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch);
 
 		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
 		virtual MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
@@ -147,6 +148,8 @@ namespace KRE
 			bool use_multi_sampling, 
 			size_t multi_samples) = 0;
 		virtual RenderTargetPtr HandleCreateRenderTarget(const variant& node) = 0;
+		
+		virtual void DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
 	};
 
 	template<class T>

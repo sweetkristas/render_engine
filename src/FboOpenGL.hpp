@@ -51,9 +51,10 @@ namespace KRE
 		virtual void PreRender() override;
 	private:
 		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
-		virtual void HandleCreate() override;
-		virtual void HandleApply() override;
-		virtual void HandleUnapply() override;
+		void HandleCreate() override;
+		void HandleApply() override;
+		void HandleUnapply() override;
+		void HandleClear() override;
 		void GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format);
 		bool uses_ext_;
 		std::shared_ptr<GLuint> depth_stencil_buffer_id_;
