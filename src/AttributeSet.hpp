@@ -218,7 +218,7 @@ namespace KRE
 			std::copy(src.begin(), src.end(), dst);
 			if(GetDeviceBufferData()) {
 				GetDeviceBufferData()->Update(&elements_[0], 
-					std::distance(elemets_.begin(), dst), 
+					std::distance(elements_.begin(), dst), 
 					std::distance(src.begin(), src.end()) * sizeof(T));
 			}
 		}

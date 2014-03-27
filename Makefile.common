@@ -17,7 +17,6 @@ objects = \
 	src/FboOpenGL.o \
 	src/filesystem.o \
 	src/Frustum.o \
-	src/HardwareBuffer.o \
 	src/json.o \
 	src/LightObject.o \
 	src/logger.o \
@@ -33,7 +32,6 @@ objects = \
 	src/RenderManager.o \
 	src/RenderQueue.o \
 	src/RenderTarget.o \
-	src/RenderVariable.o \
 	src/SceneGraph.o \
 	src/SceneNode.o \
 	src/SceneObject.o \
