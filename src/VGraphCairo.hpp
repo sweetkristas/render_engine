@@ -25,7 +25,7 @@
 
 #include <cairo/cairo.h>
 
-#include "Texture.hpp"
+#include "Blittable.hpp"
 #include "VGraph.hpp"
 
 namespace KRE
@@ -34,10 +34,10 @@ namespace KRE
 	{
 		class CairoPath;
 
-		class CairoContext : public Context
+		class CairoContext : public Context, public Blittable
 		{
 		public:
-			CairoContext(const WindowManagerPtr& wnd, int width, int height);
+			CairoContext(int width, int height);
 			virtual ~CairoContext();
 
 			virtual void Save() override;
@@ -93,14 +93,13 @@ namespace KRE
 			virtual void GetCurrentPoint(double& x, double& y) override;
 			virtual bool HasCurrentPoint() override;
 
-			virtual void Render(const WindowManagerPtr& wnd) override;
-
 			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) override;
 
 			virtual PathPtr NewPath() override;
 			virtual void AddPath(const PathPtr& path) override;
 			virtual void AddSubPath(const PathPtr& path) override;
 		
+			virtual void PreRender() override;
 		protected:
 			cairo_t* GetContext() { return context_; }
 			cairo_surface_t* GetSurface() { return surface_; }

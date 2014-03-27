@@ -99,7 +99,7 @@ namespace KRE
 
 	void DisplayDevice::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
-		DisplayDevice::GetCurrent()->DoBlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
+		GetCurrent()->DoBlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
 	}
 
 	AttributeSetPtr DisplayDevice::CreateAttributeSet(bool hardware_hint, bool indexed, bool instanced)
@@ -131,12 +131,52 @@ namespace KRE
 		bool use_multi_sampling, 
 		size_t multi_samples)
 	{
-		return DisplayDevice::GetCurrent()->HandleCreateRenderTarget(width, height, 
+		return GetCurrent()->HandleCreateRenderTarget(width, height, 
 			color_plane_count, 
 			depth, 
 			stencil, 
 			use_multi_sampling, 
 			multi_samples);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(const SurfacePtr& surface, const variant& node)
+	{
+		return GetCurrent()->HandleCreateTexture(surface, node);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
+	{
+		return GetCurrent()->HandleCreateTexture(surface, type, mipmap_levels);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	{
+		return GetCurrent()->HandleCreateTexture(width, fmt);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type)
+	{
+		return GetCurrent()->HandleCreateTexture(width, height, fmt, type);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	{
+		return GetCurrent()->HandleCreateTexture(width, height, depth, fmt);
+	}
+
+	TexturePtr DisplayDevice::CreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
+	{
+		return GetCurrent()->HandleCreateTexture(filename, type, mipmap_levels);
+	}
+
+	MaterialPtr DisplayDevice::CreateMaterial(const variant& node)
+	{
+		return GetCurrent()->HandleCreateMaterial(node);
+	}
+
+	MaterialPtr DisplayDevice::CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend, bool fog, bool lighting, bool depth_write, bool depth_check)
+	{
+		return GetCurrent()->HandleCreateMaterial(name, textures, blend, fog, lighting, depth_write, depth_check);
 	}
 
 	RenderTargetPtr DisplayDevice::RenderTargetInstance(const variant& node)

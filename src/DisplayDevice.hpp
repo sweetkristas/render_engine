@@ -105,18 +105,22 @@ namespace KRE
 
 		virtual void Render(const RenderablePtr& r) = 0;
 
-		virtual TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) = 0;
-		virtual TexturePtr CreateTexture(const SurfacePtr& surface, 
-			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
-			int mipmap_levels=0) = 0;
-		virtual TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) = 0;
-		virtual TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TEXTURE_2D) = 0;
-		virtual TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) = 0;
+		static TexturePtr CreateTexture(const std::string& filename, 
+			Texture::Type type=Texture::Type::TEXTURE_2D, 
+			int mipmap_levels=0);
+
+		static TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node);
+		static TexturePtr CreateTexture(const SurfacePtr& surface, 
+			Texture::Type type=Texture::Type::TEXTURE_2D, 
+			int mipmap_levels=0);
+		static TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt);
+		static TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D);
+		static TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt);
 
 		static void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch);
 
-		virtual MaterialPtr CreateMaterial(const variant& node) = 0;
-		virtual MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
+		static MaterialPtr CreateMaterial(const variant& node);
+		static MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
 
 		static RenderTargetPtr RenderTargetInstance(size_t width, size_t height, 
 			size_t color_plane_count=1, 
@@ -149,6 +153,16 @@ namespace KRE
 			size_t multi_samples) = 0;
 		virtual RenderTargetPtr HandleCreateRenderTarget(const variant& node) = 0;
 		
+		virtual TexturePtr HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) = 0;
+		virtual TexturePtr HandleCreateTexture(const SurfacePtr& surface, const variant& node) = 0;
+		virtual TexturePtr HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) = 0;
+
+		virtual MaterialPtr HandleCreateMaterial(const variant& node) = 0;
+		virtual MaterialPtr HandleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
+
 		virtual void DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
 	};
 

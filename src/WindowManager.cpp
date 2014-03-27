@@ -339,67 +339,11 @@ namespace KRE
 		HandleSetClearColor();
 	}
 
-	void WindowManager::BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to blit to.");
-		display_->BlitTexture(tex, dstx, dsty, dstw, dsth, rotation, srcx, srcy, srcw, srch);
-
-	}
-
-	TexturePtr WindowManager::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		return display_->CreateTexture(width, 0, fmt);
-	}
-
-	// Let's you create a texture which doesn't have an attached surface. 
-	// Useful if you are calling Update() on the texture to update the contents.
-	// Texture is created with streaming in mind.
-	TexturePtr WindowManager::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		return display_->CreateTexture(width, height, fmt, type);
-	}
-
-	TexturePtr WindowManager::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		return display_->CreateTexture(width, height, depth, fmt);
-	}
-
-	TexturePtr WindowManager::CreateTexture(const variant& node)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		ASSERT_LOG(node.has_key("image") || node.has_key("texture"), "Must have either 'image' or 'texture' attribute.");
-		const std::string image_name = node.has_key("image") ? node["image"].as_string() : node["texture"].as_string();
-		auto surface = CreateSurface(image_name);
-		return display_->CreateTexture(surface, node);
-	}
-
-	TexturePtr WindowManager::CreateTexture(const std::string& filename, Texture::TextureType type, int mipmap_levels)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create texture.");
-		auto surface = CreateSurface(filename);
-		return display_->CreateTexture(surface, type, mipmap_levels);
-	}
-
-	MaterialPtr WindowManager::CreateMaterial(const variant& node)
-	{
-		ASSERT_LOG(display_ != NULL, "No display to create material.");
-		return display_->CreateMaterial(node);
-	}
-
 	WindowManagerPtr WindowManager::Factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)
 	{
 		// We really only support one sub-class of the window manager
 		// at the moment, so we just return it. We could use hint in the
 		// future if we had more.
 		return WindowManagerPtr(new SDLWindowManager(title, rend_hint));
-	}
-
-	DisplayDevicePtr WindowManager::GetDisplayDevice()
-	{
-		ASSERT_LOG(current_display_device() != NULL, "GetDisplayDevice() With no defined display device.");
-		return current_display_device();
 	}
 }

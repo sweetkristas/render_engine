@@ -270,7 +270,7 @@ namespace KRE
 			ASSERT_LOG(node.has_key("visual_particle_quota"), "PSYSTEM2: 'technique' must have 'visual_particle_quota' attribute.");
 			particle_quota_ = node["visual_particle_quota"].as_int();
 			ASSERT_LOG(node.has_key("material"), "PSYSTEM2: 'technique' must have 'material' attribute.");
-			SetMaterial(WindowManager::GetDisplayDevice()->CreateMaterial(node["material"]));
+			SetMaterial(DisplayDevice::CreateMaterial(node["material"]));
 			//ASSERT_LOG(node.has_key("renderer"), "PSYSTEM2: 'technique' must have 'renderer' attribute.");
 			//renderer_.reset(new renderer(node["renderer"]));
 			if(node.has_key("emitter")) {

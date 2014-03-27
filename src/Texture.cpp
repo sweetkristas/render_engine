@@ -27,26 +27,25 @@
 namespace KRE
 {
 	Texture::Texture(const SurfacePtr& surface, const variant& node)
-		: type_(TEXTURE_2D), 
+		: type_(Type::TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
-		tex_width_(surface->width()),
-		tex_height_(surface->height()),
-		coords_()
+		tex_width_(float(surface->width())),
+		tex_height_(float(surface->height()))
 	{
 		InternalInit();
 		if(node.has_key("type")) {
 			const std::string& type = node["type"].as_string();
 			if(type == "1d") {
-				type_ = TEXTURE_1D;
+				type_ = Type::TEXTURE_1D;
 			} else if(type == "2d") {
-				type_ = TEXTURE_2D;
+				type_ = Type::TEXTURE_2D;
 			} else if(type == "3d") {
-				type_ = TEXTURE_3D;
+				type_ = Type::TEXTURE_3D;
 			} else if(type == "cubic") {
-				type_ = TEXTURE_CUBIC;
+				type_ = Type::TEXTURE_CUBIC;
 			} else {
 				ASSERT_LOG(false, "Unrecognised texture type '" << type << "'. Valid values are 1d,2d,3d and cubic.");
 			}
@@ -135,28 +134,22 @@ namespace KRE
 			}
 		}
 		if(node.has_key("border_color")) {
-			//border_color_ = Color(node["border_color"]);
-			ASSERT_LOG(false, "'border_color' attribute not processed, need to implement variant processor for Color()");
+			border_color_ = Color(node["border_color"]);
 		}
 		if(node.has_key("rect")) {
 			ASSERT_LOG(node["rect"].is_list(), "'rect' attribute must be a list of numbers.");
 			ASSERT_LOG(node["rect"].num_elements() >= 4, "'rect' attribute must have at least 4 elements.");
-			coords_ = rectf::FromCoordinates(node["rect"][0].as_float(), 
-				node["rect"][1].as_float(), 
-				node["rect"][2].as_float(), 
-				node["rect"][3].as_float());
 		}
 	}
 
-	Texture::Texture(const SurfacePtr& surface, TextureType type, int mipmap_levels)
+	Texture::Texture(const SurfacePtr& surface, Type type, int mipmap_levels)
 		: type_(type), 
 		mipmaps_(mipmap_levels), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
 		tex_width_(surface->width()),
-		tex_height_(surface->height()),
-		coords_()
+		tex_height_(surface->height())
 	{
 		InternalInit();
 	}
@@ -164,14 +157,13 @@ namespace KRE
 	Texture::Texture(unsigned width, 
 		unsigned height, 
 		PixelFormat::PixelFormatConstant fmt, 
-		Texture::TextureType type)
+		Type type)
 		: type_(type), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
-		tex_width_(width),
-		tex_height_(height),
-		coords_()
+		tex_width_(float(width)),
+		tex_height_(float(height))
 	{
 		InternalInit();
 	}
@@ -189,19 +181,21 @@ namespace KRE
 	Texture::~Texture()
 	{
 	}
-	void Texture::SetAddressModes(AddressMode u, AddressMode v, AddressMode w)
+	void Texture::SetAddressModes(AddressMode u, AddressMode v, AddressMode w, const Color& bc)
 	{
 		address_mode_[0] = u;
 		address_mode_[1] = v;
 		address_mode_[2] = w;
+		border_color_ = bc;
 		Init();
 	}
 
-	void Texture::SetAddressModes(const AddressMode uvw[3])
+	void Texture::SetAddressModes(const AddressMode uvw[3], const Color& bc)
 	{
 		for(int n = 0; n < 3; ++n) {
 			address_mode_[n] = uvw[n];
 		}
+		border_color_ = bc;
 		Init();
 	}
 
@@ -219,26 +213,5 @@ namespace KRE
 			filtering_[n] = f[n];
 		}
 		Init();
-	}
-
-	void Texture::SetRect(int x, int y, unsigned width, unsigned height)
-	{
-		coords_ = rectf(x/tex_width_, y/tex_height_, width/tex_width_, height/tex_height_);
-	}
-
-	void Texture::SetRect(const rect& r)
-	{
-		coords_ = rectf::FromCoordinates(r.x()/tex_width_,
-			r.y()/tex_height_,
-			r.x2()/tex_width_,
-			r.y2()/tex_height_);
-	}
-
-	void Texture::SetRect(const rectf& r)
-	{
-		coords_ = rectf::FromCoordinates(r.x()/tex_width_,
-			r.y()/tex_height_,
-			r.x2()/tex_width_,
-			r.y2()/tex_height_);
 	}
 }

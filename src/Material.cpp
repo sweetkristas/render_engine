@@ -28,6 +28,11 @@
 namespace KRE
 {
 	Material::Material()
+		: use_lighting_(false),
+		use_fog_(false),
+		do_depth_write_(false),
+		do_depth_check_(false),
+		draw_rect_(0.0f, 0.0f, 1.0f, 1.0f)
 	{
 	}
 
@@ -44,14 +49,15 @@ namespace KRE
 		use_lighting_(lighting),
 		use_fog_(fog),
 		do_depth_write_(depth_write),
-		do_depth_check_(depth_check)
+		do_depth_check_(depth_check),
+		draw_rect_(0.0f, 0.0f, 1.0f, 1.0f)
 	{
 	}
 
 	void Material::Init(const variant& node)
 	{
 		name_ = node["name"].as_string();
-		blend_.Set(BlendMode::BM_SRC_ALPHA, BlendMode::BM_ONE_MINUS_SRC_ALPHA);
+		blend_.Set(BlendMode::BlendModeConstants::BM_SRC_ALPHA, BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA);
 		
 		// XXX: technically a material could have multiple technique's and passes -- ignoring for now.
 		ASSERT_LOG(node.has_key("technique"), "PSYSTEM2: 'material' must have 'technique' attribute.");
@@ -74,6 +80,9 @@ namespace KRE
 			} else {
 				ASSERT_LOG(false, "PSYSTEM2: 'texture_unit' attribute must be map or list ");
 			}
+		}
+		if(pass.has_key("rect")) {
+			draw_rect_ = rectf(pass["rect"]);
 		}
 	}
 
@@ -127,38 +136,45 @@ namespace KRE
 		HandleUnapply();
 	}
 
+	const rectf Material::GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it)
+	{
+		float w = (*it)->Width();
+		float h = (*it)->Height();
+		return rectf(draw_rect_.x()/w, draw_rect_.y()/h, draw_rect_.x2()/w, draw_rect_.y2()/h);
+	}
+
 	namespace
 	{
 		BlendMode::BlendModeConstants parse_blend_string(const std::string& s)
 		{
 			if(s == "zero") {
-				return BlendMode::BM_ZERO;
+				return BlendMode::BlendModeConstants::BM_ZERO;
 			} else if(s == "one") {
-				return BlendMode::BM_ONE;
+				return BlendMode::BlendModeConstants::BM_ONE;
 			} else if(s == "src_color") {
-				return BlendMode::BM_SRC_COLOR;
+				return BlendMode::BlendModeConstants::BM_SRC_COLOR;
 			} else if(s == "one_minus_src_color") {
-				return BlendMode::BM_ONE_MINUS_SRC_COLOR;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_COLOR;
 			} else if(s == "dst_color") {
-				return BlendMode::BM_DST_COLOR;
+				return BlendMode::BlendModeConstants::BM_DST_COLOR;
 			} else if(s == "one_minus_dst_color") {
-				return BlendMode::BM_ONE_MINUS_DST_COLOR;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_DST_COLOR;
 			} else if(s == "src_alpha") {
-				return BlendMode::BM_SRC_ALPHA;
+				return BlendMode::BlendModeConstants::BM_SRC_ALPHA;
 			} else if(s == "one_minus_src_alpha") {
-				return BlendMode::BM_ONE_MINUS_SRC_ALPHA;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA;
 			} else if(s == "dst_alpha") {
-				return BlendMode::BM_DST_ALPHA;
+				return BlendMode::BlendModeConstants::BM_DST_ALPHA;
 			} else if(s == "one_minus_dst_alpha") {
-				return BlendMode::BM_ONE_MINUS_DST_ALPHA;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_DST_ALPHA;
 			} else if(s == "const_color") {
-				return BlendMode::BM_CONSTANT_COLOR;
+				return BlendMode::BlendModeConstants::BM_CONSTANT_COLOR;
 			} else if(s == "one_minus_const_color") {
-				return BlendMode::BM_ONE_MINUS_CONSTANT_COLOR;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_CONSTANT_COLOR;
 			} else if(s == "const_alpha") {
-				return BlendMode::BM_CONSTANT_ALPHA;
+				return BlendMode::BlendModeConstants::BM_CONSTANT_ALPHA;
 			} else if(s == "one_minus_const_alpha") {
-				return BlendMode::BM_ONE_MINUS_CONSTANT_ALPHA;
+				return BlendMode::BlendModeConstants::BM_ONE_MINUS_CONSTANT_ALPHA;
 			} else {
 				ASSERT_LOG(false, "parse_blend_string: Unrecognised value: " << s);
 			}
@@ -170,23 +186,23 @@ namespace KRE
 		if(node.is_string()) {
 			const std::string& blend = node.as_string();
 			if(blend == "add") {
-				Set(BM_ONE, BM_ONE);
+				Set(BlendModeConstants::BM_ONE, BlendModeConstants::BM_ONE);
 			} else if(blend == "alpha_blend") {
-				Set(BM_SRC_ALPHA, BM_ONE_MINUS_SRC_ALPHA);
+				Set(BlendModeConstants::BM_SRC_ALPHA, BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA);
 			} else if(blend == "colour_blend") {
-				Set(BM_SRC_COLOR, BM_ONE_MINUS_SRC_COLOR);
+				Set(BlendModeConstants::BM_SRC_COLOR, BlendModeConstants::BM_ONE_MINUS_SRC_COLOR);
 			} else if(blend == "modulate") {
-				Set(BM_DST_COLOR, BM_ZERO);
+				Set(BlendModeConstants::BM_DST_COLOR, BlendModeConstants::BM_ZERO);
 			} else if(blend == "src_colour one") {
-				Set(BM_SRC_COLOR, BM_ONE);
+				Set(BlendModeConstants::BM_SRC_COLOR, BlendModeConstants::BM_ONE);
 			} else if(blend == "src_colour zero") {
-				Set(BM_SRC_COLOR, BM_ZERO);
+				Set(BlendModeConstants::BM_SRC_COLOR, BlendModeConstants::BM_ZERO);
 			} else if(blend == "src_colour dest_colour") {
-				Set(BM_SRC_COLOR, BM_DST_COLOR);
+				Set(BlendModeConstants::BM_SRC_COLOR, BlendModeConstants::BM_DST_COLOR);
 			} else if(blend == "dest_colour one") {
-				Set(BM_DST_COLOR, BM_ONE);
+				Set(BlendModeConstants::BM_DST_COLOR, BlendModeConstants::BM_ONE);
 			} else if(blend == "dest_colour src_colour") {
-				Set(BM_DST_COLOR, BM_SRC_COLOR);
+				Set(BlendModeConstants::BM_DST_COLOR, BlendModeConstants::BM_SRC_COLOR);
 			} else {
 				ASSERT_LOG(false, "BlendMode: Unrecognised scene_blend mode " << blend);
 			}

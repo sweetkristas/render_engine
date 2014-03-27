@@ -38,8 +38,7 @@ namespace KRE
 		depth_attachment_(depth),
 		stencil_attachment_(stencil),
 		multi_sampling_(use_multi_sampling),
-		multi_samples_(multi_samples), 
-		SceneObject("render_target")
+		multi_samples_(multi_samples)
 	{
 	}
 
@@ -50,8 +49,7 @@ namespace KRE
 		depth_attachment_(false),
 		stencil_attachment_(false),
 		multi_sampling_(false),
-		multi_samples_(0), 
-		SceneObject("render_target")
+		multi_samples_(0)
 	{
 		ASSERT_LOG(node.has_key("width"), "Render target must have a 'width' attribute.");
 		ASSERT_LOG(node.has_key("height"), "Render target must have a 'height' attribute.");

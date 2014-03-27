@@ -25,16 +25,11 @@
 
 #include <memory>
 #include "variant.hpp"
-#include "SceneObject.hpp"
+#include "Blittable.hpp"
 
 namespace KRE
 {
-	//class ApplyRenderTarget
-	//{
-	//
-	//};
-
-	class RenderTarget : public SceneObject
+	class RenderTarget : public Blittable
 	{
 	public:
 		explicit RenderTarget(unsigned width, unsigned height, 

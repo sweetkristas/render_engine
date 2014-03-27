@@ -329,37 +329,43 @@ namespace KRE
 		}
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, const variant& node)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const SurfacePtr& surface, const variant& node)
 	{
 		return TexturePtr(new OpenGLTexture(surface, node));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(const SurfacePtr& surface, Texture::TextureType type, int mipmap_levels)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
 	{
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
 	{
-		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::TEXTURE_1D));
+		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::Type::TEXTURE_1D));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type)
 	{
-		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_2D));
+		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_2D));
 	}
 	
-	TexturePtr DisplayDeviceOpenGL::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
 	{
-		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::TEXTURE_3D, depth));
+		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_3D, depth));
 	}
 
-	MaterialPtr DisplayDeviceOpenGL::CreateMaterial(const variant& node)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
+	{
+		auto surface = Surface::Create(filename);
+		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
+	}
+
+	MaterialPtr DisplayDeviceOpenGL::HandleCreateMaterial(const variant& node)
 	{
 		return MaterialPtr(new OpenGLMaterial(node));
 	}
 
-	MaterialPtr DisplayDeviceOpenGL::CreateMaterial(const std::string& name, 
+	MaterialPtr DisplayDeviceOpenGL::HandleCreateMaterial(const std::string& name, 
 		const std::vector<TexturePtr>& textures, 
 		const BlendMode& blend, 
 		bool fog, 

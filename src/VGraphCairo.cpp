@@ -27,7 +27,7 @@
 #include "asserts.hpp"
 #include "logger.hpp"
 #include "VGraphCairo.hpp"
-#include "WindowManager.hpp"
+#include "DisplayDevice.hpp"
 
 namespace KRE
 {
@@ -313,8 +313,9 @@ namespace KRE
 			std::vector<PathInstructionPtr> path_instructions_;
 		};
 
-		CairoContext::CairoContext(const WindowManagerPtr& wnd, int width, int height)
-			: Context(width, height)
+		CairoContext::CairoContext(int width, int height)
+			: Context(width, height), 
+			Blittable(tex_)
 		{
 			surface_ = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 			auto status = cairo_surface_status(surface_);
@@ -344,8 +345,8 @@ namespace KRE
 				default:
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
-			tex_ = wnd->CreateTexture(w, h, pffmt);
-			tex_->SetAddressModes(Texture::CLAMP, Texture::CLAMP, Texture::CLAMP);
+			tex_ = DisplayDevice::CreateTexture(w, h, pffmt);
+			tex_->SetAddressModes(Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
 		}
 
 		CairoContext::~CairoContext()
@@ -600,11 +601,11 @@ namespace KRE
 			cpath->Execute(context_);
 		}
 
-		void CairoContext::Render(const WindowManagerPtr& wnd)
+		void CairoContext::PreRender() 
 		{
 			std::vector<unsigned> stride (1, cairo_image_surface_get_width(surface_));
 			tex_->Update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
-			wnd->BlitTexture(tex_, 0, 0, width(), height());
+			Blittable::PreRender();
 		}
 
 		void CairoContext::PathExtents(double& x1, double& y1, double& x2, double& y2) 

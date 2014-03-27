@@ -30,13 +30,6 @@
 
 namespace KRE
 {
-	struct vertex_texcoord
-	{
-		vertex_texcoord(const glm::vec2& v, const glm::vec2& tc) : vertex(v), texcoord(tc) {}
-		glm::vec2 vertex;
-		glm::vec2 texcoord;
-	};
-
 	class FboOpenGL : public RenderTarget
 	{
 	public:

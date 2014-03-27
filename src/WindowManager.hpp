@@ -106,21 +106,7 @@ namespace KRE
 
 		virtual void Clear(DisplayDevice::ClearFlags f) = 0;
 
-		TexturePtr CreateTexture(const variant& node);
-		TexturePtr CreateTexture(const std::string& filename, 
-			Texture::TextureType type=Texture::TextureType::TEXTURE_2D, 
-			int mipmap_levels=0);
-		TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt);
-		TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TextureType::TEXTURE_2D);
-		TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt);
-
-		MaterialPtr CreateMaterial(const variant& node);
-
-		void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation=0.0f, int srcx=0, int srcy=0, int srcw=0, int srch=0);
-
 		static WindowManagerPtr Factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
-
-		static DisplayDevicePtr GetDisplayDevice();
 	protected:
 		size_t width_;
 		size_t height_;

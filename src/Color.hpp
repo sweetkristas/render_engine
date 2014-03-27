@@ -24,6 +24,7 @@
 #pragma once
 
 #include <cstdint>
+#include "variant.hpp"
 
 namespace KRE
 {
@@ -32,8 +33,9 @@ namespace KRE
 	public:
 		Color();
 		~Color();
-		Color(const double r, const double g, const double b, const double a=1.0);
-		Color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a=255);
+		explicit Color(const double r, const double g, const double b, const double a=1.0);
+		explicit Color(const int r, const int g, const int b, const int a=255);
+		explicit Color(const variant& node);
 
 		double r() const { return color_[0]; }
 		double g() const { return color_[1]; }
@@ -48,7 +50,6 @@ namespace KRE
 		const float* AsFloatVector() const {
 			return color_;
 		}
-
 	private:
 		float color_[4];
 	};

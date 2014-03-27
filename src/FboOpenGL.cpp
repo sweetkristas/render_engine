@@ -164,15 +164,16 @@ namespace KRE
 				}
 
 				// Use CreateMaterial.
-				auto dd = WindowManager::GetDisplayDevice();
+				auto dd = DisplayDevice::GetCurrent();
 				std::vector<TexturePtr> textures;
 				unsigned color_planes = ColorPlanes();
 				textures.reserve(color_planes);
 				for(unsigned n = 0; n != color_planes; ++n) {
 					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, PixelFormat::PIXELFORMAT_BGRA8888));
-					textures.back()->SetRect(0, 0, Width(), Height());
 				}
-				SetMaterial(dd->CreateMaterial("fbo_mat", textures));
+				auto mat = dd->CreateMaterial("fbo_mat", textures);
+				mat->SetCoords(rect(0, 0, Width(), Height()));
+				SetMaterial(mat);
 
 				framebuffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id) {
 					glDeleteFramebuffers(1, id); 
@@ -201,40 +202,6 @@ namespace KRE
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// Create the render variables.
-
-		auto as = DisplayDevice::CreateAttributeSet(false, false, false);
-		as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
-		as->SetCount(4);
-		AddAttributeSet(as);
-
-		arv_ = std::make_shared<Attribute<vertex_texcoord>>(AccessFreqHint::STATIC);
-		arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vertex)));
-		arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, texcoord)));
-		as->AddAttribute(arv_);
-
-		std::vector<vertex_texcoord> vts;
-		auto tex = Material()->GetTexture();
-		// this is of course only-true if all the textures have the same
-		// size -- which they do.
-		const float x1 = tex[0]->CoordinateRect().x();
-		const float y1 = tex[0]->CoordinateRect().y();
-		const float x2 = tex[0]->CoordinateRect().x2();
-		const float y2 = tex[0]->CoordinateRect().y2();
-		const float vx1 = DisplayRect().x();
-		const float vy1 = DisplayRect().y();
-		const float vx2 = DisplayRect().x2();
-		const float vy2 = DisplayRect().y2();
-		vts.emplace_back(glm::vec2(vx1, vy1), glm::vec2(x1, y2));
-		vts.emplace_back(glm::vec2(vx1, vy2), glm::vec2(x1, y1));
-		vts.emplace_back(glm::vec2(vx2, vy1), glm::vec2(x2, y2));
-		vts.emplace_back(glm::vec2(vx2, vy2), glm::vec2(x2, y1));
-		arv_->Update(&vts);
-
-		/*auto& urv = std::make_shared<UniformRenderVariable<glm::vec4>>();
-		urv->AddVariableDescription(UniformRenderVariableDesc::COLOR, UniformRenderVariableDesc::FLOAT_VEC4);
-		AddUniformRenderVariable(urv);
-		urv->Update(glm::vec4(1.0f));*/
 		SetOrder(999999);
 	}
 

@@ -45,15 +45,6 @@ namespace KRE
 
 		void Render(const RenderablePtr& r) override;
 
-		TexturePtr CreateTexture(const SurfacePtr& surface, const variant& node) override;
-		TexturePtr CreateTexture(const SurfacePtr& surface, Texture::TextureType type, int mipmap_levels) override;
-		TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) override;
-		TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::TextureType type=Texture::TEXTURE_2D) override;
-		TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) override;
-
-		MaterialPtr CreateMaterial(const variant& node) override;
-		MaterialPtr CreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;
-
 		void Init(size_t width, size_t height) override;
 		void PrintDeviceInfo() override;
 
@@ -73,5 +64,15 @@ namespace KRE
 			size_t multi_samples) override;
 		RenderTargetPtr HandleCreateRenderTarget(const variant& node) override;
 		void DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) override;
+
+		TexturePtr HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) override;
+		TexturePtr HandleCreateTexture(const SurfacePtr& surface, const variant& node) override;
+		TexturePtr HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels) override;
+		TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) override;
+		TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D) override;
+		TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) override;
+
+		MaterialPtr HandleCreateMaterial(const variant& node) override;
+		MaterialPtr HandleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;
 	};
 }

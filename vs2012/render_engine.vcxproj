@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\AttributeSet.cpp" />
     <ClCompile Include="..\src\AttributeSetOGL.cpp" />
+    <ClCompile Include="..\src\Blittable.cpp" />
     <ClCompile Include="..\src\CameraObject.cpp" />
     <ClCompile Include="..\src\Color.cpp" />
     <ClCompile Include="..\src\DisplayDevice.cpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="..\src\asserts.hpp" />
     <ClInclude Include="..\src\AttributeSet.hpp" />
     <ClInclude Include="..\src\AttributeSetOpenGL.hpp" />
+    <ClInclude Include="..\src\Blittable.hpp" />
     <ClInclude Include="..\src\CameraObject.hpp" />
     <ClInclude Include="..\src\Color.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />

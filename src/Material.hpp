@@ -23,17 +23,16 @@
 
 #pragma once
 
+#include "Geometry.hpp"
 #include "Texture.hpp"
 #include "variant.hpp"
 
 namespace KRE
 {
-	class OpenGLMaterial;
-
 	class BlendMode
 	{
 	public:
-		enum BlendModeConstants {
+		enum class BlendModeConstants {
 			BM_ZERO,
 			BM_ONE,
 			BM_SRC_COLOR,
@@ -49,7 +48,7 @@ namespace KRE
 			BM_CONSTANT_ALPHA,
 			BM_ONE_MINUS_CONSTANT_ALPHA,
 		};
-		BlendMode() : src_(BM_ONE), dst_(BM_ZERO) {}
+		BlendMode() : src_(BlendModeConstants::BM_SRC_ALPHA), dst_(BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {}
 		BlendMode(BlendModeConstants src, BlendModeConstants dst) : src_(src), dst_(dst) {}
 		BlendModeConstants Source() const { return src_; }
 		BlendModeConstants Destination() const { return dst_; }
@@ -99,6 +98,13 @@ namespace KRE
 		void EnableDepthCheck(bool en=true);
 		void SetBlendMode(const BlendMode& bm);
 		void SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
+
+		const rectf GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it);
+
+		template<typename T> void SetCoords(const Geometry::Rect<T>& r) {
+			draw_rect_ = r.as_type<float>();
+		}
+		const rectf& GetCoords() const { return draw_rect_; }
 		
 		// Performs the actions to apply the current material to the renderable object.
 		// Returns a boolean indicating whether to use lighting or not for this
@@ -119,6 +125,7 @@ namespace KRE
 		bool do_depth_write_;
 		bool do_depth_check_;
 		BlendMode blend_;
+		rectf draw_rect_;
 		Material(const Material&);
 		Material& operator=(const Material&);
 	};

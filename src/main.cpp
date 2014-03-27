@@ -121,14 +121,19 @@ namespace
 	typedef std::shared_ptr<SquareRenderable> SquareRenderablePtr;
 }
 
-void recurse_tree(const the::tree<int>& xt, the::tree<int>::pre_iterator& it)
+class SimpleTextureHolder : public KRE::Blittable
 {
-	if(xt.end() == it) {
-		return;
+public:
+	SimpleTextureHolder(const std::string& filename) {
+		using namespace KRE;
+		auto tex = DisplayDevice::CreateTexture(filename, Texture::Type::TEXTURE_2D, 4);
+		tex->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		tex->SetAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		SetTexture(tex);
+		SetOrder(1);
 	}
-	std::cerr << *it << std::endl;
-	recurse_tree(xt, ++it);
-}
+private:
+};
 
 int main(int argc, char *argv[])
 {
@@ -144,7 +149,7 @@ int main(int argc, char *argv[])
 	main_wnd->EnableVsync(false);
 	main_wnd->CreateWindow(800,600);
 
-	SceneGraphPtr scene = SceneGraph::Create("main", main_wnd);
+	SceneGraphPtr scene = SceneGraph::Create("main");
 	SceneNodePtr root = scene->RootNode();
 	root->SetNodeName("root_node");
 	auto scenecam = std::make_shared<Camera>("cam0", 0, 800, 0, 600);
@@ -178,8 +183,7 @@ int main(int argc, char *argv[])
 	//cairo_canvas->AddPath(text);
 	//cairo_canvas->Fill();
 
-	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	root->AttachNode(psystem);
+/*	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
 	//psystem->SetNodeName("psc_node");
 	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
 	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
@@ -189,11 +193,13 @@ int main(int argc, char *argv[])
 	rt->Create();
 	psystem->AttachRenderTarget(rt);
 	root->AttachObject(rt);
+*/
 
-	//auto surf = main_wnd->CreateSurface("images/card-back.png");
-	auto tex = main_wnd->CreateTexture("card-back2.png", KRE::Texture::TEXTURE_2D, 4);
-	tex->SetFiltering(KRE::Texture::Filtering::LINEAR, KRE::Texture::Filtering::LINEAR, KRE::Texture::Filtering::POINT);
-	//auto tex = main_wnd->CreateTexture("card-back.png");
+	auto tex = std::shared_ptr<Blittable>(new SimpleTextureHolder("card-back.png"));
+	tex->SetDrawRect(rectf(-146/2.0f,-260/2.0f,146.0f,260.0f));
+	tex->SetPosition(400.0f, 300.0f);
+	root->AttachObject(tex);
+
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
@@ -213,16 +219,14 @@ int main(int argc, char *argv[])
 		// Called once a cycle before rendering.
 		scene->Process(SDL_GetTicks() / 1000.0f);
 
-		//scene->RenderScene(rman);
-		//rman->Render(main_wnd);
-
-		main_wnd->BlitTexture(tex, 100, 100, 146, 260, angle);
-		//angle += angle_step;
+		tex->SetRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		angle += angle_step;
 		while(angle >= 360.0f) {
 			angle -= 360.0f;
 		}
 
-		//cairo_canvas->Render(main_wnd);
+		scene->RenderScene(rman);
+		rman->Render(main_wnd);
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

@@ -32,22 +32,22 @@ namespace KRE
 		GLenum convert_blend_mode(BlendMode::BlendModeConstants bm)
 		{
 			switch(bm) {
-				case BlendMode::BM_ZERO:					return GL_ZERO;
-				case BlendMode::BM_ONE:						return GL_ONE;
-				case BlendMode::BM_SRC_COLOR:				return GL_SRC_COLOR;
-				case BlendMode::BM_ONE_MINUS_SRC_COLOR:		return GL_ONE_MINUS_SRC_COLOR;
-				case BlendMode::BM_DST_COLOR:				return GL_DST_COLOR;
-				case BlendMode::BM_ONE_MINUS_DST_COLOR:		return GL_ONE_MINUS_DST_COLOR;
-				case BlendMode::BM_SRC_ALPHA:				return GL_SRC_ALPHA;
-				case BlendMode::BM_ONE_MINUS_SRC_ALPHA:		return GL_ONE_MINUS_SRC_ALPHA;
-				case BlendMode::BM_DST_ALPHA:				return GL_DST_ALPHA;
-				case BlendMode::BM_ONE_MINUS_DST_ALPHA:		return GL_ONE_MINUS_DST_ALPHA;
-				case BlendMode::BM_CONSTANT_COLOR:			return GL_CONSTANT_COLOR;
-				case BlendMode::BM_ONE_MINUS_CONSTANT_COLOR:return GL_ONE_MINUS_CONSTANT_COLOR;
-				case BlendMode::BM_CONSTANT_ALPHA:			return GL_CONSTANT_ALPHA;
-				case BlendMode::BM_ONE_MINUS_CONSTANT_ALPHA:return GL_ONE_MINUS_CONSTANT_ALPHA;
+				case BlendMode::BlendModeConstants::BM_ZERO:					return GL_ZERO;
+				case BlendMode::BlendModeConstants::BM_ONE:						return GL_ONE;
+				case BlendMode::BlendModeConstants::BM_SRC_COLOR:				return GL_SRC_COLOR;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_COLOR:		return GL_ONE_MINUS_SRC_COLOR;
+				case BlendMode::BlendModeConstants::BM_DST_COLOR:				return GL_DST_COLOR;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_DST_COLOR:		return GL_ONE_MINUS_DST_COLOR;
+				case BlendMode::BlendModeConstants::BM_SRC_ALPHA:				return GL_SRC_ALPHA;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA:		return GL_ONE_MINUS_SRC_ALPHA;
+				case BlendMode::BlendModeConstants::BM_DST_ALPHA:				return GL_DST_ALPHA;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_DST_ALPHA:		return GL_ONE_MINUS_DST_ALPHA;
+				case BlendMode::BlendModeConstants::BM_CONSTANT_COLOR:			return GL_CONSTANT_COLOR;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_CONSTANT_COLOR:return GL_ONE_MINUS_CONSTANT_COLOR;
+				case BlendMode::BlendModeConstants::BM_CONSTANT_ALPHA:			return GL_CONSTANT_ALPHA;
+				case BlendMode::BlendModeConstants::BM_ONE_MINUS_CONSTANT_ALPHA:return GL_ONE_MINUS_CONSTANT_ALPHA;
 			}
-			ASSERT_LOG(false, "Unrecognised blend mode: " << bm);
+			ASSERT_LOG(false, "Unrecognised blend mode");
 			return GL_ZERO;
 		}
 	}
@@ -84,8 +84,8 @@ namespace KRE
 		}
 
 		auto& bm = GetBlendMode();
-		if(bm.Src() != BlendMode::BM_SRC_ALPHA 
-			&& bm.Dst() != BlendMode::BM_ONE_MINUS_SRC_ALPHA) {
+		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
+			&& bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(convert_blend_mode(bm.Src()), convert_blend_mode(bm.Dst()));
 		}
 
@@ -110,8 +110,8 @@ namespace KRE
 		}
 
 		auto& bm = GetBlendMode();
-		if(bm.Src() != BlendMode::BM_SRC_ALPHA 
-			&& bm.Dst() != BlendMode::BM_ONE_MINUS_SRC_ALPHA) {
+		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
+			&& bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}

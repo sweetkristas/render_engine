@@ -23,36 +23,42 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <unordered_map>
-
-#include "RenderFwd.hpp"
-
-#include "glm/glm.hpp"
+#include "Geometry.hpp"
+#include "Material.hpp"
+#include "SceneObject.hpp"
 
 namespace KRE
 {
-	class Light;
-	typedef std::shared_ptr<Light> LightPtr;
-	typedef std::unordered_map<size_t, LightPtr> LightPtrList;
-	class Camera;
-	typedef std::shared_ptr<Camera> CameraPtr;
-	class Parameter;
-	typedef std::shared_ptr<Parameter> ParameterPtr;
-	class SceneObject;
-	typedef std::shared_ptr<SceneObject> SceneObjectPtr;
-	class SceneNode;
-	typedef std::shared_ptr<SceneNode> SceneNodePtr;
-	class SceneGraph;
-	typedef std::shared_ptr<SceneGraph> SceneGraphPtr;
-
-	struct SceneNodeParams
+	struct vertex_texcoord
 	{
-		CameraPtr camera;
-		LightPtrList lights;
-		RenderTargetPtr render_target;
+		vertex_texcoord() : vtx(0.0f), tc(0.0f) {}
+		vertex_texcoord(const glm::vec2& v, const glm::vec2& c) : vtx(v), tc(c) {}
+		glm::vec2 vtx;
+		glm::vec2 tc;
 	};
 
-	class Blittable;
+	// This is basically a helper class that lets you blit a 
+	// texture to the screen in what should be a relatively 
+	// optimised manner.
+	class Blittable : public SceneObject
+	{
+	public:
+		Blittable();
+		explicit Blittable(const TexturePtr& tex);
+		explicit Blittable(const MaterialPtr& mat);
+		virtual ~Blittable();
+		void SetTexture(const TexturePtr& tex);
+		
+		template<typename T>
+		void SetDrawRect(const Geometry::Rect<T>& r) {
+			draw_rect_ = r.as_type<float>();
+		}
+		virtual void PreRender() override;
+
+		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+	private:
+		void Init();
+		std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
+		rectf draw_rect_;
+	};
 }

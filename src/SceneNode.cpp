@@ -50,7 +50,7 @@ namespace KRE
 	void SceneNode::AttachObject(const SceneObjectPtr& obj)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
-		auto dd = scene_graph_->DisplayDevice();
+		auto dd = DisplayDevice::GetCurrent();
 		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		objects_.emplace_back(obj);
 		obj->SetDisplayData(dd, obj->Attach(dd));
@@ -63,7 +63,7 @@ namespace KRE
 			lights_.erase(it);
 		}
 		lights_.emplace(ref,obj);
-		auto dd = scene_graph_->DisplayDevice();
+		auto dd = DisplayDevice::GetCurrent();
 		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
@@ -71,7 +71,7 @@ namespace KRE
 	void SceneNode::AttachCamera(const CameraPtr& obj)
 	{
 		camera_ = obj;
-		auto dd = scene_graph_->DisplayDevice();
+		auto dd = DisplayDevice::GetCurrent();
 		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
@@ -79,7 +79,7 @@ namespace KRE
 	void SceneNode::AttachRenderTarget(const RenderTargetPtr& obj)
 	{
 		render_target_ = obj;
-		auto dd = scene_graph_->DisplayDevice();
+		auto dd = DisplayDevice::GetCurrent();
 		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}

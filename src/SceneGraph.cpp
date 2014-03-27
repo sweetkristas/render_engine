@@ -81,12 +81,11 @@ namespace KRE
 		ASSERT_LOG(false, "parent node not found when attaching a child node");
 	}
 
-	SceneGraphPtr SceneGraph::Create(const std::string& name, const WindowManagerPtr& wnd) 
+	SceneGraphPtr SceneGraph::Create(const std::string& name) 
 	{
 		// Create graph then insert a root node into the tree.
 		auto sg = std::make_shared<SceneGraph>(name);
 		sg->graph_.insert(sg->graph_.end(), sg->CreateNode());
-		sg->wnd_ = wnd;
 		return sg;
 	}
 	

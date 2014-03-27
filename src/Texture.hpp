@@ -35,19 +35,19 @@ namespace KRE
 	class Texture
 	{
 	public:
-		enum TextureType {
+		enum class Type {
 			TEXTURE_1D,
 			TEXTURE_2D,
 			TEXTURE_3D,
 			TEXTURE_CUBIC,
 		};
-		enum AddressMode {
+		enum class AddressMode {
 			WRAP,
 			CLAMP,
 			MIRROR,
 			BORDER,
 		};
-		enum Filtering {
+		enum class Filtering {
 			NONE,
 			POINT,
 			LINEAR,
@@ -55,21 +55,23 @@ namespace KRE
 		};
 		Texture(const SurfacePtr& surface, const variant& node);
 		Texture(const SurfacePtr& surface, 
-			TextureType type=TextureType::TEXTURE_2D, 
+			Type type=Type::TEXTURE_2D, 
 			int mipmap_levels=0);
 		Texture(unsigned width, 
 			unsigned height, 
 			PixelFormat::PixelFormatConstant fmt, 
-			Texture::TextureType type);
+			Texture::Type type);
 		virtual ~Texture();
 
-		void SetAddressModes(AddressMode u, AddressMode v=AddressMode::WRAP, AddressMode w=AddressMode::WRAP);
-		void SetAddressModes(const AddressMode uvw[3]);
+		void SetAddressModes(AddressMode u, AddressMode v=AddressMode::WRAP, AddressMode w=AddressMode::WRAP, const Color& bc=Color(0.0f,0.0f,0.0f));
+		void SetAddressModes(const AddressMode uvw[3], const Color& bc=Color(0.0f,0.0f,0.0f));
 
 		void SetFiltering(Filtering min, Filtering max, Filtering mip);
 		void SetFiltering(const Filtering f[3]);
 
-		TextureType GetType() const { return type_; }
+		void SetBorderColor(const Color& bc);
+
+		Type GetType() const { return type_; }
 		int GetMipMapLevels() const { return mipmaps_; }
 		int GetMaxAnisotropy() const { return max_anisotropy_; }
 		AddressMode GetAddressModeU() const { return address_mode_[0]; }
@@ -81,16 +83,10 @@ namespace KRE
 		const Color& GetBorderColor() const { return border_color_; }
 		float GetLodBias() const { return lod_bias_; }
 
-		void SetRect(int x, int y, unsigned width, unsigned height);
-		void SetRect(const rect& r);
-		void SetRect(const rectf& r);
-
-		const rectf& CoordinateRect() const { return coords_; }
-
-		float CWidth() const { return coords_.w(); }
-		float CHeight() const { return coords_.h(); }
-
 		void InternalInit();
+
+		float Width() const { return tex_width_; }
+		float Height() const { return tex_height_; }
 
 		virtual void Init() = 0;
 		virtual void Bind() = 0;
@@ -102,7 +98,7 @@ namespace KRE
 	protected:
 		const SurfacePtr& GetSurface() const { return surface_; }
 	private:
-		TextureType type_;
+		Type type_;
 		int mipmaps_;
 		AddressMode address_mode_[3]; // u,v,w
 		Filtering filtering_[3]; // minification, magnification, mip
@@ -113,7 +109,6 @@ namespace KRE
 		SurfacePtr surface_;
 		float tex_width_;
 		float tex_height_;
-		rectf coords_;
 	};
 
 	typedef std::shared_ptr<Texture> TexturePtr;

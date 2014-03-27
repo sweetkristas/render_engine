@@ -34,12 +34,12 @@ namespace KRE
 	public:
 		OpenGLTexture(const SurfacePtr& surface, const variant& node);
 		OpenGLTexture(const SurfacePtr& surface, 
-			TextureType type=TextureType::TEXTURE_2D, 
+			Type type=Type::TEXTURE_2D, 
 			int mipmap_levels=0);
 		OpenGLTexture(unsigned width, 
 			unsigned height, 			
 			PixelFormat::PixelFormatConstant fmt, 
-			Texture::TextureType type=TextureType::TEXTURE_2D,
+			Texture::Type type=Type::TEXTURE_2D,
 			unsigned depth=0);
 		virtual ~OpenGLTexture();
 

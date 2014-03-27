@@ -38,20 +38,17 @@ namespace KRE
 		SceneGraph(const std::string& name);
 		~SceneGraph();
 		void AttachNode(SceneNode* parent, SceneNodePtr node);
-		static SceneGraphPtr Create(const std::string& name, const WindowManagerPtr& wnd);
+		static SceneGraphPtr Create(const std::string& name);
 		SceneNodePtr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
 		SceneNodePtr RootNode();
 		void RenderScene(const RenderManagerPtr& renderer);
 		void RenderSceneHelper(const RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, SceneNodeParams* snp);
 	
-		DisplayDevicePtr DisplayDevice() { return wnd_->GetDisplayDevice(); }
-
 		void Process(double);
 
 		static void RegisterFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)>);
 	private:
-		WindowManagerPtr wnd_;
 		std::string name_;
 		the::tree<SceneNodePtr> graph_;
 		SceneGraph(const SceneGraph&);
