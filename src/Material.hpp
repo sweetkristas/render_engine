@@ -102,7 +102,7 @@ namespace KRE
 		const rectf GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it);
 
 		template<typename T> void SetCoords(const Geometry::Rect<T>& r) {
-			draw_rect_ = r.as_type<float>();
+			draw_rect_ = r.template as_type<float>();
 		}
 		const rectf& GetCoords() const { return draw_rect_; }
 		

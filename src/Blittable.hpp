@@ -59,7 +59,7 @@ namespace KRE
 
 		template<typename T>
 		void SetDrawRect(const Geometry::Rect<T>& r) {
-			draw_rect_ = r.as_type<float>();
+			draw_rect_ = r.template as_type<float>();
 		}
 		virtual void PreRender() override;
 

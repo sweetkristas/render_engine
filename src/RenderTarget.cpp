@@ -83,7 +83,7 @@ namespace KRE
 
 	void RenderTarget::SetDisplayRect(const rect& r)
 	{
-		display_rect_ = r.as_type<float>();
+		display_rect_ = r.template as_type<float>();
 	}
 
 	void RenderTarget::SetDisplayRect(const rectf& r)
