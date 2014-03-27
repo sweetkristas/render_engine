@@ -7,6 +7,7 @@
 objects = \
 	src/AttributeSet.o \
 	src/AttributeSetOGL.o \
+    src/Blittable.o \
 	src/CameraObject.o \
 	src/Color.o \
 	src/DisplayDevice.o \
