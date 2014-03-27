@@ -32,7 +32,7 @@ namespace KRE
 		use_fog_(false),
 		do_depth_write_(false),
 		do_depth_check_(false),
-		draw_rect_(0.0f, 0.0f, 1.0f, 1.0f)
+		draw_rect_(0.0f, 0.0f, 0.0f, 0.0f)
 	{
 	}
 
@@ -50,7 +50,7 @@ namespace KRE
 		use_fog_(fog),
 		do_depth_write_(depth_write),
 		do_depth_check_(depth_check),
-		draw_rect_(0.0f, 0.0f, 1.0f, 1.0f)
+		draw_rect_(0.0f, 0.0f, 0.0f, 0.0f)
 	{
 	}
 
@@ -140,6 +140,9 @@ namespace KRE
 	{
 		float w = (*it)->Width();
 		float h = (*it)->Height();
+		if(draw_rect_.x() == 0.0f && draw_rect_.y() == 0.0f && draw_rect_.x2() == 0.0f && draw_rect_.y2() == 0.0f) {
+			return rectf(0.0f, 0.0f, 1.0f, 1.0f);
+		}
 		return rectf(draw_rect_.x()/w, draw_rect_.y()/h, draw_rect_.x2()/w, draw_rect_.y2()/h);
 	}
 

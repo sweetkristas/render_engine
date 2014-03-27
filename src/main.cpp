@@ -196,8 +196,9 @@ int main(int argc, char *argv[])
 */
 
 	auto tex = std::shared_ptr<Blittable>(new SimpleTextureHolder("card-back.png"));
-	tex->SetDrawRect(rectf(-146/2.0f,-260/2.0f,146.0f,260.0f));
+	tex->SetDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
 	tex->SetPosition(400.0f, 300.0f);
+	tex->SetCentre(Blittable::Centre::MIDDLE);
 	root->AttachObject(tex);
 
 	float angle = 1.0f;

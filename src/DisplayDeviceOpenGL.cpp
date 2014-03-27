@@ -262,6 +262,10 @@ namespace KRE
 			shader->SetUniformValue(shader->GetColorUniform(), r->GetColor().AsFloatVector());
 		}
 
+		if(shader->GetTexMapUniform() != shader->UniformsIteratorEnd()) {
+			shader->SetUniformValue(shader->GetTexMapUniform(), 0);
+		}
+
 		// Loop through uniform render variables and set them.
 		/*for(auto& urv : r->UniformRenderVariables()) {
 			for(auto& rvd : urv->VariableDescritionList()) {

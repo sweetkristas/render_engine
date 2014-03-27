@@ -43,22 +43,41 @@ namespace KRE
 	class Blittable : public SceneObject
 	{
 	public:
+		enum class Centre {
+			MIDDLE,
+			TOP_LEFT,
+			TOP_RIGHT,
+			BOTTOM_LEFT,
+			BOTTOM_RIGHT,
+			MANUAL,
+		};
 		Blittable();
 		explicit Blittable(const TexturePtr& tex);
 		explicit Blittable(const MaterialPtr& mat);
 		virtual ~Blittable();
 		void SetTexture(const TexturePtr& tex);
-		
+
 		template<typename T>
 		void SetDrawRect(const Geometry::Rect<T>& r) {
 			draw_rect_ = r.as_type<float>();
 		}
 		virtual void PreRender() override;
 
+		Centre GetCentre() const { return centre_; }
+		void SetCentre(Centre c);
+		const pointf& GetCentreCoords() const { return centre_offset_; }
+		template<typename T>
+		void SetCentreCoords(const Geometry::Point<T>& p) {
+			centre_offset_ = p;
+			centre_ = Centre::MANUAL;
+		}
+
 		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 	private:
 		void Init();
 		std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
 		rectf draw_rect_;
+		pointf centre_offset_;
+		Centre centre_;
 	};
 }
