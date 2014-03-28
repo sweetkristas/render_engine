@@ -231,6 +231,8 @@ namespace KRE
 			//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
+
+		Blittable::PreRender();
 	}
 
 	void FboOpenGL::HandleApply()

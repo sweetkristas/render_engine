@@ -130,7 +130,6 @@ public:
 		tex->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->SetAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		SetTexture(tex);
-		SetOrder(1);
 	}
 private:
 };
@@ -168,37 +167,39 @@ int main(int argc, char *argv[])
 	auto rq = std::make_shared<RenderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
-	//auto cairo_canvas = Vector::Context::CreateInstance("cairo", main_wnd, 512, 512);
-	//cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
-	//cairo_canvas->Paint();
-	//cairo_canvas->Fill();
-	//auto path = cairo_canvas->NewPath();
-	//path->Circle(256, 256, 100);
-	//cairo_canvas->AddPath(path);
-	//cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
-	//cairo_canvas->Fill();
-	//auto text = cairo_canvas->NewPath();
-	//text->MoveTo(10, 10);
-	//text->TextPath("ABCDabcde");
-	//cairo_canvas->AddPath(text);
-	//cairo_canvas->Fill();
+	auto cairo_canvas = Vector::Context::CreateInstance("cairo", 512, 512);
+	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
+	cairo_canvas->Paint();
+	cairo_canvas->Fill();
+	auto path = cairo_canvas->NewPath();
+	path->Circle(256, 256, 100);
+	cairo_canvas->AddPath(path);
+	cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
+	cairo_canvas->Fill();
+	auto text = cairo_canvas->NewPath();
+	text->MoveTo(10, 10);
+	text->TextPath("ABCDabcde");
+	cairo_canvas->AddPath(text);
+	cairo_canvas->Fill();
+	cairo_canvas->SetOrder(5);
+	cairo_canvas->SetPosition(256.0f,256.0f);
+	root->AttachObject(cairo_canvas);
 
-/*	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	//psystem->SetNodeName("psc_node");
-	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
-	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	psystem->AttachCamera(particle_cam);
-	auto rt = DisplayDevice::RenderTargetInstance(400, 300);
-	rt->SetDisplayRect(0, 0, 400, 300);
-	rt->Create();
-	psystem->AttachRenderTarget(rt);
-	root->AttachObject(rt);
-*/
+	//auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	//auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
+	//particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	//psystem->AttachCamera(particle_cam);
+	//root->AttachNode(psystem);
+	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
+	//rt->SetDrawRect(rect(0,0,400,300));
+	//rt->Create();
+	//psystem->AttachRenderTarget(rt);
+	//root->AttachObject(rt);
 
 	auto tex = std::shared_ptr<Blittable>(new SimpleTextureHolder("card-back.png"));
 	tex->SetDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
-	tex->SetPosition(400.0f, 300.0f);
-	tex->SetCentre(Blittable::Centre::MIDDLE);
+	tex->SetPosition(146.0f/2.0f, 600.0f-130.0f);
+	tex->SetOrder(10);
 	root->AttachObject(tex);
 
 	float angle = 1.0f;
@@ -221,6 +222,7 @@ int main(int argc, char *argv[])
 		scene->Process(SDL_GetTicks() / 1000.0f);
 
 		tex->SetRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		cairo_canvas->SetRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		angle += angle_step;
 		while(angle >= 360.0f) {
 			angle -= 360.0f;

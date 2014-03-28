@@ -314,8 +314,8 @@ namespace KRE
 		};
 
 		CairoContext::CairoContext(int width, int height)
-			: Context(width, height), 
-			Blittable(tex_)
+			: Context(width, height),
+			draw_rect_(0.0f, 0.0f, float(width), float(height))
 		{
 			surface_ = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 			auto status = cairo_surface_status(surface_);
@@ -347,6 +347,36 @@ namespace KRE
 			}
 			tex_ = DisplayDevice::CreateTexture(w, h, pffmt);
 			tex_->SetAddressModes(Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
+			auto mat = DisplayDevice::CreateMaterial("CairoContext", std::vector<TexturePtr>(1,tex_));
+			SetMaterial(mat);
+
+			auto as = DisplayDevice::CreateAttributeSet();
+			attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
+			attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
+			attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE,  2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
+			as->AddAttribute(AttributeBasePtr(attribs_));
+			as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+			AddAttributeSet(as);
+
+			float offs_x = 0.0f;
+			float offs_y = 0.0f;
+			offs_x = -draw_rect_.w()/2.0f;
+			offs_y = -draw_rect_.h()/2.0f;
+			// XXX we should only do this if things changed.
+			const float vx1 = draw_rect_.x() + offs_x;
+			const float vy1 = draw_rect_.y() + offs_y;
+			const float vx2 = draw_rect_.x2() + offs_x;
+			const float vy2 = draw_rect_.y2() + offs_y;
+
+			rectf r = Material()->GetNormalisedTextureCoords(Material()->GetTexture().begin());
+
+			std::vector<vertex_texcoord> vertices;
+			vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
+			vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
+			vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
+			vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
+			GetAttributeSet().back()->SetCount(vertices.size());
+			attribs_->Update(&vertices);
 		}
 
 		CairoContext::~CairoContext()
@@ -605,12 +635,17 @@ namespace KRE
 		{
 			std::vector<unsigned> stride (1, cairo_image_surface_get_width(surface_));
 			tex_->Update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
-			Blittable::PreRender();
 		}
 
 		void CairoContext::PathExtents(double& x1, double& y1, double& x2, double& y2) 
 		{
 			cairo_path_extents(context_, &x1, &y1, &x2, &y2);
+		}
+
+		DisplayDeviceDef CairoContext::Attach(const DisplayDevicePtr& dd)
+		{
+			DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
+			return def;
 		}
 	}
 }

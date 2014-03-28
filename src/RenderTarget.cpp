@@ -76,21 +76,6 @@ namespace KRE
 	{
 	}
 
-	void RenderTarget::SetDisplayRect(int x, int y, unsigned width, unsigned height)
-	{
-		display_rect_ = rectf(float(x), float(y), float(width), float(height));
-	}
-
-	void RenderTarget::SetDisplayRect(const rect& r)
-	{
-		display_rect_ = r.template as_type<float>();
-	}
-
-	void RenderTarget::SetDisplayRect(const rectf& r)
-	{
-		display_rect_ = r;
-	}
-
 	void RenderTarget::Create()
 	{
 		HandleCreate();

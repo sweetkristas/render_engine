@@ -152,7 +152,8 @@ namespace KRE
 
 		static bool RegisterSurfaceCreator(const std::string& name, SurfacePtr(*)(const std::string&));
 		static void UnRegisterSurfaceCreator(const std::string& name);
-		static SurfacePtr Create(const std::string& filename);
+		static SurfacePtr Create(const std::string& filename, bool no_cache=false);
+		static void ResetSurfaceCache();
 	protected:
 		Surface();
 		void SetPixelFormat(PixelFormatPtr pf);

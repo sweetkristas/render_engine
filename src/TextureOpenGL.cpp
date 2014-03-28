@@ -384,7 +384,22 @@ namespace KRE
 					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, GetBorderColor().AsFloatVector());
 				}
 			}
-		
+
+			if(GetLodBias() > 1e-14 || GetLodBias() < -1e-14) {
+				glTexParameterf(type, GL_TEXTURE_LOD_BIAS, GetLodBias());
+			}
+			if(GetMipMapLevels() > 0) {
+				glTexParameteri(type, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(type, GL_TEXTURE_MAX_LEVEL, GetMipMapLevels());
+			}
+
+			if(GetMipMapLevels() > 0 && GetType() > Type::TEXTURE_1D) {
+				// XXX for OGL >= 1.4 < 3 use: glTexParameteri(type, GL_GENERATE_MIPMAP, GL_TRUE)
+				// XXX for OGL < 1.4 manually generate them with glTexImage2D
+				// OGL >= 3 use glGenerateMipmap(type);
+				glGenerateMipmap(type);
+			}
+
 			ASSERT_LOG(GetFilteringMin() != Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
 			ASSERT_LOG(GetFilteringMax() != Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
 			ASSERT_LOG(GetFilteringMip() != Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
@@ -417,14 +432,6 @@ namespace KRE
 					glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_anisotropy);
 					glTexParameterf(type, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_anisotropy > GetMaxAnisotropy() ? GetMaxAnisotropy() : largest_anisotropy);
 				}
-			}
-
-			if(GetLodBias() > 1e-14 || GetLodBias() < -1e-14) {
-				glTexParameterf(type, GL_TEXTURE_LOD_BIAS, GetLodBias());
-			}
-
-			if(GetMipMapLevels() > 0 && GetType() > Type::TEXTURE_1D) {
-				glGenerateMipmap(type);
 			}
 		}
 	}

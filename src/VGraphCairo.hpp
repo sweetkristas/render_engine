@@ -25,7 +25,7 @@
 
 #include <cairo/cairo.h>
 
-#include "Blittable.hpp"
+#include "Geometry.hpp"
 #include "VGraph.hpp"
 
 namespace KRE
@@ -34,7 +34,7 @@ namespace KRE
 	{
 		class CairoPath;
 
-		class CairoContext : public Context, public Blittable
+		class CairoContext : public Context
 		{
 		public:
 			CairoContext(int width, int height);
@@ -100,6 +100,9 @@ namespace KRE
 			virtual void AddSubPath(const PathPtr& path) override;
 		
 			virtual void PreRender() override;
+
+
+			virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 		protected:
 			cairo_t* GetContext() { return context_; }
 			cairo_surface_t* GetSurface() { return surface_; }
@@ -109,7 +112,9 @@ namespace KRE
 
 			std::vector<PathPtr> path_list_;
 
+			rectf draw_rect_;
 			TexturePtr tex_;
+			std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
 
 			friend class CairoPath;
 		};

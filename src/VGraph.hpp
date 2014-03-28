@@ -29,7 +29,7 @@
 #include <vector>
 
 #include "Color.hpp"
-#include "WindowManagerFwd.hpp"
+#include "SceneObject.hpp"
 #include "VGraphFwd.hpp"
 
 #ifndef M_PI
@@ -91,7 +91,7 @@ namespace KRE
 		};
 
 
-		class Context
+		class Context : public SceneObject
 		{
 		public:
 			Context(int width, int height);

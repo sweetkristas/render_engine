@@ -83,6 +83,12 @@ namespace KRE
 		//const std::vector<UniformSetPtr>& GetUniformSet() const { return uniforms_; }
 
 		virtual void PreRender() {}
+
+		// Called just before rendering this item, after shaders and other variables
+		// have been set-up
+		virtual void RenderBegin() {}
+		// Called after draw commands have been sent before anything is torn down.
+		virtual void RenderEnd() {}
 	private:
 		size_t order_;
 		glm::vec3 position_;

@@ -33,6 +33,13 @@ namespace KRE
 			static CreatorMap res;
 			return res;
 		}
+
+		typedef std::map<std::string, SurfacePtr> surface_cache_type;
+		surface_cache_type& get_surface_cache()
+		{
+			static surface_cache_type res;
+			return res;
+		}
 	}
 
 	Surface::Surface()
@@ -76,10 +83,24 @@ namespace KRE
 		get_surface_creator().erase(it);
 	}
 
-	SurfacePtr Surface::Create(const std::string& filename)
+	SurfacePtr Surface::Create(const std::string& filename, bool no_cache)
 	{
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create images from files.");
+		if(!no_cache) {
+			auto it = get_surface_cache().find(filename);
+			if(it != get_surface_cache().end()) {
+				return it->second;
+			}
+			auto surface = get_surface_creator().begin()->second(filename);
+			get_surface_cache()[filename] = surface;
+			return surface;
+		} 
 		return get_surface_creator().begin()->second(filename);
+	}
+
+	void Surface::ResetSurfaceCache()
+	{
+		get_surface_cache().clear();
 	}
 
 	PixelFormat::PixelFormat()

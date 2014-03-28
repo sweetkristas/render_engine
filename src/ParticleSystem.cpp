@@ -489,7 +489,7 @@ namespace KRE
 		{
 			//LOG_DEBUG("technique::PreRender, particle count: " << active_particles_.size());
 			std::vector<vertex_texture_color> vtc;
-			vtc.reserve(active_particles_.size());
+			vtc.reserve(active_particles_.size() * 6);
 			for(auto& p : active_particles_) {
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y,p.current.position.z), glm::vec2(0.0f,0.0f), p.current.color);
 				vtc.emplace_back(glm::vec3(p.current.position.x,p.current.position.y+p.current.dimensions.y,p.current.position.z), glm::vec2(0.0f,1.0f), p.current.color);

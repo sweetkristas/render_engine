@@ -32,11 +32,14 @@ namespace KRE
 	namespace Vector
 	{
 		Context::Context()
+			: SceneObject("vector::context")
 		{
 		}
 
 		Context::Context(int width, int height)
-			: width_(width), height_(height)
+			: SceneObject("vector::context"), 
+			width_(width), height_(height)
+			
 		{
 		}
 
