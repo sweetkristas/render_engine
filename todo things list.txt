@@ -17,6 +17,7 @@ List of things still needed to be done, not in any particular order.
 * Add uniform blocks (with hardware backing)
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
 * Add instancing support see: http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
+* Make some sort of framework for universal shaders.
 
 Finished things
 
