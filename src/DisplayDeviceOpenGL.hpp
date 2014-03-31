@@ -68,9 +68,9 @@ namespace KRE
 		TexturePtr HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) override;
 		TexturePtr HandleCreateTexture(const SurfacePtr& surface, const variant& node) override;
 		TexturePtr HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels) override;
-		TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) override;
-		TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D) override;
-		TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) override;
+		TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PF fmt) override;
+		TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D) override;
+		TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt) override;
 
 		MaterialPtr HandleCreateMaterial(const variant& node) override;
 		MaterialPtr HandleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;

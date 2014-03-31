@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Surface.hpp"
 #include "SDL.h"
 
@@ -61,7 +63,16 @@ namespace KRE
 		uint8_t AlphaBits() const override;
 		uint8_t LuminanceBits() const override;
 
-		PixelFormatConstant GetConstant() const override;
+		uint32_t RedShift() const override;
+		uint32_t GreenShift() const override;
+		uint32_t BlueShift() const override;
+		uint32_t AlphaShift() const override;
+		uint32_t LuminanceShift() const override;
+
+		PixelFormat::PF GetFormat() const override;
+
+		std::tuple<int,int> ExtractRGBA(const void* pixels, int ndx, uint32_t& red, uint32_t& green, uint32_t& blue, uint32_t& alpha) override;
+		void EncodeRGBA(void* pixels, uint32_t red, uint32_t green, uint32_t blue, uint32_t alpha) override; 
 
 		bool HasPalette() const override;
 	private:
@@ -89,6 +100,7 @@ namespace KRE
 			uint32_t bmask, 
 			uint32_t amask);
 		SurfaceSDL(SDL_Surface* surface);
+		SurfaceSDL(size_t width, size_t height, PixelFormat::PF format);
 		virtual ~SurfaceSDL();
 		const void* Pixels() const override;
 		void WritePixels(size_t bpp, 
@@ -126,11 +138,13 @@ namespace KRE
 		bool SetClipRect(const rect& r) override;
 		const rect GetClipRect() override;
 
-		static SurfacePtr CreateFromFile(const std::string&);
+		static SurfacePtr CreateFromFile(const std::string&, PixelFormat::PF fmt, SurfaceConvertFn fn);
 
 		void Lock() override;
 		void Unlock() override;
 	private:
+		SurfacePtr HandleConvert(PixelFormat::PF fmt, SurfaceConvertFn convert) override;
+
 		SDL_Surface* surface_;
 		bool has_data_;
 		SurfaceSDL();

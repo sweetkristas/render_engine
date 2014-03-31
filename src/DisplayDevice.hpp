@@ -113,9 +113,9 @@ namespace KRE
 		static TexturePtr CreateTexture(const SurfacePtr& surface, 
 			Texture::Type type=Texture::Type::TEXTURE_2D, 
 			int mipmap_levels=0);
-		static TexturePtr CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt);
-		static TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D);
-		static TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt);
+		static TexturePtr CreateTexture(unsigned width, PixelFormat::PF fmt);
+		static TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D);
+		static TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt);
 
 		static void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch);
 
@@ -156,9 +156,9 @@ namespace KRE
 		virtual TexturePtr HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) = 0;
 		virtual TexturePtr HandleCreateTexture(const SurfacePtr& surface, const variant& node) = 0;
 		virtual TexturePtr HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels) = 0;
-		virtual TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt) = 0;
-		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type=Texture::Type::TEXTURE_2D) = 0;
-		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, PixelFormat::PF fmt) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D) = 0;
+		virtual TexturePtr HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt) = 0;
 
 		virtual MaterialPtr HandleCreateMaterial(const variant& node) = 0;
 		virtual MaterialPtr HandleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;

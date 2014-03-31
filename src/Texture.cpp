@@ -156,7 +156,7 @@ namespace KRE
 
 	Texture::Texture(unsigned width, 
 		unsigned height, 
-		PixelFormat::PixelFormatConstant fmt, 
+		PixelFormat::PF fmt, 
 		Type type)
 		: type_(type), 
 		mipmaps_(0), 

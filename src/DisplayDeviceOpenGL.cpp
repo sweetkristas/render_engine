@@ -343,17 +343,17 @@ namespace KRE
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, PixelFormat::PF fmt)
 	{
 		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::Type::TEXTURE_1D));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
 	{
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_2D));
 	}
 	
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
 	{
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_3D, depth));
 	}

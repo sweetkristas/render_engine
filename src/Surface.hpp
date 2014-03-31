@@ -24,7 +24,9 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <tuple>
 
 #include "Geometry.hpp"
 #include "WindowManagerFwd.hpp"
@@ -58,6 +60,12 @@ namespace KRE
 		virtual uint32_t AlphaMask() const = 0;
 		virtual uint32_t LuminanceMask() const = 0;
 
+		virtual uint32_t RedShift() const = 0;
+		virtual uint32_t GreenShift() const = 0;
+		virtual uint32_t BlueShift() const = 0;
+		virtual uint32_t AlphaShift() const = 0;
+		virtual uint32_t LuminanceShift() const = 0;
+
 		virtual uint8_t RedBits() const = 0;
 		virtual uint8_t GreenBits() const = 0;
 		virtual uint8_t BlueBits() const = 0;
@@ -66,7 +74,7 @@ namespace KRE
 
 		virtual bool HasPalette() const = 0;
 
-		enum PixelFormatConstant {
+		enum class PF {
 			PIXELFORMAT_UNKNOWN,
 			PIXELFORMAT_INDEX1LSB,
 			PIXELFORMAT_INDEX1MSB,
@@ -105,12 +113,19 @@ namespace KRE
 			PIXELFORMAT_UYVY,
 			PIXELFORMAT_YVYU,
 		};
-		virtual PixelFormatConstant GetConstant() const = 0;
+		virtual PF GetFormat() const = 0;
+
+		virtual std::tuple<int,int> ExtractRGBA(const void* pixels, int ndx, uint32_t& red, uint32_t& green, uint32_t& blue, uint32_t& alpha) = 0;
+		virtual void EncodeRGBA(void* pixels, uint32_t red, uint32_t green, uint32_t blue, uint32_t alpha) = 0;
 	private:
 		PixelFormat(const PixelFormat&);
 	};
 
 	typedef std::shared_ptr<PixelFormat> PixelFormatPtr;
+
+	typedef std::function<void(uint32_t&,uint32_t&,uint32_t&,uint32_t&)> SurfaceConvertFn;
+
+	typedef std::function<SurfacePtr(const std::string&, PixelFormat::PF, SurfaceConvertFn)> SurfaceCreatorFn;
 
 	class Surface
 	{
@@ -149,15 +164,17 @@ namespace KRE
 		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
 		virtual bool SetClipRect(const rect& r) = 0;
 		virtual const rect GetClipRect() = 0;
+		SurfacePtr Convert(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);
 
-		static bool RegisterSurfaceCreator(const std::string& name, SurfacePtr(*)(const std::string&));
+		static bool RegisterSurfaceCreator(const std::string& name, SurfaceCreatorFn fn);
 		static void UnRegisterSurfaceCreator(const std::string& name);
-		static SurfacePtr Create(const std::string& filename, bool no_cache=false);
+		static SurfacePtr Create(const std::string& filename, bool no_cache=false, PixelFormat::PF fmt=PixelFormat::PF::PIXELFORMAT_UNKNOWN, SurfaceConvertFn convert=nullptr);
 		static void ResetSurfaceCache();
 	protected:
 		Surface();
 		void SetPixelFormat(PixelFormatPtr pf);
 	private:
+		virtual SurfacePtr HandleConvert(PixelFormat::PF fmt, SurfaceConvertFn convert) = 0;
 		PixelFormatPtr pf_;
 	};
 

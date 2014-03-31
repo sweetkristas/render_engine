@@ -27,7 +27,7 @@ namespace KRE
 {
 	namespace
 	{
-		typedef std::map<std::string,SurfacePtr(*)(const std::string&)> CreatorMap;
+		typedef std::map<std::string,SurfaceCreatorFn> CreatorMap;
 		CreatorMap& get_surface_creator()
 		{
 			static CreatorMap res;
@@ -71,7 +71,12 @@ namespace KRE
 		surface_->Unlock();
 	}
 
-	bool Surface::RegisterSurfaceCreator(const std::string& name, SurfacePtr(*Creator)(const std::string&))
+	SurfacePtr Surface::Convert(PixelFormat::PF fmt, SurfaceConvertFn convert)
+	{
+		return HandleConvert(fmt, convert);
+	}
+
+	bool Surface::RegisterSurfaceCreator(const std::string& name, SurfaceCreatorFn Creator)
 	{
 		return get_surface_creator().insert(std::make_pair(name, Creator)).second;
 	}
@@ -83,7 +88,7 @@ namespace KRE
 		get_surface_creator().erase(it);
 	}
 
-	SurfacePtr Surface::Create(const std::string& filename, bool no_cache)
+	SurfacePtr Surface::Create(const std::string& filename, bool no_cache, PixelFormat::PF fmt, SurfaceConvertFn convert)
 	{
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create images from files.");
 		if(!no_cache) {
@@ -91,11 +96,11 @@ namespace KRE
 			if(it != get_surface_cache().end()) {
 				return it->second;
 			}
-			auto surface = get_surface_creator().begin()->second(filename);
+			auto surface = get_surface_creator().begin()->second(filename, fmt, convert);
 			get_surface_cache()[filename] = surface;
 			return surface;
 		} 
-		return get_surface_creator().begin()->second(filename);
+		return get_surface_creator().begin()->second(filename, fmt, convert);
 	}
 
 	void Surface::ResetSurfaceCache()

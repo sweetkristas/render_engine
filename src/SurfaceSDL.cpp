@@ -31,6 +31,50 @@ namespace KRE
 	namespace
 	{
 		bool can_create_surfaces = Surface::RegisterSurfaceCreator("sdl", SurfaceSDL::CreateFromFile);
+
+		Uint32 get_sdl_pixel_format(PixelFormat::PF fmt)
+		{
+			switch(fmt) {
+				case PixelFormat::PF::PIXELFORMAT_INDEX1LSB:	    return SDL_PIXELFORMAT_INDEX1LSB;
+				case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:	    return SDL_PIXELFORMAT_INDEX1MSB;
+				case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:	    return SDL_PIXELFORMAT_INDEX4LSB;
+				case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:	    return SDL_PIXELFORMAT_INDEX4MSB;
+				case PixelFormat::PF::PIXELFORMAT_INDEX8:	    return SDL_PIXELFORMAT_INDEX8;
+				case PixelFormat::PF::PIXELFORMAT_RGB332:	    return SDL_PIXELFORMAT_RGB332;
+				case PixelFormat::PF::PIXELFORMAT_RGB444:	    return SDL_PIXELFORMAT_RGB444;
+				case PixelFormat::PF::PIXELFORMAT_RGB555:	    return SDL_PIXELFORMAT_RGB555;
+				case PixelFormat::PF::PIXELFORMAT_BGR555:	    return SDL_PIXELFORMAT_BGR555;
+				case PixelFormat::PF::PIXELFORMAT_ARGB4444:	    return SDL_PIXELFORMAT_ARGB4444;
+				case PixelFormat::PF::PIXELFORMAT_RGBA4444:	    return SDL_PIXELFORMAT_RGBA4444;
+				case PixelFormat::PF::PIXELFORMAT_ABGR4444:	    return SDL_PIXELFORMAT_ABGR4444;
+				case PixelFormat::PF::PIXELFORMAT_BGRA4444:	    return SDL_PIXELFORMAT_BGRA4444;
+				case PixelFormat::PF::PIXELFORMAT_ARGB1555:	    return SDL_PIXELFORMAT_ARGB1555;
+				case PixelFormat::PF::PIXELFORMAT_RGBA5551:	    return SDL_PIXELFORMAT_RGBA5551;
+				case PixelFormat::PF::PIXELFORMAT_ABGR1555:	    return SDL_PIXELFORMAT_ABGR1555;
+				case PixelFormat::PF::PIXELFORMAT_BGRA5551:	    return SDL_PIXELFORMAT_BGRA5551;
+				case PixelFormat::PF::PIXELFORMAT_RGB565:	    return SDL_PIXELFORMAT_RGB565;
+				case PixelFormat::PF::PIXELFORMAT_BGR565:	    return SDL_PIXELFORMAT_BGR565;
+				case PixelFormat::PF::PIXELFORMAT_RGB24:	        return SDL_PIXELFORMAT_RGB24;
+				case PixelFormat::PF::PIXELFORMAT_BGR24:	        return SDL_PIXELFORMAT_BGR24;
+				case PixelFormat::PF::PIXELFORMAT_RGB888:	    return SDL_PIXELFORMAT_RGB888;
+				case PixelFormat::PF::PIXELFORMAT_RGBX8888:	    return SDL_PIXELFORMAT_RGBX8888;
+				case PixelFormat::PF::PIXELFORMAT_BGR888:	    return SDL_PIXELFORMAT_BGR888;
+				case PixelFormat::PF::PIXELFORMAT_BGRX8888:	    return SDL_PIXELFORMAT_BGRX8888;
+				case PixelFormat::PF::PIXELFORMAT_ARGB8888:	    return SDL_PIXELFORMAT_ARGB8888;
+				case PixelFormat::PF::PIXELFORMAT_RGBA8888:	    return SDL_PIXELFORMAT_RGBA8888;
+				case PixelFormat::PF::PIXELFORMAT_ABGR8888:	    return SDL_PIXELFORMAT_ABGR8888;
+				case PixelFormat::PF::PIXELFORMAT_BGRA8888:	    return SDL_PIXELFORMAT_BGRA8888;
+				case PixelFormat::PF::PIXELFORMAT_ARGB2101010:	return SDL_PIXELFORMAT_ARGB2101010;
+				case PixelFormat::PF::PIXELFORMAT_YV12:	        return SDL_PIXELFORMAT_YV12;
+				case PixelFormat::PF::PIXELFORMAT_IYUV:	        return SDL_PIXELFORMAT_IYUV;
+				case PixelFormat::PF::PIXELFORMAT_YUY2:	        return SDL_PIXELFORMAT_YUY2;
+				case PixelFormat::PF::PIXELFORMAT_UYVY:	        return SDL_PIXELFORMAT_UYVY;
+				case PixelFormat::PF::PIXELFORMAT_YVYU:	        return SDL_PIXELFORMAT_YVYU;
+				default:
+					ASSERT_LOG(false, "Unknown pixel format given");
+			}
+			return SDL_PIXELFORMAT_ABGR8888;
+		}
 	}
 
 	SurfaceSDL::SurfaceSDL(size_t width, 
@@ -67,6 +111,11 @@ namespace KRE
 	{
 		ASSERT_LOG(surface_ != NULL, "Error creating surface: " << SDL_GetError());
 		SetPixelFormat(PixelFormatPtr(new SDLPixelFormat(surface_->format)));
+	}
+
+	SurfaceSDL::SurfaceSDL(size_t width, size_t height, PixelFormat::PF format)
+	{
+		// XXX todo
 	}
 
 	SurfaceSDL::~SurfaceSDL()
@@ -329,55 +378,334 @@ namespace KRE
 		return count_bits_set(pf_->Rmask);
 	}
 
+	uint32_t SDLPixelFormat::RedShift() const 
+	{
+		ASSERT_LOG(IsRGB(), "Asked for RedShift() of non-RGB surface.");
+		return pf_->Rshift;
+	}
+
+	uint32_t SDLPixelFormat::GreenShift() const 
+	{
+		ASSERT_LOG(IsRGB(), "Asked for GreenShift() of non-RGB surface.");
+		return pf_->Gshift;
+	}
+
+	uint32_t SDLPixelFormat::BlueShift() const 
+	{
+		ASSERT_LOG(IsRGB(), "Asked for BlueShift() of non-RGB surface.");
+		return pf_->Bshift;
+	}
+
+	uint32_t SDLPixelFormat::AlphaShift() const 
+	{
+		ASSERT_LOG(IsRGB(), "Asked for AlphaShift() of non-RGB surface.");
+		return pf_->Ashift;
+	}
+
+	uint32_t SDLPixelFormat::LuminanceShift() const 
+	{
+		ASSERT_LOG(IsRGB(), "Asked for LuminanceShift() of non-RGB surface.");
+		return pf_->Rshift;
+	}
+
 	bool SDLPixelFormat::HasPalette() const 
 	{
 		return pf_->palette != NULL;
 	}
 
-	PixelFormat::PixelFormatConstant SDLPixelFormat::GetConstant() const
+	PixelFormat::PF SDLPixelFormat::GetFormat() const
 	{
 		switch(pf_->format) {
-			case SDL_PIXELFORMAT_INDEX1LSB:	    return PIXELFORMAT_INDEX1LSB;
-			case SDL_PIXELFORMAT_INDEX1MSB:	    return PIXELFORMAT_INDEX1MSB;
-			case SDL_PIXELFORMAT_INDEX4LSB:	    return PIXELFORMAT_INDEX4LSB;
-			case SDL_PIXELFORMAT_INDEX4MSB:	    return PIXELFORMAT_INDEX4MSB;
-			case SDL_PIXELFORMAT_INDEX8:	    return PIXELFORMAT_INDEX8;
-			case SDL_PIXELFORMAT_RGB332:	    return PIXELFORMAT_RGB332;
-			case SDL_PIXELFORMAT_RGB444:	    return PIXELFORMAT_RGB444;
-			case SDL_PIXELFORMAT_RGB555:	    return PIXELFORMAT_RGB555;
-			case SDL_PIXELFORMAT_BGR555:	    return PIXELFORMAT_BGR555;
-			case SDL_PIXELFORMAT_ARGB4444:	    return PIXELFORMAT_ARGB4444;
-			case SDL_PIXELFORMAT_RGBA4444:	    return PIXELFORMAT_RGBA4444;
-			case SDL_PIXELFORMAT_ABGR4444:	    return PIXELFORMAT_ABGR4444;
-			case SDL_PIXELFORMAT_BGRA4444:	    return PIXELFORMAT_BGRA4444;
-			case SDL_PIXELFORMAT_ARGB1555:	    return PIXELFORMAT_ARGB1555;
-			case SDL_PIXELFORMAT_RGBA5551:	    return PIXELFORMAT_RGBA5551;
-			case SDL_PIXELFORMAT_ABGR1555:	    return PIXELFORMAT_ABGR1555;
-			case SDL_PIXELFORMAT_BGRA5551:	    return PIXELFORMAT_BGRA5551;
-			case SDL_PIXELFORMAT_RGB565:	    return PIXELFORMAT_RGB565;
-			case SDL_PIXELFORMAT_BGR565:	    return PIXELFORMAT_BGR565;
-			case SDL_PIXELFORMAT_RGB24:	        return PIXELFORMAT_RGB24;
-			case SDL_PIXELFORMAT_BGR24:	        return PIXELFORMAT_BGR24;
-			case SDL_PIXELFORMAT_RGB888:	    return PIXELFORMAT_RGB888;
-			case SDL_PIXELFORMAT_RGBX8888:	    return PIXELFORMAT_RGBX8888;
-			case SDL_PIXELFORMAT_BGR888:	    return PIXELFORMAT_BGR888;
-			case SDL_PIXELFORMAT_BGRX8888:	    return PIXELFORMAT_BGRX8888;
-			case SDL_PIXELFORMAT_ARGB8888:	    return PIXELFORMAT_ARGB8888;
-			case SDL_PIXELFORMAT_RGBA8888:	    return PIXELFORMAT_RGBA8888;
-			case SDL_PIXELFORMAT_ABGR8888:	    return PIXELFORMAT_ABGR8888;
-			case SDL_PIXELFORMAT_BGRA8888:	    return PIXELFORMAT_BGRA8888;
-			case SDL_PIXELFORMAT_ARGB2101010:	return PIXELFORMAT_ARGB2101010;
-			case SDL_PIXELFORMAT_YV12:	        return PIXELFORMAT_YV12;
-			case SDL_PIXELFORMAT_IYUV:	        return PIXELFORMAT_IYUV;
-			case SDL_PIXELFORMAT_YUY2:	        return PIXELFORMAT_YUY2;
-			case SDL_PIXELFORMAT_UYVY:	        return PIXELFORMAT_UYVY;
-			case SDL_PIXELFORMAT_YVYU:	        return PIXELFORMAT_YVYU;
+			case SDL_PIXELFORMAT_INDEX1LSB:	    return PF::PIXELFORMAT_INDEX1LSB;
+			case SDL_PIXELFORMAT_INDEX1MSB:	    return PF::PIXELFORMAT_INDEX1MSB;
+			case SDL_PIXELFORMAT_INDEX4LSB:	    return PF::PIXELFORMAT_INDEX4LSB;
+			case SDL_PIXELFORMAT_INDEX4MSB:	    return PF::PIXELFORMAT_INDEX4MSB;
+			case SDL_PIXELFORMAT_INDEX8:	    return PF::PIXELFORMAT_INDEX8;
+			case SDL_PIXELFORMAT_RGB332:	    return PF::PIXELFORMAT_RGB332;
+			case SDL_PIXELFORMAT_RGB444:	    return PF::PIXELFORMAT_RGB444;
+			case SDL_PIXELFORMAT_RGB555:	    return PF::PIXELFORMAT_RGB555;
+			case SDL_PIXELFORMAT_BGR555:	    return PF::PIXELFORMAT_BGR555;
+			case SDL_PIXELFORMAT_ARGB4444:	    return PF::PIXELFORMAT_ARGB4444;
+			case SDL_PIXELFORMAT_RGBA4444:	    return PF::PIXELFORMAT_RGBA4444;
+			case SDL_PIXELFORMAT_ABGR4444:	    return PF::PIXELFORMAT_ABGR4444;
+			case SDL_PIXELFORMAT_BGRA4444:	    return PF::PIXELFORMAT_BGRA4444;
+			case SDL_PIXELFORMAT_ARGB1555:	    return PF::PIXELFORMAT_ARGB1555;
+			case SDL_PIXELFORMAT_RGBA5551:	    return PF::PIXELFORMAT_RGBA5551;
+			case SDL_PIXELFORMAT_ABGR1555:	    return PF::PIXELFORMAT_ABGR1555;
+			case SDL_PIXELFORMAT_BGRA5551:	    return PF::PIXELFORMAT_BGRA5551;
+			case SDL_PIXELFORMAT_RGB565:	    return PF::PIXELFORMAT_RGB565;
+			case SDL_PIXELFORMAT_BGR565:	    return PF::PIXELFORMAT_BGR565;
+			case SDL_PIXELFORMAT_RGB24:	        return PF::PIXELFORMAT_RGB24;
+			case SDL_PIXELFORMAT_BGR24:	        return PF::PIXELFORMAT_BGR24;
+			case SDL_PIXELFORMAT_RGB888:	    return PF::PIXELFORMAT_RGB888;
+			case SDL_PIXELFORMAT_RGBX8888:	    return PF::PIXELFORMAT_RGBX8888;
+			case SDL_PIXELFORMAT_BGR888:	    return PF::PIXELFORMAT_BGR888;
+			case SDL_PIXELFORMAT_BGRX8888:	    return PF::PIXELFORMAT_BGRX8888;
+			case SDL_PIXELFORMAT_ARGB8888:	    return PF::PIXELFORMAT_ARGB8888;
+			case SDL_PIXELFORMAT_RGBA8888:	    return PF::PIXELFORMAT_RGBA8888;
+			case SDL_PIXELFORMAT_ABGR8888:	    return PF::PIXELFORMAT_ABGR8888;
+			case SDL_PIXELFORMAT_BGRA8888:	    return PF::PIXELFORMAT_BGRA8888;
+			case SDL_PIXELFORMAT_ARGB2101010:	return PF::PIXELFORMAT_ARGB2101010;
+			case SDL_PIXELFORMAT_YV12:	        return PF::PIXELFORMAT_YV12;
+			case SDL_PIXELFORMAT_IYUV:	        return PF::PIXELFORMAT_IYUV;
+			case SDL_PIXELFORMAT_YUY2:	        return PF::PIXELFORMAT_YUY2;
+			case SDL_PIXELFORMAT_UYVY:	        return PF::PIXELFORMAT_UYVY;
+			case SDL_PIXELFORMAT_YVYU:	        return PF::PIXELFORMAT_YVYU;
 		}
-		return PIXELFORMAT_UNKNOWN;
+		return PF::PIXELFORMAT_UNKNOWN;
 	}
 
-	SurfacePtr SurfaceSDL::CreateFromFile(const std::string& filename)
+	SurfacePtr SurfaceSDL::CreateFromFile(const std::string& filename, PixelFormat::PF fmt, SurfaceConvertFn fn)
 	{
-		return SurfacePtr(new SurfaceSDL(IMG_Load(filename.c_str())));
+		auto surface = new SurfaceSDL(IMG_Load(filename.c_str()));
+		// format means don't convert the surface from the loaded format.
+		if(fmt != PixelFormat::PF::PIXELFORMAT_UNKNOWN) {
+			return surface->Convert(fmt, fn);
+		}
+		return SurfacePtr(surface);
+	}
+
+	std::tuple<int,int> SDLPixelFormat::ExtractRGBA(const void* pixels, int ndx, uint32_t& red, uint32_t& green, uint32_t& blue, uint32_t& alpha)
+	{
+		auto fmt = GetFormat();
+		int pixel_shift_return = BytesPerPixel();
+		red = 0;
+		green = 0;
+		blue = 0;
+		alpha = 255;
+		switch(fmt) {
+            case PixelFormat::PF::PIXELFORMAT_INDEX1LSB: {
+				ASSERT_LOG(pf_->palette != NULL, "Index type has no palette.");
+				uint8_t px = *static_cast<const uint8_t*>(pixels) & (1 << ndx) >> ndx;
+				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
+				auto color = pf_->palette->colors[px];
+				red = color.r;
+				green = color.g;
+				blue = color.b;
+				alpha = color.a;
+				if(ndx == 7) {
+					ndx = 0;
+				} else {
+					pixel_shift_return = 0;
+					++ndx;
+				}
+				break;
+			}
+            case PixelFormat::PF::PIXELFORMAT_INDEX1MSB: {
+				ASSERT_LOG(pf_->palette != NULL, "Index type has no palette.");
+				uint8_t px = (*static_cast<const uint8_t*>(pixels) & (1 << (7-ndx))) >> (7-ndx);
+				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
+				auto color = pf_->palette->colors[px];
+				red = color.r;
+				green = color.g;
+				blue = color.b;
+				alpha = color.a;
+				if(ndx == 7) {
+					ndx = 0;
+				} else {
+					pixel_shift_return = 0;
+					++ndx;
+				}
+				break;
+			}
+            case PixelFormat::PF::PIXELFORMAT_INDEX4LSB: {
+				ASSERT_LOG(pf_->palette != NULL, "Index type has no palette.");
+				uint8_t px = (*static_cast<const uint8_t*>(pixels) & (0xf << ndx)) >> ndx;
+				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
+				auto color = pf_->palette->colors[px];
+				red = color.r;
+				green = color.g;
+				blue = color.b;
+				alpha = color.a;
+				if(ndx == 4) {
+					ndx = 0;
+				} else {
+					pixel_shift_return = 0;
+					ndx = 4;
+				}
+				break;
+			}
+			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB: {
+				ASSERT_LOG(pf_->palette != NULL, "Index type has no palette.");
+				uint8_t px = (*static_cast<const uint8_t*>(pixels) & (0xf << (4-ndx))) >> (4-ndx);
+				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
+				auto color = pf_->palette->colors[px];
+				red = color.r;
+				green = color.g;
+				blue = color.b;
+				alpha = color.a;
+				if(ndx == 4) {
+					ndx = 0;
+				} else {
+					pixel_shift_return = 0;
+					ndx = 4;
+				}
+				break;
+			}
+            case PixelFormat::PF::PIXELFORMAT_INDEX8: {
+				ASSERT_LOG(pf_->palette != NULL, "Index type has no palette.");
+				uint8_t px = *static_cast<const uint8_t*>(pixels);
+				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
+				auto color = pf_->palette->colors[px];
+				red = color.r;
+				green = color.g;
+				blue = color.b;
+				alpha = color.a;
+				pixel_shift_return = BytesPerPixel();
+				break;
+			}
+
+            case PixelFormat::PF::PIXELFORMAT_RGB332:
+            case PixelFormat::PF::PIXELFORMAT_RGB444:
+            case PixelFormat::PF::PIXELFORMAT_RGB555:
+            case PixelFormat::PF::PIXELFORMAT_BGR555:
+            case PixelFormat::PF::PIXELFORMAT_ARGB4444:
+            case PixelFormat::PF::PIXELFORMAT_RGBA4444:
+            case PixelFormat::PF::PIXELFORMAT_ABGR4444:
+            case PixelFormat::PF::PIXELFORMAT_BGRA4444:
+            case PixelFormat::PF::PIXELFORMAT_ARGB1555:
+            case PixelFormat::PF::PIXELFORMAT_RGBA5551:
+            case PixelFormat::PF::PIXELFORMAT_ABGR1555:
+            case PixelFormat::PF::PIXELFORMAT_BGRA5551:
+            case PixelFormat::PF::PIXELFORMAT_RGB565:
+            case PixelFormat::PF::PIXELFORMAT_BGR565:
+            case PixelFormat::PF::PIXELFORMAT_RGB24:
+            case PixelFormat::PF::PIXELFORMAT_BGR24:
+            case PixelFormat::PF::PIXELFORMAT_RGB888:
+            case PixelFormat::PF::PIXELFORMAT_RGBX8888:
+            case PixelFormat::PF::PIXELFORMAT_BGR888:
+            case PixelFormat::PF::PIXELFORMAT_BGRX8888:
+            case PixelFormat::PF::PIXELFORMAT_ARGB8888:
+            case PixelFormat::PF::PIXELFORMAT_RGBA8888:
+            case PixelFormat::PF::PIXELFORMAT_ABGR8888:
+            case PixelFormat::PF::PIXELFORMAT_BGRA8888:
+            case PixelFormat::PF::PIXELFORMAT_ARGB2101010: {
+				const uint32_t* px = static_cast<const uint32_t*>(pixels);
+				if(HasRedChannel()) {
+					red = (*px) & RedMask() >> RedShift();
+				}
+				if(HasGreenChannel()) {
+					green = (*px) & GreenMask() >> GreenShift();
+				}
+				if(HasBlueChannel()) {
+					blue = (*px) & BlueMask() >> BlueShift();
+				}
+				if(HasAlphaChannel()) {
+					alpha = (*px) & AlphaMask() >> AlphaShift();
+				}
+				break;
+			}
+
+            case PixelFormat::PF::PIXELFORMAT_YV12:
+            case PixelFormat::PF::PIXELFORMAT_IYUV:
+            case PixelFormat::PF::PIXELFORMAT_YUY2:
+            case PixelFormat::PF::PIXELFORMAT_UYVY:
+            case PixelFormat::PF::PIXELFORMAT_YVYU:				
+			default:
+				ASSERT_LOG(false, "unsupported pixel format value for conversion.");
+		}
+		return std::make_tuple(pixel_shift_return, ndx);
+	}
+
+	void SDLPixelFormat::EncodeRGBA(void* pixels, uint32_t red, uint32_t green, uint32_t blue, uint32_t alpha)
+	{
+		auto fmt = GetFormat();
+		switch(fmt) {
+            case PixelFormat::PF::PIXELFORMAT_RGB332:
+            case PixelFormat::PF::PIXELFORMAT_RGB444:
+            case PixelFormat::PF::PIXELFORMAT_RGB555:
+            case PixelFormat::PF::PIXELFORMAT_BGR555:
+            case PixelFormat::PF::PIXELFORMAT_ARGB4444:
+            case PixelFormat::PF::PIXELFORMAT_RGBA4444:
+            case PixelFormat::PF::PIXELFORMAT_ABGR4444:
+            case PixelFormat::PF::PIXELFORMAT_BGRA4444:
+            case PixelFormat::PF::PIXELFORMAT_ARGB1555:
+            case PixelFormat::PF::PIXELFORMAT_RGBA5551:
+            case PixelFormat::PF::PIXELFORMAT_ABGR1555:
+            case PixelFormat::PF::PIXELFORMAT_BGRA5551:
+            case PixelFormat::PF::PIXELFORMAT_RGB565:
+            case PixelFormat::PF::PIXELFORMAT_BGR565:
+            case PixelFormat::PF::PIXELFORMAT_RGB24:
+            case PixelFormat::PF::PIXELFORMAT_BGR24:
+            case PixelFormat::PF::PIXELFORMAT_RGB888:
+            case PixelFormat::PF::PIXELFORMAT_RGBX8888:
+            case PixelFormat::PF::PIXELFORMAT_BGR888:
+            case PixelFormat::PF::PIXELFORMAT_BGRX8888:
+            case PixelFormat::PF::PIXELFORMAT_ARGB8888:
+            case PixelFormat::PF::PIXELFORMAT_RGBA8888:
+            case PixelFormat::PF::PIXELFORMAT_ABGR8888:
+            case PixelFormat::PF::PIXELFORMAT_BGRA8888:
+            case PixelFormat::PF::PIXELFORMAT_ARGB2101010: {
+				uint32_t pixel = 0;
+				if(HasRedChannel()) {
+					pixel = (red << RedShift()) & RedMask();
+				}
+				if(HasGreenChannel()) {
+					pixel = (green << GreenShift()) & GreenMask();
+				}
+				if(HasBlueChannel()) {
+					pixel = (blue << BlueShift()) & BlueMask();
+				}
+				if(HasAlphaChannel()) {
+					pixel = (alpha << AlphaShift()) & AlphaMask();
+				}
+				uint32_t* px = static_cast<uint32_t*>(pixels);
+				*px = pixel;
+				break;
+			}
+
+            case PixelFormat::PF::PIXELFORMAT_INDEX1LSB: 
+            case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:
+            case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
+            case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
+            case PixelFormat::PF::PIXELFORMAT_INDEX8:
+				ASSERT_LOG(false, "converting format to an indexed type not supported.");
+				break;
+            case PixelFormat::PF::PIXELFORMAT_YV12:
+            case PixelFormat::PF::PIXELFORMAT_IYUV:
+            case PixelFormat::PF::PIXELFORMAT_YUY2:
+            case PixelFormat::PF::PIXELFORMAT_UYVY:
+            case PixelFormat::PF::PIXELFORMAT_YVYU:				
+			default:
+				ASSERT_LOG(false, "unsupported pixel format value for conversion.");
+		}
+	}
+
+	SurfacePtr SurfaceSDL::HandleConvert(PixelFormat::PF fmt, SurfaceConvertFn convert)
+	{
+		ASSERT_LOG(fmt != PixelFormat::PF::PIXELFORMAT_UNKNOWN, "unknown pixel format to convert to.");
+		if(convert == nullptr) {
+			std::shared_ptr<SDL_PixelFormat> pf = std::shared_ptr<SDL_PixelFormat>(SDL_AllocFormat(get_sdl_pixel_format(fmt)), [](SDL_PixelFormat* fmt) {
+				SDL_FreeFormat(fmt);
+			});
+			auto surface = new SurfaceSDL(SDL_ConvertSurface(surface_, pf.get(), 0));
+			return SurfacePtr(surface);
+		}
+
+		SurfaceLock lock(SurfacePtr(this));
+		uint32_t red;
+		uint32_t green;
+		uint32_t blue;
+		uint32_t alpha;
+
+		// Create a destination surface
+		auto dst = new SurfaceSDL(width(), height(), fmt);
+		size_t dst_size = dst->row_pitch() * dst->height();
+		void* dst_pixels = new uint8_t[dst_size];
+
+		for(size_t h = 0; h != height(); ++h) {
+			int offs = 0;
+			int ndx = 0;
+			uint8_t* pixel_ptr = static_cast<uint8_t*>(surface_->pixels) + h*row_pitch();
+			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + h*row_pitch();
+			while(offs < width()) {
+				std::tie(offs, ndx) = GetPixelFormat()->ExtractRGBA(pixel_ptr + offs, ndx, red, green, blue, alpha);
+				convert(red, green, blue, alpha);
+				dst->GetPixelFormat()->EncodeRGBA(dst_pixels, red, green, blue, alpha);
+			}
+		}
+		dst->WritePixels(dst_pixels);
+		delete[] dst_pixels;
+		return SurfacePtr(dst);
 	}
 }

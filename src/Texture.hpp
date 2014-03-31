@@ -59,7 +59,7 @@ namespace KRE
 			int mipmap_levels=0);
 		Texture(unsigned width, 
 			unsigned height, 
-			PixelFormat::PixelFormatConstant fmt, 
+			PixelFormat::PF fmt, 
 			Texture::Type type);
 		virtual ~Texture();
 

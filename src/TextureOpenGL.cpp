@@ -59,10 +59,10 @@ namespace KRE
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
-		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
+		pixel_format_(PixelFormat::PF::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
-		CreateTexture(GetSurface()->GetPixelFormat()->GetConstant());
+		CreateTexture(GetSurface()->GetPixelFormat()->GetFormat());
 		Init();
 	}
 
@@ -73,16 +73,16 @@ namespace KRE
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
-		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
+		pixel_format_(PixelFormat::PF::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
-		CreateTexture(GetSurface()->GetPixelFormat()->GetConstant());
+		CreateTexture(GetSurface()->GetPixelFormat()->GetFormat());
 		Init();
 	}
 
 	OpenGLTexture::OpenGLTexture(unsigned width, 
 		unsigned height, 
-		PixelFormat::PixelFormatConstant fmt, 
+		PixelFormat::PF fmt, 
 		Type type, 
 		unsigned depth)
 		: Texture(width, height, fmt, type),
@@ -92,7 +92,7 @@ namespace KRE
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
-		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
+		pixel_format_(PixelFormat::PF::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
 		CreateTexture(fmt);
@@ -170,7 +170,7 @@ namespace KRE
 		}
 	}
 
-	void OpenGLTexture::CreateTexture(const PixelFormat::PixelFormatConstant& fmt)
+	void OpenGLTexture::CreateTexture(const PixelFormat::PF& fmt)
 	{
 		// Set the pixel format being used.
 		pixel_format_ = fmt;
@@ -179,158 +179,158 @@ namespace KRE
 		// data we now about the surface.
 		// XXX these need testing for correctness.
 		switch(fmt) {
-			case PixelFormat::PIXELFORMAT_INDEX1LSB:
-			case PixelFormat::PIXELFORMAT_INDEX1MSB:
-			case PixelFormat::PIXELFORMAT_INDEX4LSB:
-			case PixelFormat::PIXELFORMAT_INDEX4MSB:
-			case PixelFormat::PIXELFORMAT_INDEX8:
-				ASSERT_LOG(false, "Invalid pixel format given: " << fmt);
+			case PixelFormat::PF::PIXELFORMAT_INDEX1LSB:
+			case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:
+			case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
+			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
+			case PixelFormat::PF::PIXELFORMAT_INDEX8:
+				ASSERT_LOG(false, "Invalid pixel format given, indexed formats no supported.");
 				break;
-			case PixelFormat::PIXELFORMAT_RGB332:
+			case PixelFormat::PF::PIXELFORMAT_RGB332:
 				format_ = GL_RGB;
 				internal_format_ = GL_R3_G3_B2;
 				type_ = GL_UNSIGNED_BYTE_3_3_2;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB444:
+			case PixelFormat::PF::PIXELFORMAT_RGB444:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB4;
 				type_ = GL_UNSIGNED_SHORT;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB555:
+			case PixelFormat::PF::PIXELFORMAT_RGB555:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB5;
 				type_ = GL_UNSIGNED_SHORT;
 				break;
-			case PixelFormat::PIXELFORMAT_BGR555:
+			case PixelFormat::PF::PIXELFORMAT_BGR555:
 				format_ = GL_BGR;
 				internal_format_ = GL_RGB4;
 				type_ = GL_UNSIGNED_SHORT;
 				break;
-			case PixelFormat::PIXELFORMAT_ARGB4444:
+			case PixelFormat::PF::PIXELFORMAT_ARGB4444:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGBA4;
 				type_ =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_RGBA4444:
+			case PixelFormat::PF::PIXELFORMAT_RGBA4444:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGBA4;
 				type_ =  GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
-			case PixelFormat::PIXELFORMAT_ABGR4444:
+			case PixelFormat::PF::PIXELFORMAT_ABGR4444:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGBA4;
 				type_ =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_BGRA4444:
+			case PixelFormat::PF::PIXELFORMAT_BGRA4444:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGBA4;
 				type_ =  GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
-			case PixelFormat::PIXELFORMAT_ARGB1555:
+			case PixelFormat::PF::PIXELFORMAT_ARGB1555:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGB5_A1;
 				type_ =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_RGBA5551:
+			case PixelFormat::PF::PIXELFORMAT_RGBA5551:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGB5_A1;
 				type_ =  GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
-			case PixelFormat::PIXELFORMAT_ABGR1555:
+			case PixelFormat::PF::PIXELFORMAT_ABGR1555:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGB5_A1;
 				type_ =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_BGRA5551:
+			case PixelFormat::PF::PIXELFORMAT_BGRA5551:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGB5_A1;
 				type_ =  GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB565:
+			case PixelFormat::PF::PIXELFORMAT_RGB565:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB;
 				type_ =  GL_UNSIGNED_SHORT_5_6_5;
 				break;
-			case PixelFormat::PIXELFORMAT_BGR565:
+			case PixelFormat::PF::PIXELFORMAT_BGR565:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB;
 				type_ =  GL_UNSIGNED_SHORT_5_6_5_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB24:
+			case PixelFormat::PF::PIXELFORMAT_RGB24:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_BYTE;
 				break;
-			case PixelFormat::PIXELFORMAT_BGR24:
+			case PixelFormat::PF::PIXELFORMAT_BGR24:
 				format_ = GL_BGR;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_BYTE;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB888:
+			case PixelFormat::PF::PIXELFORMAT_RGB888:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_BYTE;
 				break;
-			case PixelFormat::PIXELFORMAT_RGBX8888:
+			case PixelFormat::PF::PIXELFORMAT_RGBX8888:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_INT_8_8_8_8;
 				break;
-			case PixelFormat::PIXELFORMAT_BGR888:
+			case PixelFormat::PF::PIXELFORMAT_BGR888:
 				format_ = GL_BGR;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_BYTE;
 				break;
-			case PixelFormat::PIXELFORMAT_BGRX8888:
+			case PixelFormat::PF::PIXELFORMAT_BGRX8888:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB8;
 				type_ =  GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_ARGB8888:
+			case PixelFormat::PF::PIXELFORMAT_ARGB8888:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGBA8;
 				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_RGBA8888:
+			case PixelFormat::PF::PIXELFORMAT_RGBA8888:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGBA8;
 				type_ = GL_UNSIGNED_INT_8_8_8_8;
 				break;
-			case PixelFormat::PIXELFORMAT_ABGR8888:
+			case PixelFormat::PF::PIXELFORMAT_ABGR8888:
 				format_ = GL_RGBA;
 				internal_format_ = GL_RGBA8;
 				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_BGRA8888:
+			case PixelFormat::PF::PIXELFORMAT_BGRA8888:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGBA8;
 				type_ = GL_UNSIGNED_INT_8_8_8_8;
 				break;
-			case PixelFormat::PIXELFORMAT_ARGB2101010:
+			case PixelFormat::PF::PIXELFORMAT_ARGB2101010:
 				format_ = GL_BGRA;
 				internal_format_ = GL_RGBA8;
 				type_ = GL_UNSIGNED_INT_2_10_10_10_REV;
 				break;
-			case PixelFormat::PIXELFORMAT_RGB101010:
+			case PixelFormat::PF::PIXELFORMAT_RGB101010:
 				format_ = GL_RGB;
 				internal_format_ = GL_RGB10;
 				type_ = GL_UNSIGNED_INT;
 				break;
-			case PixelFormat::PIXELFORMAT_YV12:
-			case PixelFormat::PIXELFORMAT_IYUV:
+			case PixelFormat::PF::PIXELFORMAT_YV12:
+			case PixelFormat::PF::PIXELFORMAT_IYUV:
 				format_ = GL_LUMINANCE;
 				internal_format_ = GL_LUMINANCE;
 				type_ = GL_UNSIGNED_BYTE;
 				is_yuv_planar_ = true;
 				ASSERT_LOG(GetType() == Type::TEXTURE_2D, "YUV style pixel format only supported for 2D textures.");
 				break;
-			case PixelFormat::PIXELFORMAT_YUY2:
-			case PixelFormat::PIXELFORMAT_UYVY:
-			case PixelFormat::PIXELFORMAT_YVYU:
+			case PixelFormat::PF::PIXELFORMAT_YUY2:
+			case PixelFormat::PF::PIXELFORMAT_UYVY:
+			case PixelFormat::PF::PIXELFORMAT_YVYU:
 				ASSERT_LOG(false, "Still to implement YUV packed format textures");
 				break;
 			default:
-				ASSERT_LOG(false, "Unrecognised pixel format: " << fmt);
+				ASSERT_LOG(false, "Unrecognised pixel format");
 		}
 
 		int num_textures = is_yuv_planar_ ? 3 : 1;

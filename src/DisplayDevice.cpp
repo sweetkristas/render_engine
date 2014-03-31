@@ -149,17 +149,17 @@ namespace KRE
 		return GetCurrent()->HandleCreateTexture(surface, type, mipmap_levels);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, PixelFormat::PF fmt)
 	{
 		return GetCurrent()->HandleCreateTexture(width, fmt);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, PixelFormat::PixelFormatConstant fmt, Texture::Type type)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
 	{
 		return GetCurrent()->HandleCreateTexture(width, height, fmt, type);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PixelFormatConstant fmt)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
 	{
 		return GetCurrent()->HandleCreateTexture(width, height, depth, fmt);
 	}

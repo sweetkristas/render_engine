@@ -38,7 +38,7 @@ namespace KRE
 			int mipmap_levels=0);
 		OpenGLTexture(unsigned width, 
 			unsigned height, 			
-			PixelFormat::PixelFormatConstant fmt, 
+			PixelFormat::PF fmt, 
 			Texture::Type type=Type::TEXTURE_2D,
 			unsigned depth=0);
 		virtual ~OpenGLTexture();
@@ -56,7 +56,7 @@ namespace KRE
 		void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) override;
 		void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
 	private:
-		void CreateTexture(const PixelFormat::PixelFormatConstant& fmt);
+		void CreateTexture(const PixelFormat::PF& fmt);
 
 		unsigned width_;
 		unsigned height_;
@@ -66,7 +66,7 @@ namespace KRE
 		// else we just use the first one.
 		GLuint texture_id_[3];
 
-		PixelFormat::PixelFormatConstant pixel_format_;
+		PixelFormat::PF pixel_format_;
 		// Set for YUV style textures;
 		bool is_yuv_planar_;
 
