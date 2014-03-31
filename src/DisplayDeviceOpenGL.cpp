@@ -26,6 +26,7 @@
 #include "asserts.hpp"
 #include "AttributeSetOpenGL.hpp"
 #include "CameraObject.hpp"
+#include "CanvasOGL.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 #include "FboOpenGL.hpp"
 #include "LightObject.hpp"
@@ -405,6 +406,27 @@ namespace KRE
 		return HardwareAttributePtr(new HardwareAttributeOGL(parent));
 	}
 
+	CanvasPtr DisplayDeviceOpenGL::GetCanvas()
+	{
+		return CanvasOGL::GetInstance();
+	}
+	
+	bool DisplayDeviceOpenGL::DoCheckForFeature(DisplayDeviceCapabilties cap)
+	{
+		bool ret_val = false;
+		switch(cap) {
+		case DisplayDeviceCapabilties::NPOT_TEXTURES:
+			// XXX We could put a force npot textures check here.
+			if(GLEW_ARB_texture_non_power_of_two) {
+				ret_val = true;
+			}
+			break;
+		default:
+			ASSERT_LOG(false, "Unknown value for DisplayDeviceCapabilties given.");
+		}
+		return ret_val;
+	}
+
 	// XXX Need a way to deal with blits with Camera/Lighting.
 	void DisplayDeviceOpenGL::DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
@@ -423,7 +445,7 @@ namespace KRE
 		};
 
 		const float vx1 = float(dstx);
-		const float vy1 = float(dstx);
+		const float vy1 = float(dsty);
 		const float vx2 = float(dstx + dstw);
 		const float vy2 = float(dsty + dsth);
 		const float vtx_coords[] = {

@@ -23,7 +23,10 @@
 
 #pragma once
 
-#define _USE_MATH_DEFINES
+#ifndef _USE_MATH_DEFINES
+#	define _USE_MATH_DEFINES	1
+#endif 
+
 #include <cmath>
 #include <string>
 #include <vector>
@@ -158,6 +161,12 @@ namespace KRE
 			virtual void AddSubPath(const PathPtr& path) = 0;
 
 			virtual void PathExtents(double& x1, double& y1, double& x2, double& y2) = 0;
+
+			// Sometimes we may wish to draw some vector graphics in the context of the 2D Canvas
+			// We can do so through this member function.
+			// XXX should maybe make this a little more abstracted so that it seperates concerns
+			// between drawing as a SceneObject and Drawing to the Canvas.
+			//virtual void CanvasDraw() const = 0;
 
 			static ContextPtr CreateInstance(const std::string& hint, int width, int height);
 		protected:

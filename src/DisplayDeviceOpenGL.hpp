@@ -45,6 +45,8 @@ namespace KRE
 
 		void Render(const RenderablePtr& r) override;
 
+		CanvasPtr GetCanvas() override;
+
 		void Init(size_t width, size_t height) override;
 		void PrintDeviceInfo() override;
 
@@ -64,6 +66,8 @@ namespace KRE
 			size_t multi_samples) override;
 		RenderTargetPtr HandleCreateRenderTarget(const variant& node) override;
 		void DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) override;
+
+		bool DoCheckForFeature(DisplayDeviceCapabilties cap) override;
 
 		TexturePtr HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) override;
 		TexturePtr HandleCreateTexture(const SurfacePtr& surface, const variant& node) override;

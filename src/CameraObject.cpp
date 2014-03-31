@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER && !defined(_USE_MATH_DEFINES)
 #	define _USE_MATH_DEFINES 1
 #endif
 #include <cmath>

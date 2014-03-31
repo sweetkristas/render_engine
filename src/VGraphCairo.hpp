@@ -101,7 +101,6 @@ namespace KRE
 		
 			virtual void PreRender() override;
 
-
 			virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 		protected:
 			cairo_t* GetContext() { return context_; }

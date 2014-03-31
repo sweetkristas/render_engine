@@ -184,6 +184,11 @@ namespace KRE
 		return DisplayDevice::GetCurrent()->HandleCreateRenderTarget(node);
 	}
 
+	bool DisplayDevice::CheckForFeature(DisplayDeviceCapabilties cap)
+	{
+		return DisplayDevice::GetCurrent()->DoCheckForFeature(cap);
+	}
+
 	DisplayDeviceDef::DisplayDeviceDef(const std::vector<AttributeSetPtr>& as)
 		: attributes_(as)//, uniforms_(us)
 	{

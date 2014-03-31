@@ -21,19 +21,46 @@
 	   distribution.
 */
 
+#include <set>
 #include "asserts.hpp"
+#include "DisplayDevice.hpp"
 #include "Texture.hpp"
 
 namespace KRE
 {
+	namespace 
+	{
+		typedef std::set<Texture*> TextureRegistryType;
+		TextureRegistryType& texture_registry()
+		{
+			static TextureRegistryType res;
+			return res;
+		}
+
+		void add_to_texture_registry(Texture* tex) 
+		{
+			texture_registry().insert(tex);
+		}
+
+		void remove_from_texture_registery(Texture* tex)
+		{
+			auto it = texture_registry().find(tex);
+			ASSERT_LOG(it != texture_registry().end(), "tried to erase texture from registry that doesn't exist");
+			texture_registry().erase(it);
+		}
+	}
+
 	Texture::Texture(const SurfacePtr& surface, const variant& node)
 		: type_(Type::TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
-		tex_width_(float(surface->width())),
-		tex_height_(float(surface->height()))
+		surface_width_(float(surface->width())),
+		surface_height_(float(surface->height())),
+		width_(0),
+		height_(0),
+		depth_(0)
 	{
 		InternalInit();
 		if(node.has_key("type")) {
@@ -148,39 +175,63 @@ namespace KRE
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
-		tex_width_(surface->width()),
-		tex_height_(surface->height())
+		surface_width_(surface->width()),
+		surface_height_(surface->height()),
+		width_(0),
+		height_(0),
+		depth_(0)
 	{
 		InternalInit();
 	}
 
 	Texture::Texture(unsigned width, 
 		unsigned height, 
+		unsigned depth,
 		PixelFormat::PF fmt, 
 		Type type)
 		: type_(type), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
-		tex_width_(float(width)),
-		tex_height_(float(height))
+		surface_width_(0),
+		surface_height_(0),
+		width_(width),
+		height_(height),
+		depth_(depth)
 	{
 		InternalInit();
-	}
-
-	void Texture::InternalInit()
-	{
-		for(auto& am : address_mode_) {
-			am = AddressMode::WRAP;
-		}
-		filtering_[0] = Filtering::POINT;
-		filtering_[1] = Filtering::POINT;
-		filtering_[2] = Filtering::NONE;
 	}
 	
 	Texture::~Texture()
 	{
+		remove_from_texture_registery(this);
 	}
+
+	void Texture::InternalInit()
+	{
+		add_to_texture_registry(this);
+
+		for(auto& am : address_mode_) {
+			am = AddressMode::CLAMP;
+		}
+		filtering_[0] = Filtering::POINT;
+		filtering_[1] = Filtering::POINT;
+		filtering_[2] = Filtering::NONE;
+
+		// XXX For reasons (i.e. some video cards are problematic either hardware/drivers)
+		// we are forced to use power-of-two textures anyway if we want mip-mapping and
+		// address modes other than CLAMP.
+		if(!DisplayDevice::CheckForFeature(DisplayDeviceCapabilties::NPOT_TEXTURES)) {
+			width_ = next_power_of_2(surface_width_);
+			height_ = next_power_of_2(surface_height_);
+			depth_ = 0;
+		} else {
+			width_ = surface_width_;
+			height_ = surface_height_;
+			depth_ = 0;
+		}
+	}
+
 	void Texture::SetAddressModes(AddressMode u, AddressMode v, AddressMode w, const Color& bc)
 	{
 		address_mode_[0] = u;
@@ -213,5 +264,19 @@ namespace KRE
 			filtering_[n] = f[n];
 		}
 		Init();
+	}
+
+	void Texture::RebuildAll()
+	{
+		for(auto tex : texture_registry()) {
+			tex->Rebuild();
+		}
+	}
+
+	void Texture::SetTextureDimensions(unsigned w, unsigned h, unsigned d)
+	{
+		width_ = w;
+		height_ = h;
+		depth_ = d;
 	}
 }

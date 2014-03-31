@@ -32,6 +32,17 @@
 
 namespace KRE
 {
+	inline unsigned next_power_of_2(unsigned n) {
+		--n;
+		n = n|(n >> 1);
+		n = n|(n >> 2);
+		n = n|(n >> 4);
+		n = n|(n >> 8);
+		n = n|(n >> 16);
+		++n;
+		return n;
+	}
+
 	class Texture
 	{
 	public:
@@ -59,6 +70,7 @@ namespace KRE
 			int mipmap_levels=0);
 		Texture(unsigned width, 
 			unsigned height, 
+			unsigned depth,
 			PixelFormat::PF fmt, 
 			Texture::Type type);
 		virtual ~Texture();
@@ -85,8 +97,12 @@ namespace KRE
 
 		void InternalInit();
 
-		float Width() const { return tex_width_; }
-		float Height() const { return tex_height_; }
+		unsigned Width() const { return width_; }
+		unsigned Height() const { return height_; }
+		unsigned Depth() const { return depth_; }
+
+		unsigned SurfaceWidth() const { return surface_width_; }
+		unsigned SurfacehHeight() const { return surface_height_; }
 
 		virtual void Init() = 0;
 		virtual void Bind() = 0;
@@ -95,9 +111,14 @@ namespace KRE
 		virtual void Update(int x, unsigned width, void* pixels) = 0;
 		virtual void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) = 0;
 		virtual void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) = 0;
+
+		static void RebuildAll();
 	protected:
 		const SurfacePtr& GetSurface() const { return surface_; }
+		void SetTextureDimensions(unsigned w, unsigned h, unsigned d=0);
 	private:
+		virtual void Rebuild() = 0;
+
 		Type type_;
 		int mipmaps_;
 		AddressMode address_mode_[3]; // u,v,w
@@ -107,8 +128,16 @@ namespace KRE
 		float lod_bias_;
 		Texture();
 		SurfacePtr surface_;
-		float tex_width_;
-		float tex_height_;
+		
+		unsigned surface_width_;
+		unsigned surface_height_;
+
+		// Width/Height/Depth of the created texture -- may be a 
+		// different size than the surface if things like only
+		// allowing power-of-two textures is in effect.
+		unsigned width_;
+		unsigned height_;
+		unsigned depth_;
 	};
 
 	typedef std::shared_ptr<Texture> TexturePtr;

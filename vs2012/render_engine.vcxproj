@@ -15,6 +15,8 @@
     <ClCompile Include="..\src\AttributeSetOGL.cpp" />
     <ClCompile Include="..\src\Blittable.cpp" />
     <ClCompile Include="..\src\CameraObject.cpp" />
+    <ClCompile Include="..\src\Canvas.cpp" />
+    <ClCompile Include="..\src\CanvasOGL.cpp" />
     <ClCompile Include="..\src\Color.cpp" />
     <ClCompile Include="..\src\DisplayDevice.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
@@ -62,6 +64,8 @@
     <ClInclude Include="..\src\AttributeSetOpenGL.hpp" />
     <ClInclude Include="..\src\Blittable.hpp" />
     <ClInclude Include="..\src\CameraObject.hpp" />
+    <ClInclude Include="..\src\Canvas.hpp" />
+    <ClInclude Include="..\src\CanvasOGL.hpp" />
     <ClInclude Include="..\src\Color.hpp" />
     <ClInclude Include="..\src\DisplayDevice.hpp" />
     <ClInclude Include="..\src\DisplayDeviceFwd.hpp" />

@@ -28,6 +28,7 @@
 #include <string>
 
 #include "AttributeSet.hpp"
+#include "Canvas.hpp"
 #include "Color.hpp"
 #include "DisplayDeviceFwd.hpp"
 #include "Material.hpp"
@@ -64,6 +65,11 @@ namespace KRE
 		virtual ~DisplayDeviceData();
 	private:
 		DisplayDeviceData(const DisplayDeviceData&);
+	};
+
+	enum class DisplayDeviceCapabilties
+	{
+		NPOT_TEXTURES,
 	};
 
 	class DisplayDevice
@@ -117,6 +123,8 @@ namespace KRE
 		static TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D);
 		static TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt);
 
+		virtual CanvasPtr GetCanvas() = 0;
+
 		static void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch);
 
 		static MaterialPtr CreateMaterial(const variant& node);
@@ -138,6 +146,8 @@ namespace KRE
 		static DisplayDevicePtr Factory(const std::string& type);
 
 		static DisplayDevicePtr GetCurrent();
+
+		static bool CheckForFeature(DisplayDeviceCapabilties cap);
 
 		static void RegisterFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()>);
 	private:
@@ -162,6 +172,8 @@ namespace KRE
 
 		virtual MaterialPtr HandleCreateMaterial(const variant& node) = 0;
 		virtual MaterialPtr HandleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) = 0;
+
+		virtual bool DoCheckForFeature(DisplayDeviceCapabilties cap) = 0;
 
 		virtual void DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch) = 0;
 	};

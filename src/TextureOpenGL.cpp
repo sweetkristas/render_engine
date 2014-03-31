@@ -54,8 +54,6 @@ namespace KRE
 
 	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, const variant& node)
 		: Texture(surface, node),
-		width_(surface->width()), 
-		height_(surface->height()),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
@@ -68,8 +66,6 @@ namespace KRE
 
 	OpenGLTexture::OpenGLTexture(const SurfacePtr& surface, Type type,  int mipmap_levels)
 		: Texture(surface, type, mipmap_levels), 
-		width_(surface->width()), 
-		height_(surface->height()),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
@@ -85,16 +81,14 @@ namespace KRE
 		PixelFormat::PF fmt, 
 		Type type, 
 		unsigned depth)
-		: Texture(width, height, fmt, type),
-		width_(width),
-		height_(height),
-		depth_(depth),
+		: Texture(width, height, depth, fmt, type),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
 		pixel_format_(PixelFormat::PF::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
+		SetTextureDimensions(width, height, depth);
 		CreateTexture(fmt);
 		Init();
 	}
@@ -454,4 +448,13 @@ namespace KRE
 		return texture_id_[0];
 	}
 
+	void OpenGLTexture::Rebuild()
+	{
+		// Delete the old id
+		glDeleteTextures(is_yuv_planar_ ? 3 : 1, &texture_id_[0]);
+
+		// Re-create the texture
+		CreateTexture(pixel_format_);
+		Init();
+	}
 }

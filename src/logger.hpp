@@ -37,10 +37,24 @@ enum LogLevel
 
 const char* get_log_level_as_string(LogLevel l);
 
+#if defined(_MSC_VER)
+#define __SHORT_FORM_OF_FILE__	\
+	(strrchr(__FILE__,'\\')		\
+	? strrchr(__FILE__,'\\')+1	\
+	: __FILE__					\
+	)
+#else
+#define __SHORT_FORM_OF_FILE__	\
+	(strrchr(__FILE__,'/')		\
+	? strrchr(__FILE__,'/')+1	\
+	: __FILE__					\
+	)
+#endif
+
 #define LOG_MSG(_ll, _msg)													\
 	do {																	\
 			std::ostringstream _s;											\
-			_s  << __FILE__ << ":" << __LINE__ << " "						\
+			_s  << __SHORT_FORM_OF_FILE__ << ":" << __LINE__ << " "			\
 				<< get_log_level_as_string(_ll) << ": " << _msg << "\n";	\
 			std::cerr << _s.str();											\
 	} while(0)

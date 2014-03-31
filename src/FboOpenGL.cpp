@@ -32,21 +32,6 @@
 
 namespace KRE
 {
-	namespace
-	{
-		unsigned next_power_of_2(unsigned n)
-		{
-			--n;
-			n = n|(n >> 1);
-			n = n|(n >> 2);
-			n = n|(n >> 4);
-			n = n|(n >> 8);
-			n = n|(n >> 16);
-			++n;
-			return n;
-		}
-	}
-
 	FboOpenGL::FboOpenGL(unsigned width, unsigned height, 
 		unsigned color_plane_count, 
 		bool depth, 

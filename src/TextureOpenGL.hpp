@@ -45,10 +45,6 @@ namespace KRE
 
 		void Bind() override;
 
-		unsigned Width() const { return width_; }
-		unsigned Height() const { return height_; }
-		unsigned Depth() const { return depth_; }
-
 		void Init() override;
 		unsigned ID() override;
 
@@ -57,10 +53,8 @@ namespace KRE
 		void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
 	private:
 		void CreateTexture(const PixelFormat::PF& fmt);
+		void Rebuild() override;
 
-		unsigned width_;
-		unsigned height_;
-		unsigned depth_;
 		// For YUV family textures we need two more texture id's
 		// since we hold them in seperate textures, for everything
 		// else we just use the first one.

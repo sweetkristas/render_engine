@@ -11,6 +11,7 @@
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
 #include "CameraObject.hpp"
+#include "Canvas.hpp"
 #include "LightObject.hpp"
 #include "ParticleSystem.hpp"
 #include "Renderable.hpp"
@@ -205,13 +206,22 @@ int main(int argc, char *argv[])
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
+	auto canvas = Canvas::GetInstance();
+	canvas->SetDimensions(800, 600);
+
+	auto canvas_texture = DisplayDevice::CreateTexture("widgets.png");
+
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
 	while(!done) {
 		timer.start();
 		while(SDL_PollEvent(&e)) {
-			if(e.type == SDL_QUIT) {
+			if(e.type == SDL_KEYUP && e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+				done = true;
+			} else if(e.type == SDL_KEYDOWN) {
+				LOG_DEBUG("KEY PRESSED: " << SDL_GetKeyName(e.key.keysym.sym) << " : " << e.key.keysym.sym << " : " << e.key.keysym.scancode);
+			} else if(e.type == SDL_QUIT) {
 				done = true;
 			}
 		}
@@ -230,6 +240,12 @@ int main(int argc, char *argv[])
 
 		scene->RenderScene(rman);
 		rman->Render(main_wnd);
+
+		canvas->BlitTexture(canvas_texture, 
+			rect(3,4,56,22), 
+			0.0f, 
+			rect(800-56, 0, 56, 22), 
+			Color(1.0f,1.0f,1.0f,0.5f));
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {
