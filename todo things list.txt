@@ -16,6 +16,9 @@ List of things still needed to be done, not in any particular order.
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
 * Add instancing support see: http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
 * Make some sort of framework for universal shaders.
+* Add SVG support.
+* Make it so that if addressing modes other than clamp are used or mipmapping is enabled then we only use power-of-two textures.
+* Make sure uniform color is always set to "white" in the shader if it isn't used.
 
 Finished things
 
