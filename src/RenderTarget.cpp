@@ -38,7 +38,8 @@ namespace KRE
 		depth_attachment_(depth),
 		stencil_attachment_(stencil),
 		multi_sampling_(use_multi_sampling),
-		multi_samples_(multi_samples)
+		multi_samples_(multi_samples),
+		clear_color_(0.0f, 0.0f, 0.0f, 1.0f)
 	{
 	}
 
@@ -49,7 +50,8 @@ namespace KRE
 		depth_attachment_(false),
 		stencil_attachment_(false),
 		multi_sampling_(false),
-		multi_samples_(0)
+		multi_samples_(0),
+		clear_color_(0.0f, 0.0f, 0.0f, 1.0f)
 	{
 		ASSERT_LOG(node.has_key("width"), "Render target must have a 'width' attribute.");
 		ASSERT_LOG(node.has_key("height"), "Render target must have a 'height' attribute.");
@@ -94,5 +96,20 @@ namespace KRE
 	void RenderTarget::Clear()
 	{
 		HandleClear();
+	}
+
+	void RenderTarget::SetClearColor(int r, int g, int b, int a)
+	{
+		clear_color_ = Color(r,g,b,a);
+	}
+
+	void RenderTarget::SetClearColor(float r, float g, float b, float a)
+	{
+		clear_color_ = Color(r,g,b,a);
+	}
+
+	void RenderTarget::SetClearColor(const Color& color)
+	{
+		clear_color_ = color;
 	}
 }

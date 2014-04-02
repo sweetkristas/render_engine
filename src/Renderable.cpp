@@ -110,8 +110,14 @@ namespace KRE
 	{
 		render_target_ = rt;
 	}
+	
+	void Renderable::SetColor(float r, float g, float b, float a)
+	{
+		color_set_ = true;
+		color_ = Color(r, g, b, a);
+	}
 
-	void Renderable::SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void Renderable::SetColor(int r, int g, int b, int a)
 	{
 		color_set_ = true;
 		color_ = Color(r, g, b, a);

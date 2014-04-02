@@ -132,11 +132,11 @@ namespace KRE
 	public:
 		virtual ~Surface();
 		virtual const void* Pixels() const = 0;
-		virtual size_t width() = 0;
-		virtual size_t height() = 0;
-		virtual size_t row_pitch() = 0;
+		virtual unsigned width() = 0;
+		virtual unsigned height() = 0;
+		virtual unsigned row_pitch() = 0;
 
-		virtual void WritePixels(size_t bpp, 
+		virtual void WritePixels(unsigned bpp, 
 			uint32_t rmask, 
 			uint32_t gmask, 
 			uint32_t bmask, 
@@ -160,8 +160,8 @@ namespace KRE
 		virtual void SetBlendMode(BlendMode bm) = 0;
 		virtual BlendMode GetBlendMode() const = 0;
 
-		virtual bool SetClipRect(int x, int y, size_t width, size_t height) = 0;
-		virtual void GetClipRect(int& x, int& y, size_t& width, size_t& height) = 0;
+		virtual bool SetClipRect(int x, int y, unsigned width, unsigned height) = 0;
+		virtual void GetClipRect(int& x, int& y, unsigned& width, unsigned& height) = 0;
 		virtual bool SetClipRect(const rect& r) = 0;
 		virtual const rect GetClipRect() = 0;
 		SurfacePtr Convert(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);

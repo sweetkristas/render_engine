@@ -18,7 +18,6 @@ List of things still needed to be done, not in any particular order.
 * Make some sort of framework for universal shaders.
 * Add SVG support.
 * Make it so that if addressing modes other than clamp are used or mipmapping is enabled then we only use power-of-two textures.
-* Make sure uniform color is always set to "white" in the shader if it isn't used.
 
 Finished things
 
@@ -30,3 +29,4 @@ Finished things
 * -Implement surface or image caching, using filename as a key.-
 * -Add a way to convert a surface to a different format (such as might be used if 16bpp is enabled).-
 * -Implement a texture registry and system for re-building textures if the context is lost.-
+* -Make sure uniform color is always set to "white" in the shader if it isn't used.-  -- Worked around this.

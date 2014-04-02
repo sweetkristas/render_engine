@@ -53,6 +53,11 @@ namespace KRE
 		bool StencilPlane() const { return stencil_attachment_; }
 		bool UsesMultiSampling() const { return multi_sampling_; }
 		unsigned MultiSamples() const { return multi_samples_; }
+
+		void SetClearColor(int r, int g, int b, int a=255);
+		void SetClearColor(float r, float g, float b, float a=1.0f);
+		void SetClearColor(const Color& color);
+		const Color& GetClearColor() const { return clear_color_; }
 	private:
 		virtual void HandleCreate() = 0;
 		virtual void HandleApply() = 0;
@@ -66,6 +71,8 @@ namespace KRE
 		bool stencil_attachment_;
 		bool multi_sampling_;
 		unsigned multi_samples_;
+
+		Color clear_color_;
 
 		RenderTarget();
 		RenderTarget(const RenderTarget&);

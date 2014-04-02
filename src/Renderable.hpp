@@ -54,7 +54,8 @@ namespace KRE
 
 		glm::mat4 ModelMatrix() const;
 
-		void SetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
+		void SetColor(float r, float g, float b, float a=1.0);
+		void SetColor(int r, int g, int b, int a=255);
 		void SetColor(const Color& color);
 		const Color& GetColor() const { return color_; }
 		bool IsColorSet() const { return color_set_; }

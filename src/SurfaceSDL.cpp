@@ -77,9 +77,9 @@ namespace KRE
 		}
 	}
 
-	SurfaceSDL::SurfaceSDL(size_t width, 
-		size_t height, 
-		size_t bpp, 
+	SurfaceSDL::SurfaceSDL(unsigned width, 
+		unsigned height, 
+		unsigned bpp, 
 		uint32_t rmask, 
 		uint32_t gmask, 
 		uint32_t bmask, 
@@ -90,10 +90,10 @@ namespace KRE
 		SetPixelFormat(PixelFormatPtr(new SDLPixelFormat(surface_->format)));
 	}
 
-	SurfaceSDL::SurfaceSDL(size_t width, 
-		size_t height, 
-		size_t bpp, 
-		size_t row_pitch,
+	SurfaceSDL::SurfaceSDL(unsigned width, 
+		unsigned height, 
+		unsigned bpp, 
+		unsigned row_pitch,
 		uint32_t rmask, 
 		uint32_t gmask, 
 		uint32_t bmask, 
@@ -132,20 +132,17 @@ namespace KRE
 		if(SDL_MUSTLOCK(surface_) && !surface_->locked) {
 			ASSERT_LOG(false, "Surface is marked as needing to be locked but is not locked on Pixels access.");
 		}
-		// Kind of a kludge, since someone could use this for a read not just a write.
-		// XXXX Maybe a better scenario, would be to have a WritePixels() function that
-		// takes a source pixel format and the data then converts and writes it.
 		return surface_->pixels;
 	}
 
-	bool SurfaceSDL::SetClipRect(int x, int y, size_t width, size_t height)
+	bool SurfaceSDL::SetClipRect(int x, int y, unsigned width, unsigned height)
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null");
 		SDL_Rect r = {x,y,width,height};
 		return SDL_SetClipRect(surface_, &r) != SDL_TRUE;
 	}
 
-	void SurfaceSDL::GetClipRect(int& x, int& y, size_t& width, size_t& height)
+	void SurfaceSDL::GetClipRect(int& x, int& y, unsigned& width, unsigned& height)
 	{
 		ASSERT_LOG(surface_ != NULL, "surface_ is null");
 		SDL_Rect r;
@@ -189,7 +186,7 @@ namespace KRE
 		}
 	}
 
-	void SurfaceSDL::WritePixels(size_t bpp, 
+	void SurfaceSDL::WritePixels(unsigned bpp, 
 		uint32_t rmask, 
 		uint32_t gmask, 
 		uint32_t bmask, 
@@ -694,7 +691,7 @@ namespace KRE
 		void* dst_pixels = new uint8_t[dst_size];
 
 		for(size_t h = 0; h != height(); ++h) {
-			int offs = 0;
+			unsigned offs = 0;
 			int ndx = 0;
 			uint8_t* pixel_ptr = static_cast<uint8_t*>(surface_->pixels) + h*row_pitch();
 			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + h*row_pitch();

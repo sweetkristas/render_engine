@@ -83,10 +83,10 @@ namespace KRE
 	class SurfaceSDL : public Surface
 	{
 	public:
-		SurfaceSDL(size_t width, 
-			size_t height, 
-			size_t bpp, 
-			size_t row_pitch, 
+		SurfaceSDL(unsigned width, 
+			unsigned height, 
+			unsigned bpp, 
+			unsigned row_pitch, 
 			uint32_t rmask, 
 			uint32_t gmask, 
 			uint32_t bmask, 
@@ -100,25 +100,25 @@ namespace KRE
 			uint32_t bmask, 
 			uint32_t amask);
 		SurfaceSDL(SDL_Surface* surface);
-		SurfaceSDL(size_t width, size_t height, PixelFormat::PF format);
+		SurfaceSDL(unsigned width, unsigned height, PixelFormat::PF format);
 		virtual ~SurfaceSDL();
 		const void* Pixels() const override;
-		void WritePixels(size_t bpp, 
+		void WritePixels(unsigned bpp, 
 			uint32_t rmask, 
 			uint32_t gmask, 
 			uint32_t bmask, 
 			uint32_t amask,
 			const void* pixels) override;
 		void WritePixels(const void* pixels) override;
-		size_t width() override {
+		unsigned width() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->w;
 		}
-		size_t height() override {
+		unsigned height() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->h;
 		}
-		size_t row_pitch() override {
+		unsigned row_pitch() override {
 			ASSERT_LOG(surface_ != NULL, "surface_ is null");
 			return surface_->pitch;
 		}
@@ -133,8 +133,8 @@ namespace KRE
 		void SetBlendMode(BlendMode bm) override;
 		BlendMode GetBlendMode() const override;
 
-		bool SetClipRect(int x, int y, size_t width, size_t height) override;
-		void GetClipRect(int& x, int& y, size_t& width, size_t& height) override;
+		bool SetClipRect(int x, int y, unsigned width, unsigned height) override;
+		void GetClipRect(int& x, int& y, unsigned& width, unsigned& height) override;
 		bool SetClipRect(const rect& r) override;
 		const rect GetClipRect() override;
 

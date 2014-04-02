@@ -91,11 +91,11 @@ src/%.o : src/%.cpp
 		sed -e 's/^ *//' -e 's/$$/:/' >> src/$*.d
 	@rm -f $*.d.tmp
 
-render_engine: $(objects)
+render_engine: $(objects) $(ogl_objects) $(sdl_objects) $(ogl_fixed_objects)
 	@echo "Linking : render_engine"
 	@$(CCACHE) $(CXX) \
 		$(BASE_CXXFLAGS) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) \
-		$(objects) -o render_engine \
+		$(objects) $(ogl_objects) $(sdl_objects) $(ogl_fixed_objects) -o render_engine \
 		$(LIBS) -lboost_regex -lboost_system -lboost_filesystem -lpthread -fthreadsafe-statics
 
 # pull in dependency info for *existing* .o files

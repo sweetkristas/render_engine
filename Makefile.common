@@ -6,15 +6,11 @@
 # Game engine
 objects = \
 	src/AttributeSet.o \
-	src/AttributeSetOGL.o \
     src/Blittable.o \
 	src/CameraObject.o \
+	src/Canvas.o \
 	src/Color.o \
 	src/DisplayDevice.o \
-	src/DisplayDeviceOpenGL.o \
-	src/DisplayDeviceOpenGLFixed.o \
-	src/DisplayDeviceSDL.o \
-	src/FboOpenGL.o \
 	src/filesystem.o \
 	src/Frustum.o \
 	src/json.o \
@@ -22,7 +18,6 @@ objects = \
 	src/logger.o \
 	src/main.o \
 	src/Material.o \
-	src/MaterialOpenGL.o \
 	src/ParticleSystemAffectors.o \
 	src/ParticleSystem.o \
 	src/ParticleSystemEmitters.o \
@@ -36,15 +31,30 @@ objects = \
 	src/SceneNode.o \
 	src/SceneObject.o \
 	src/SceneParameters.o \
-	src/ShadersOpenGL.o \
 	src/Surface.o \
-	src/SurfaceSDL.o \
 	src/Texture.o \
-	src/TextureOpenGL.o \
-	src/TextureSDL.o \
 	src/variant.o \
 	src/VGraphCairo.o \
 	src/VGraph.o \
-	src/VGraphOpenGL.o \
-	src/VGraphOpenGLFixed.o \
 	src/WindowManager.o
+
+sdl_objects = \
+	src/DisplayDeviceSDL.o \
+	src/SurfaceSDL.o \
+	src/TextureSDL.o
+	
+ogl_objects = \
+	src/AttributeSetOGL.o \
+	src/CanvasOGL.o \
+	src/DisplayDeviceOpenGL.o \
+	src/FboOpenGL.o \
+	src/MaterialOpenGL.o \
+	src/ShadersOpenGL.o \
+	src/TextureOpenGL.o \
+	src/VGraphOpenGL.o \
+	src/UniformBufferOGL.o
+
+ogl_fixed_objects = \
+	src/DisplayDeviceOpenGLFixed.o \
+	src/VGraphOpenGLFixed.o
+

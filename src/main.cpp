@@ -127,6 +127,7 @@ class SimpleTextureHolder : public KRE::Blittable
 public:
 	SimpleTextureHolder(const std::string& filename) {
 		using namespace KRE;
+		SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 		auto tex = DisplayDevice::CreateTexture(filename, Texture::Type::TEXTURE_2D, 4);
 		tex->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->SetAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
@@ -184,15 +185,17 @@ int main(int argc, char *argv[])
 	cairo_canvas->Fill();
 	cairo_canvas->SetOrder(5);
 	cairo_canvas->SetPosition(256.0f,256.0f);
+	cairo_canvas->SetColor(1.0f,1.0f,1.0f,1.0f);
 	root->AttachObject(cairo_canvas);
 
-	//auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	//auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
-	//particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	//psystem->AttachCamera(particle_cam);
-	//root->AttachNode(psystem);
+	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
+	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	psystem->AttachCamera(particle_cam);
+	root->AttachNode(psystem);
 	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
-	//rt->SetDrawRect(rect(0,0,400,300));
+	//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
+	//rt->SetDrawRect(rect(400,300,400,300));
 	//rt->Create();
 	//psystem->AttachRenderTarget(rt);
 	//root->AttachObject(rt);
@@ -210,6 +213,7 @@ int main(int argc, char *argv[])
 	canvas->SetDimensions(800, 600);
 
 	auto canvas_texture = DisplayDevice::CreateTexture("widgets.png");
+	canvas_texture->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
 
 	SDL_Event e;
 	bool done = false;
@@ -244,7 +248,8 @@ int main(int argc, char *argv[])
 		canvas->BlitTexture(canvas_texture, 
 			rect(3,4,56,22), 
 			0.0f, 
-			rect(800-56, 0, 56, 22), 
+			//rect(800-56, 0, 56, 22), 
+			rect(0,0,112,44),
 			Color(1.0f,1.0f,1.0f,0.5f));
 
 		double t1 = timer.check();

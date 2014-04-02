@@ -78,7 +78,7 @@ namespace KRE
 					tex_.emplace_back(CreateTexture(pass["texture_unit"][n]));
 				}
 			} else {
-				ASSERT_LOG(false, "PSYSTEM2: 'texture_unit' attribute must be map or list ");
+				ASSERT_LOG(false, "'texture_unit' attribute must be map or list ");
 			}
 		}
 		if(pass.has_key("rect")) {

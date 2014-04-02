@@ -56,8 +56,8 @@ namespace KRE
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
-		surface_width_(float(surface->width())),
-		surface_height_(float(surface->height())),
+		surface_width_(surface->width()),
+		surface_height_(surface->height()),
 		width_(0),
 		height_(0),
 		depth_(0)

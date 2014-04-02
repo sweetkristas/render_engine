@@ -85,7 +85,7 @@ namespace KRE
 
 		auto& bm = GetBlendMode();
 		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
-			&& bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
+			|| bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(convert_blend_mode(bm.Src()), convert_blend_mode(bm.Dst()));
 		}
 
@@ -107,11 +107,14 @@ namespace KRE
 	{
 		if(DoDepthCheck() || DoDepthWrite()) {
 			glDisable(GL_DEPTH_TEST);
+			if(DoDepthWrite()) {
+				glDepthFunc(GL_LESS);
+			}
 		}
 
 		auto& bm = GetBlendMode();
 		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
-			&& bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
+			|| bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
