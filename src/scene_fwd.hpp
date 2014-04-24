@@ -24,12 +24,43 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
+
+#include "RenderFwd.hpp"
+
+#include "glm/glm.hpp"
 
 namespace KRE
 {
-	class surface;
-	typedef std::shared_ptr<surface> surface_ptr;
+	class Light;
+	typedef std::shared_ptr<Light> LightPtr;
+	typedef std::unordered_map<size_t, LightPtr> LightPtrList;
+	class Camera;
+	typedef std::shared_ptr<Camera> CameraPtr;
+	class Parameter;
+	typedef std::shared_ptr<Parameter> ParameterPtr;
+	class scene_object;
+	typedef std::shared_ptr<scene_object> scene_object_ptr;
+	class scene_node;
+	typedef std::shared_ptr<scene_node> scene_node_ptr;
+	class scene_graph;
+	typedef std::shared_ptr<scene_graph> scene_graph_ptr;
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	struct scene_node_params
+	{
+		CameraPtr camera;
+		LightPtrList lights;
+		RenderTargetPtr render_target;
+	};
+
+	class Blittable;
+
+	struct vertex_texcoord
+	{
+		vertex_texcoord() : vtx(0.0f), tc(0.0f) {}
+		vertex_texcoord(const glm::vec2& v, const glm::vec2& c) : vtx(v), tc(c) {}
+		glm::vec2 vtx;
+		glm::vec2 tc;
+	};
 }

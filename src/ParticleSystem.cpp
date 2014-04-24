@@ -28,7 +28,7 @@
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemParameters.hpp"
 #include "ParticleSystemEmitters.hpp"
-#include "SceneGraph.hpp"
+#include "scene_graph.hpp"
 #include "spline.hpp"
 #include "WindowManager.hpp"
 
@@ -42,7 +42,7 @@ namespace KRE
 
 		namespace 
 		{
-			SceneNodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
+			scene_nodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
 
 			std::default_random_engine& get_rng_engine() 
 			{
@@ -144,9 +144,9 @@ namespace KRE
 			return q * v;
 		}
 
-		particle_system::particle_system(SceneGraph* sg, ParticleSystemContainer* parent, const variant& node)
+		particle_system::particle_system(scene_graph* sg, ParticleSystemContainer* parent, const variant& node)
 			: emit_object(parent, node), 
-			SceneNode(sg),
+			scene_node(sg),
 			elapsed_time_(0.0f), 
 			scale_velocity_(1.0f), 
 			scale_time_(1.0f),
@@ -210,7 +210,7 @@ namespace KRE
 
 		particle_system::particle_system(const particle_system& ps)
 			: emit_object(ps),
-			SceneNode(const_cast<particle_system&>(ps).ParentGraph()),
+			scene_node(const_cast<particle_system&>(ps).ParentGraph()),
 			elapsed_time_(0),
 			scale_velocity_(ps.scale_velocity_),
 			scale_time_(ps.scale_time_),
@@ -256,7 +256,7 @@ namespace KRE
 		}
 
 		technique::technique(ParticleSystemContainer* parent, const variant& node)
-			: SceneObject("technique"),
+			: scene_object("technique"),
 			emit_object(parent, node), 
 			default_particle_width_(node["default_particle_width"].as_float(1.0f)),
 			default_particle_height_(node["default_particle_height"].as_float(1.0f)),
@@ -338,7 +338,7 @@ namespace KRE
 		}
 
 		technique::technique(const technique& tq) 
-			: SceneObject(tq.ObjectName()),
+			: scene_object(tq.ObjectName()),
 			emit_object(tq),
 			default_particle_width_(tq.default_particle_width_),
 			default_particle_height_(tq.default_particle_height_),
@@ -504,8 +504,8 @@ namespace KRE
 			GetAttributeSet().back()->SetCount(active_particles_.size());
 		}
 
-		ParticleSystemContainer::ParticleSystemContainer(SceneGraph* sg, const variant& node) 
-			: SceneNode(sg)
+		ParticleSystemContainer::ParticleSystemContainer(scene_graph* sg, const variant& node) 
+			: scene_node(sg)
 		{
 			if(node.has_key("systems")) {
 				if(node["systems"].is_list()) {

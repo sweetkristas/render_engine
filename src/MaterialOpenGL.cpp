@@ -83,7 +83,7 @@ namespace KRE
 			(*it)->Bind();
 		}
 
-		auto& bm = GetBlendMode();
+		auto& bm = get_blend_mode();
 		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
 			|| bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(convert_blend_mode(bm.Src()), convert_blend_mode(bm.Dst()));
@@ -112,7 +112,7 @@ namespace KRE
 			}
 		}
 
-		auto& bm = GetBlendMode();
+		auto& bm = get_blend_mode();
 		if(bm.Src() != BlendMode::BlendModeConstants::BM_SRC_ALPHA 
 			|| bm.Dst() != BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -123,7 +123,7 @@ namespace KRE
 	{
 		ASSERT_LOG(node.has_key("image") || node.has_key("texture"), "Must have either 'image' or 'texture' attribute.");
 		const std::string image_name = node.has_key("image") ? node["image"].as_string() : node["texture"].as_string();
-		auto surface = Surface::Create(image_name);
+		auto surface = surface::Create(image_name);
 		return TexturePtr(new OpenGLTexture(surface, node));
 	}
 }

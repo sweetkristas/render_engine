@@ -28,7 +28,7 @@
 namespace KRE
 {
 	Blittable::Blittable()
-		: SceneObject("blittable"),
+		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{
@@ -36,7 +36,7 @@ namespace KRE
 	}
 
 	Blittable::Blittable(const TexturePtr& tex)
-		: SceneObject("blittable"),
+		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{
@@ -45,7 +45,7 @@ namespace KRE
 	}
 
 	Blittable::Blittable(const MaterialPtr& mat)
-		: SceneObject("blittable"),
+		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{

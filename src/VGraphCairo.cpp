@@ -330,7 +330,7 @@ namespace KRE
 			auto fmt = cairo_image_surface_get_format(surface_);
 			int stride = cairo_image_surface_get_stride(surface_);
 
-			PixelFormat::PF pffmt;
+			PixelFormat pffmt;
 			switch(fmt) {
 				case CAIRO_FORMAT_A8:
 					ASSERT_LOG(false, "CAIRO_FORMAT_A8 unsupported at this time");
@@ -338,10 +338,10 @@ namespace KRE
 				case CAIRO_FORMAT_A1:
 					ASSERT_LOG(false, "CAIRO_FORMAT_A1 unsupported at this time");
 					break;
-				case CAIRO_FORMAT_ARGB32:	pffmt = PixelFormat::PF::PIXELFORMAT_ARGB8888;	break;
-				case CAIRO_FORMAT_RGB24:	pffmt = PixelFormat::PF::PIXELFORMAT_RGB888;	break;
-				case CAIRO_FORMAT_RGB16_565:pffmt = PixelFormat::PF::PIXELFORMAT_RGB565;	break;
-				case CAIRO_FORMAT_RGB30:	pffmt = PixelFormat::PF::PIXELFORMAT_RGB101010;	break;
+				case CAIRO_FORMAT_ARGB32:	pffmt = PixelFormat::PIXELFORMAT_ARGB8888;	break;
+				case CAIRO_FORMAT_RGB24:	pffmt = PixelFormat::PIXELFORMAT_RGB888;	break;
+				case CAIRO_FORMAT_RGB16_565:pffmt = PixelFormat::PIXELFORMAT_RGB565;	break;
+				case CAIRO_FORMAT_RGB30:	pffmt = PixelFormat::PIXELFORMAT_RGB101010;	break;
 				default:
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}

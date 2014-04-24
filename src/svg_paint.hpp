@@ -11,7 +11,7 @@
 
 	   1. The origin of this software must not be misrepresented; you must not
 	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgement in the product documentation would be
+	   in a product, an acknowledgment in the product documentation would be
 	   appreciated but is not required.
 
 	   2. Altered source versions must be plainly marked as such, and must not be
@@ -23,25 +23,29 @@
 
 #pragma once
 
-#include "Renderable.hpp"
-#include "SceneFwd.hpp"
+#include <cstdint>
+#include <memory>
+#include <string>
 
-namespace KRE
+namespace svg
 {
-	class SceneObject : public Renderable
+	class paint
 	{
 	public:
-		SceneObject(const std::string& name);
-		virtual ~SceneObject();
-		size_t Queue() const { return queue_; }
-		void SetQueue(size_t q) { queue_ = q; }
-		const std::string& ObjectName() const { return name_; }
-		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) = 0;
+		paint(const std::string& s);
+		virtual ~paint();
+		bool has_color() const { return !no_color_; }
+		uint8_t r() const { return r_; }
+		uint8_t g() const { return g_; }
+		uint8_t b() const { return b_; }
+		uint8_t a() const { return a_; }
 	private:
-
-		size_t queue_;
-		std::string name_;
-		SceneObject();
-		SceneObject(const SceneObject&);
+		uint8_t r_;
+		uint8_t g_;
+		uint8_t b_;
+		uint8_t a_;
+		bool no_color_;
 	};
+
+	typedef std::shared_ptr<paint> paint_ptr;
 }

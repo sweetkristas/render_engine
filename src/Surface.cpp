@@ -21,20 +21,20 @@
 	   distribution.
 */
 
-#include "Surface.hpp"
+#include "surface.hpp"
 
 namespace KRE
 {
 	namespace
 	{
-		typedef std::map<std::string,SurfaceCreatorFn> CreatorMap;
-		CreatorMap& get_surface_creator()
+		typedef std::map<std::string,surface_creator_fn> creator_map;
+		creator_map& get_surface_creator()
 		{
-			static CreatorMap res;
+			static creator_map res;
 			return res;
 		}
 
-		typedef std::map<std::string, SurfacePtr> surface_cache_type;
+		typedef std::map<std::string, surface_ptr> surface_cache_type;
 		surface_cache_type& get_surface_cache()
 		{
 			static surface_cache_type res;
@@ -42,53 +42,53 @@ namespace KRE
 		}
 	}
 
-	Surface::Surface()
+	surface::surface()
 	{
 	}
 
-	Surface::~Surface()
+	surface::~surface()
 	{
 	}
 
-	PixelFormatPtr Surface::GetPixelFormat()
+	pixel_format_ptr surface::get_pixel_format()
 	{
 		return pf_;
 	}
 
-	void Surface::SetPixelFormat(PixelFormatPtr pf)
+	void surface::set_pixel_format(pixel_format_ptr pf)
 	{
 		pf_ = pf;
 	}
 
-	SurfaceLock::SurfaceLock(const SurfacePtr& surface)
+	surface_lock::surface_lock(const surface_ptr& surface)
 		: surface_(surface)
 	{
-		surface_->Lock();
+		surface_->lock();
 	}
 
-	SurfaceLock::~SurfaceLock()
+	surface_lock::~surface_lock()
 	{
-		surface_->Unlock();
+		surface_->unlock();
 	}
 
-	SurfacePtr Surface::Convert(PixelFormat::PF fmt, SurfaceConvertFn convert)
+	surface_ptr surface::convert(PixelFormat fmt, surfaceconvertFn convert)
 	{
-		return HandleConvert(fmt, convert);
+		return handle_convert(fmt, convert);
 	}
 
-	bool Surface::RegisterSurfaceCreator(const std::string& name, SurfaceCreatorFn Creator)
+	bool surface::register_surface_creator(const std::string& name, surface_creator_fn creator)
 	{
-		return get_surface_creator().insert(std::make_pair(name, Creator)).second;
+		return get_surface_creator().insert(std::make_pair(name, creator)).second;
 	}
 
-	void Surface::UnRegisterSurfaceCreator(const std::string& name)
+	void surface::unregister_surface_creator(const std::string& name)
 	{
 		auto it = get_surface_creator().find(name);
 		ASSERT_LOG(it != get_surface_creator().end(), "Unable to find surface creator: " << name);
 		get_surface_creator().erase(it);
 	}
 
-	SurfacePtr Surface::Create(const std::string& filename, bool no_cache, PixelFormat::PF fmt, SurfaceConvertFn convert)
+	surface_ptr surface::create(const std::string& filename, bool no_cache, PixelFormat fmt, surfaceconvertFn convert)
 	{
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create images from files.");
 		if(!no_cache) {
@@ -103,16 +103,16 @@ namespace KRE
 		return get_surface_creator().begin()->second(filename, fmt, convert);
 	}
 
-	void Surface::ResetSurfaceCache()
+	void surface::reset_surface_cache()
 	{
 		get_surface_cache().clear();
 	}
 
-	PixelFormat::PixelFormat()
+	pixel_format::pixel_format()
 	{
 	}
 
-	PixelFormat::~PixelFormat()
+	pixel_format::~pixel_format()
 	{
 	}
 }

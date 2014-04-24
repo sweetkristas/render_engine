@@ -89,15 +89,15 @@ namespace KRE
 		bool UseLighting() const { return use_lighting_; }
 		bool DoDepthWrite() const { return do_depth_write_; }
 		bool DoDepthCheck() const { return do_depth_check_; }
-		const BlendMode& GetBlendMode() const { return blend_; }
+		const BlendMode& get_blend_mode() const { return blend_; }
 
 		void SetTexture(const TexturePtr& tex);
 		void EnableLighting(bool en=true);
 		void EnableFog(bool en=true);
 		void EnableDepthWrite(bool en=true);
 		void EnableDepthCheck(bool en=true);
-		void SetBlendMode(const BlendMode& bm);
-		void SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
+		void set_blend_mode(const BlendMode& bm);
+		void set_blend_mode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
 
 		const rectf GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it);
 

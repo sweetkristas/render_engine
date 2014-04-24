@@ -27,7 +27,7 @@
 #include "asserts.hpp"
 #include "DisplayDevice.hpp"
 #include "logger.hpp"
-#include "SurfaceSDL.hpp"
+#include "surface_sdl.hpp"
 #include "SDL.h"
 #include "SDL_image.h"
 #include "WindowManager.hpp"
@@ -204,16 +204,16 @@ namespace KRE
 			return false;
 		}
 
-		SurfacePtr CreateSurface(size_t width, 
+		surface_ptr Createsurface(size_t width, 
 			size_t height, 
 			size_t bpp, 
 			uint32_t rmask, 
 			uint32_t gmask, 
 			uint32_t bmask, 
 			uint32_t amask) override {
-			return SurfacePtr(new SurfaceSDL(width, height, bpp, rmask, gmask, bmask, amask));
+			return surface_ptr(new surface_sdl(width, height, bpp, rmask, gmask, bmask, amask));
 		}
-		SurfacePtr CreateSurface(size_t width, 
+		surface_ptr Createsurface(size_t width, 
 			size_t height, 
 			size_t bpp, 
 			size_t row_pitch, 
@@ -224,14 +224,14 @@ namespace KRE
 			void* pixels) override {
 			// XXX feed into surface cache. 
 			// will need to update cache if pixels change.
-			return SurfacePtr(new SurfaceSDL(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels));
+			return surface_ptr(new surface_sdl(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels));
 		}
 
-		SurfacePtr CreateSurface(const std::string& filename) override {
+		surface_ptr Createsurface(const std::string& filename) override {
 			// XXX Here is were we can abstract image loading and provide an
 			// image cache.
-			// return SurfacePtr(WindowManager::LoadImage(filename));
-			return Surface::Create(filename);
+			// return surface_ptr(WindowManager::LoadImage(filename));
+			return surface::Create(filename);
 		}
 
 		void SetWindowTitle(const std::string& title) override {

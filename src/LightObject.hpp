@@ -23,11 +23,11 @@
 
 #pragma once
 
-#include "SceneObject.hpp"
+#include "scene_object.hpp"
 
 namespace KRE
 {
-	class Light : public SceneObject
+	class Light : public scene_object
 	{
 	public:
 		enum LightType {

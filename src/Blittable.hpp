@@ -25,14 +25,14 @@
 
 #include "Geometry.hpp"
 #include "Material.hpp"
-#include "SceneObject.hpp"
+#include "scene_object.hpp"
 
 namespace KRE
 {
 	// This is basically a helper class that lets you blit a 
 	// texture to the screen in what should be a relatively 
 	// optimised manner.
-	class Blittable : public SceneObject
+	class Blittable : public scene_object
 	{
 	public:
 		enum class Centre {

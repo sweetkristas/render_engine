@@ -11,7 +11,7 @@
 
 	   1. The origin of this software must not be misrepresented; you must not
 	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgement in the product documentation would be
+	   in a product, an acknowledgment in the product documentation would be
 	   appreciated but is not required.
 
 	   2. Altered source versions must be plainly marked as such, and must not be
@@ -24,12 +24,34 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
-namespace KRE
+#include "glm/glm.hpp"
+
+namespace svg
 {
-	class surface;
-	typedef std::shared_ptr<surface> surface_ptr;
+	class transform;
+	typedef std::shared_ptr<transform> transform_ptr;
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	class transform
+	{
+	public:
+		const glm::mat3& as_matrix() const { return mat_; }
+		std::string as_string() const;
+		static std::vector<transform_ptr> factory(const std::string& s);
+	protected:
+		enum TransformType {
+			TRANSFORM_MATRIX,
+			TRANSFORM_TRANSLATE,
+			TRANSFORM_SCALE,
+			TRANSFORM_ROTATE,
+			TRANSFORM_SKEW_X,
+			TRANSFORM_SKEW_Y,
+		};
+		transform(TransformType tt);
+	private:
+		TransformType type_;
+		glm::mat3 mat_;
+	};
 }

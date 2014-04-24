@@ -23,13 +23,25 @@
 
 #pragma once
 
-#include <memory>
+#include "Renderable.hpp"
+#include "scene_fwd.hpp"
 
 namespace KRE
 {
-	class surface;
-	typedef std::shared_ptr<surface> surface_ptr;
+	class scene_object : public Renderable
+	{
+	public:
+		scene_object(const std::string& name);
+		virtual ~scene_object();
+		size_t Queue() const { return queue_; }
+		void SetQueue(size_t q) { queue_ = q; }
+		const std::string& ObjectName() const { return name_; }
+		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) = 0;
+	private:
 
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+		size_t queue_;
+		std::string name_;
+		scene_object();
+		scene_object(const scene_object&);
+	};
 }

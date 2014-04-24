@@ -104,7 +104,7 @@ namespace KRE
 			virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 		protected:
 			cairo_t* GetContext() { return context_; }
-			cairo_surface_t* GetSurface() { return surface_; }
+			cairo_surface_t* Getsurface() { return surface_; }
 		private:
 			cairo_t* context_;
 			cairo_surface_t* surface_;

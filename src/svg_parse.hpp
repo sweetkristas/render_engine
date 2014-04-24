@@ -11,7 +11,7 @@
 
 	   1. The origin of this software must not be misrepresented; you must not
 	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgement in the product documentation would be
+	   in a product, an acknowledgment in the product documentation would be
 	   appreciated but is not required.
 
 	   2. Altered source versions must be plainly marked as such, and must not be
@@ -21,18 +21,27 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "SceneGraph.hpp"
-#include "SceneObject.hpp"
+#pragma once
 
-namespace KRE
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <cairo/cairo.h>
+
+namespace svg
 {
-	SceneObject::SceneObject(const std::string& name)
-		: name_(name), queue_(0)
-	{
-	}
+	class svg;
+	typedef std::shared_ptr<svg> svg_ptr;
 
-	SceneObject::~SceneObject()
+	class parse
 	{
-	}
+	public:
+		parse(const std::string& filename);
+		~parse();
+
+		void cairo_render(cairo_t* cairo) const;
+	private:
+		std::vector<svg_ptr> svg_data_;
+	};
 }

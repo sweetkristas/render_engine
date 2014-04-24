@@ -33,8 +33,8 @@
 #include "AttributeSet.hpp"
 #include "Material.hpp"
 #include "ParticleSystemFwd.hpp"
-#include "SceneNode.hpp"
-#include "SceneObject.hpp"
+#include "scene_node.hpp"
+#include "scene_object.hpp"
 
 namespace KRE
 {
@@ -112,7 +112,7 @@ namespace KRE
 			//emit_object(const emit_object&);
 		};
 
-		class technique  : public emit_object, public SceneObject
+		class technique  : public emit_object, public scene_object
 		{
 		public:
 			explicit technique(ParticleSystemContainer* parent, const variant& node);
@@ -173,10 +173,10 @@ namespace KRE
 			technique();
 		};
 
-		class particle_system : public emit_object, public SceneNode
+		class particle_system : public emit_object, public scene_node
 		{
 		public:
-			explicit particle_system(SceneGraph* sg, ParticleSystemContainer* parent, const variant& node);
+			explicit particle_system(scene_graph* sg, ParticleSystemContainer* parent, const variant& node);
 			particle_system(const particle_system& ps);
 			virtual ~particle_system();
 
@@ -209,10 +209,10 @@ namespace KRE
 			particle_system();
 		};
 
-		class ParticleSystemContainer : public SceneNode
+		class ParticleSystemContainer : public scene_node
 		{
 		public:
-			explicit ParticleSystemContainer(SceneGraph* sg, const variant& node);
+			explicit ParticleSystemContainer(scene_graph* sg, const variant& node);
 			virtual ~ParticleSystemContainer();
 
 			void activate_particle_system(const std::string& name);

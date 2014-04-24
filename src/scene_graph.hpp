@@ -24,47 +24,47 @@
 #pragma once
 
 #include "RenderFwd.hpp"
-#include "SceneFwd.hpp"
+#include "scene_fwd.hpp"
 #include "WindowManager.hpp"
 #include "treetree/tree.hpp"
 
 namespace KRE
 {
-	typedef std::function<SceneObjectPtr(const std::string&)> ObjectTypeFunction;
+	typedef std::function<scene_object_ptr(const std::string&)> ObjectTypeFunction;
 
-	class SceneGraph
+	class scene_graph
 	{
 	public:
-		SceneGraph(const std::string& name);
-		~SceneGraph();
-		void AttachNode(SceneNode* parent, SceneNodePtr node);
-		static SceneGraphPtr Create(const std::string& name);
-		SceneNodePtr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
+		scene_graph(const std::string& name);
+		~scene_graph();
+		void AttachNode(scene_node* parent, scene_node_ptr node);
+		static scene_graph_ptr Create(const std::string& name);
+		scene_node_ptr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
 		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
-		SceneNodePtr RootNode();
+		scene_node_ptr RootNode();
 		void RenderScene(const RenderManagerPtr& renderer);
-		void RenderSceneHelper(const RenderManagerPtr& renderer, the::tree<SceneNodePtr>::pre_iterator& it, SceneNodeParams* snp);
+		void RenderSceneHelper(const RenderManagerPtr& renderer, the::tree<scene_node_ptr>::pre_iterator& it, scene_node_params* snp);
 	
 		void Process(double);
 
-		static void RegisterFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)>);
+		static void RegisterFactoryFunction(const std::string& type, std::function<scene_node_ptr(scene_graph*,const variant&)>);
 	private:
 		std::string name_;
-		the::tree<SceneNodePtr> graph_;
-		SceneGraph(const SceneGraph&);
+		the::tree<scene_node_ptr> graph_;
+		scene_graph(const scene_graph&);
 
-		friend std::ostream& operator<<(std::ostream& s, const SceneGraph& sg);
+		friend std::ostream& operator<<(std::ostream& s, const scene_graph& sg);
 	};
 
-	std::ostream& operator<<(std::ostream& s, const SceneGraph& sg);
+	std::ostream& operator<<(std::ostream& s, const scene_graph& sg);
 
 	template<class T>
-	struct SceneNodeRegistrar
+	struct scene_nodeRegistrar
 	{
-		SceneNodeRegistrar(const std::string& type)
+		scene_nodeRegistrar(const std::string& type)
 		{
 			// register the class factory function 
-			SceneGraph::RegisterFactoryFunction(type, [](SceneGraph* sg, const variant& node) -> SceneNodePtr { return SceneNodePtr(new T(sg, node));});
+			scene_graph::RegisterFactoryFunction(type, [](scene_graph* sg, const variant& node) -> scene_node_ptr { return scene_node_ptr(new T(sg, node));});
 		}
 	};
 }

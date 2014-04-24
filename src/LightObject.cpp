@@ -40,7 +40,7 @@ namespace KRE
 	}
 
 	Light::Light(const std::string& name, const glm::vec3& position)
-		: SceneObject(name),
+		: scene_object(name),
 		type_(LT_POINT),
 		position_(position),
 		ambient_color_(default_ambient_color),

@@ -50,7 +50,7 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const SurfacePtr& surface, const variant& node)
+	Texture::Texture(const surface_ptr& surface, const variant& node)
 		: type_(Type::TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
@@ -169,7 +169,7 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const SurfacePtr& surface, Type type, int mipmap_levels)
+	Texture::Texture(const surface_ptr& surface, Type type, int mipmap_levels)
 		: type_(type), 
 		mipmaps_(mipmap_levels), 
 		max_anisotropy_(1),
@@ -187,7 +187,7 @@ namespace KRE
 	Texture::Texture(unsigned width, 
 		unsigned height, 
 		unsigned depth,
-		PixelFormat::PF fmt, 
+		PixelFormat fmt, 
 		Type type)
 		: type_(type), 
 		mipmaps_(0), 

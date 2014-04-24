@@ -79,7 +79,7 @@ namespace KRE
 
 	namespace 
 	{
-		GLenum ConvertRenderVariableType(AttributeDesc::VariableType type)
+		GLenum convertRenderVariableType(AttributeDesc::VariableType type)
 		{
 			switch(type) {
 				case AttributeDesc::VariableType::BOOL:							return GL_BYTE;
@@ -101,7 +101,7 @@ namespace KRE
 			return GL_NONE;
 		}
 
-		GLenum ConvertDrawingMode(AttributeSet::DrawMode dm)
+		GLenum convertDrawingMode(AttributeSet::DrawMode dm)
 		{
 			switch(dm) {
 				case AttributeSet::DrawMode::POINTS:			return GL_POINTS;
@@ -119,7 +119,7 @@ namespace KRE
 			return GL_NONE;
 		}
 
-		GLenum ConvertIndexType(AttributeSet::IndexType it) 
+		GLenum convertIndexType(AttributeSet::IndexType it) 
 		{
 			switch(it) {
 				case AttributeSet::IndexType::INDEX_NONE:		break;
@@ -279,7 +279,7 @@ namespace KRE
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
 		for(auto as : r->GetAttributeSet()) {
-			GLenum draw_mode = ConvertDrawingMode(as->GetDrawMode());
+			GLenum draw_mode = convertDrawingMode(as->GetDrawMode());
 			std::vector<GLuint> enabled_attribs;
 
 			for(auto& attr : as->GetAttributes()) {
@@ -288,12 +288,12 @@ namespace KRE
 				attr_hw->Bind();
 				for(auto& attrdesc : attr->GetAttrDesc()) {
 					auto ddp = std::dynamic_pointer_cast<RenderVariableDeviceData>(attrdesc.GetDisplayData());
-					ASSERT_LOG(ddp != NULL, "Converting attribute device data was NULL.");
+					ASSERT_LOG(ddp != NULL, "converting attribute device data was NULL.");
 					glEnableVertexAttribArray(ddp->GetActiveMapIterator()->second.location);
 					
 					glVertexAttribPointer(ddp->GetActiveMapIterator()->second.location, 
 						attrdesc.NumElements(), 
-						ConvertRenderVariableType(attrdesc.VarType()), 
+						convertRenderVariableType(attrdesc.VarType()), 
 						attrdesc.Normalise(), 
 						attrdesc.Stride(), 
 						reinterpret_cast<const GLvoid*>(attr_hw->Value() + attr->GetOffset() + attrdesc.Offset()));
@@ -305,7 +305,7 @@ namespace KRE
 				if(as->IsIndexed()) {
 					as->BindIndex();
 					// XXX as->GetIndexArray() should be as->GetIndexArray()+as->GetOffset()
-					glDrawElementsInstanced(draw_mode, as->GetCount(), ConvertIndexType(as->GetIndexType()), as->GetIndexArray(), as->GetInstanceCount());
+					glDrawElementsInstanced(draw_mode, as->GetCount(), convertIndexType(as->GetIndexType()), as->GetIndexArray(), as->GetInstanceCount());
 					as->UnbindIndex();
 				} else {
 					glDrawArraysInstanced(draw_mode, as->GetOffset(), as->GetCount(), as->GetInstanceCount());
@@ -314,7 +314,7 @@ namespace KRE
 				if(as->IsIndexed()) {
 					as->BindIndex();
 					// XXX as->GetIndexArray() should be as->GetIndexArray()+as->GetOffset()
-					glDrawElements(draw_mode, as->GetCount(), ConvertIndexType(as->GetIndexType()), as->GetIndexArray());
+					glDrawElements(draw_mode, as->GetCount(), convertIndexType(as->GetIndexType()), as->GetIndexArray());
 					as->UnbindIndex();
 				} else {
 					glDrawArrays(draw_mode, as->GetOffset(), as->GetCount());
@@ -334,34 +334,34 @@ namespace KRE
 		}
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const SurfacePtr& surface, const variant& node)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const surface_ptr& surface, const variant& node)
 	{
 		return TexturePtr(new OpenGLTexture(surface, node));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const surface_ptr& surface, Texture::Type type, int mipmap_levels)
 	{
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, PixelFormat fmt)
 	{
 		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::Type::TEXTURE_1D));
 	}
 
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, PixelFormat fmt, Texture::Type type)
 	{
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_2D));
 	}
 	
-	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat fmt)
 	{
 		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_3D, depth));
 	}
 
 	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
 	{
-		auto surface = Surface::Create(filename);
+		auto surface = surface::Create(filename);
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 

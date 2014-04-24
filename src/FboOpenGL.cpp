@@ -154,7 +154,7 @@ namespace KRE
 				unsigned color_planes = ColorPlanes();
 				textures.reserve(color_planes);
 				for(unsigned n = 0; n != color_planes; ++n) {
-					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, PixelFormat::PF::PIXELFORMAT_BGRA8888));
+					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, PixelFormat::PIXELFORMAT_BGRA8888));
 				}
 				auto mat = dd->CreateMaterial("fbo_mat", textures);
 				mat->SetCoords(rect(0, 0, Width(), Height()));

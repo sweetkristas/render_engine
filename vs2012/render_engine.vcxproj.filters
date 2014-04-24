@@ -60,15 +60,6 @@
     <ClCompile Include="..\src\RenderQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\SceneGraph.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\SceneNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\SceneObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\LightObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,9 +70,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Frustum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Surface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Texture.cpp">
@@ -147,9 +135,6 @@
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp">
       <Filter>Source Files\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\SurfaceSDL.cpp">
-      <Filter>Source Files\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\TextureSDL.cpp">
       <Filter>Source Files\SDL</Filter>
     </ClCompile>
@@ -173,6 +158,21 @@
     </ClCompile>
     <ClCompile Include="..\src\CanvasOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene_graph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\scene_node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\surface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\surface_sdl.cpp">
+      <Filter>Source Files\SDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -203,18 +203,6 @@
     <ClInclude Include="..\src\RenderQueue.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\SceneGraph.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\SceneNode.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\SceneObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\SceneFwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\LightObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,9 +228,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\DisplayDeviceFwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Surface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Texture.hpp">
@@ -323,9 +308,6 @@
     <ClInclude Include="..\src\TextureSDL.hpp">
       <Filter>Header Files\SDL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\SurfaceSDL.hpp">
-      <Filter>Header Files\SDL</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\RenderTarget.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -349,6 +331,24 @@
     </ClInclude>
     <ClInclude Include="..\src\CanvasOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scene_object.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scene_graph.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scene_node.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scene_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\surface.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\surface_sdl.hpp">
+      <Filter>Header Files\SDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

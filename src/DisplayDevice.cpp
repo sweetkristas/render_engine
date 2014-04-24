@@ -139,27 +139,27 @@ namespace KRE
 			multi_samples);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(const SurfacePtr& surface, const variant& node)
+	TexturePtr DisplayDevice::CreateTexture(const surface_ptr& surface, const variant& node)
 	{
 		return GetCurrent()->HandleCreateTexture(surface, node);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
+	TexturePtr DisplayDevice::CreateTexture(const surface_ptr& surface, Texture::Type type, int mipmap_levels)
 	{
 		return GetCurrent()->HandleCreateTexture(surface, type, mipmap_levels);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, PixelFormat::PF fmt)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, PixelFormat fmt)
 	{
 		return GetCurrent()->HandleCreateTexture(width, fmt);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, PixelFormat fmt, Texture::Type type)
 	{
 		return GetCurrent()->HandleCreateTexture(width, height, fmt, type);
 	}
 
-	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
+	TexturePtr DisplayDevice::CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat fmt)
 	{
 		return GetCurrent()->HandleCreateTexture(width, height, depth, fmt);
 	}

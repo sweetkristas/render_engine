@@ -276,14 +276,14 @@ namespace json
 							}
 						}
 						if(is_float) {
-							//std::cerr << "Convert \"" << num << "\" to float" << std::endl;
+							//std::cerr << "convert \"" << num << "\" to float" << std::endl;
 							try {
 								return std::make_tuple(FLOAT, variant(lex::lexical_cast<float>(num)));
 							} catch (lex::bad_lexical_cast&) {
 								throw parse_error(formatter() << "error converting value to float: " << num);
 							}
 						} else {
-							//std::cerr << "Convert \"" << num << "\" to int" << std::endl;
+							//std::cerr << "convert \"" << num << "\" to int" << std::endl;
 							try {
 								return std::make_tuple(INTEGER, variant(lex::lexical_cast<int64_t>(num)));
 							} catch (lex::bad_lexical_cast&) {

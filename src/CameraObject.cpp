@@ -52,7 +52,7 @@ namespace KRE
 	}
 
 	Camera::Camera(const std::string& name, const WindowManagerPtr& wnd)
-		: SceneObject(name), 
+		: scene_object(name), 
 		fov_(default_fov), 
 		horizontal_angle_(default_horizontal_angle), 
 		vertical_angle_(default_vertical_angle), 
@@ -77,7 +77,7 @@ namespace KRE
 	}
 
 	/*Camera::Camera(const variant& node, const WindowManagerPtr& wnd)
-		: SceneObject(node["name"].as_string()), 
+		: scene_object(node["name"].as_string()), 
 		fov_(default_fov), 
 		horizontal_angle_(default_horizontal_angle), 
 		vertical_angle_(default_vertical_angle), 
@@ -158,7 +158,7 @@ namespace KRE
 	}*/
 
 	Camera::Camera(const std::string& name, int left, int right, int top, int bottom)
-		: SceneObject(name), 
+		: scene_object(name), 
 		fov_(default_fov), 
 		horizontal_angle_(default_horizontal_angle), 
 		vertical_angle_(default_vertical_angle), 
@@ -183,7 +183,7 @@ namespace KRE
 	}
 
 	Camera::Camera(const std::string& name, const WindowManagerPtr& wnd, float fov, float aspect, float near_clip, float far_clip)
-		: SceneObject(name), 
+		: scene_object(name), 
 		fov_(fov), 
 		horizontal_angle_(default_horizontal_angle), 
 		vertical_angle_(default_vertical_angle), 
@@ -502,7 +502,7 @@ namespace KRE
 		return def;
 	}
 
-	// Convert from a screen position (assume +ve x to right, +ve y down) to world space.
+	// convert from a screen position (assume +ve x to right, +ve y down) to world space.
 	// Assumes the depth buffer was enabled.
 	glm::vec3 Camera::ScreenToWorld(int x, int y, int wx, int wy) const
 	{

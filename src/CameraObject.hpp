@@ -24,13 +24,13 @@
 #pragma once
 
 #include "Frustum.hpp"
-#include "SceneObject.hpp"
+#include "scene_object.hpp"
 #include "WindowManagerFwd.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace KRE
 {
-	class Camera : public SceneObject
+	class Camera : public scene_object
 	{
 	public:
 		enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGONAL };

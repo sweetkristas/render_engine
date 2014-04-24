@@ -27,7 +27,7 @@
 #include <string>
 #include "Color.hpp"
 #include "Geometry.hpp"
-#include "Surface.hpp"
+#include "surface.hpp"
 #include "variant.hpp"
 
 namespace KRE
@@ -64,14 +64,14 @@ namespace KRE
 			LINEAR,
 			ANISOTROPIC,
 		};
-		Texture(const SurfacePtr& surface, const variant& node);
-		Texture(const SurfacePtr& surface, 
+		Texture(const surface_ptr& surface, const variant& node);
+		Texture(const surface_ptr& surface, 
 			Type type=Type::TEXTURE_2D, 
 			int mipmap_levels=0);
 		Texture(unsigned width, 
 			unsigned height, 
 			unsigned depth,
-			PixelFormat::PF fmt, 
+			PixelFormat fmt, 
 			Texture::Type type);
 		virtual ~Texture();
 
@@ -101,8 +101,8 @@ namespace KRE
 		unsigned Height() const { return height_; }
 		unsigned Depth() const { return depth_; }
 
-		unsigned SurfaceWidth() const { return surface_width_; }
-		unsigned SurfacehHeight() const { return surface_height_; }
+		unsigned surfaceWidth() const { return surface_width_; }
+		unsigned surfacehHeight() const { return surface_height_; }
 
 		virtual void Init() = 0;
 		virtual void Bind() = 0;
@@ -114,7 +114,7 @@ namespace KRE
 
 		static void RebuildAll();
 	protected:
-		const SurfacePtr& GetSurface() const { return surface_; }
+		const surface_ptr& Getsurface() const { return surface_; }
 		void SetTextureDimensions(unsigned w, unsigned h, unsigned d=0);
 	private:
 		virtual void Rebuild() = 0;
@@ -127,7 +127,7 @@ namespace KRE
 		int max_anisotropy_;
 		float lod_bias_;
 		Texture();
-		SurfacePtr surface_;
+		surface_ptr surface_;
 		
 		unsigned surface_width_;
 		unsigned surface_height_;

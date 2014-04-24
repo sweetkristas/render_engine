@@ -22,7 +22,7 @@
 */
 
 #include "Material.hpp"
-#include "Surface.hpp"
+#include "surface.hpp"
 #include "WindowManager.hpp"
 
 namespace KRE
@@ -115,12 +115,12 @@ namespace KRE
 		do_depth_check_ = en;
 	}
 
-	void Material::SetBlendMode(const BlendMode& bm)
+	void Material::set_blend_mode(const BlendMode& bm)
 	{
 		blend_ = bm;
 	}
 
-	void Material::SetBlendMode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst)
+	void Material::set_blend_mode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst)
 	{
 		blend_.Set(src, dst);
 	}

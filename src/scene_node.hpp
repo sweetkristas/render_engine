@@ -27,42 +27,42 @@
 #include <vector>
 
 #include "RenderFwd.hpp"
-#include "SceneFwd.hpp"
+#include "scene_fwd.hpp"
 
 namespace KRE
 {
-	class SceneNode
+	class scene_node
 	{
 	public:
-		explicit SceneNode(SceneGraph* sg);
-		virtual ~SceneNode();
-		void AttachNode(const SceneNodePtr& node);
+		explicit scene_node(scene_graph* sg);
+		virtual ~scene_node();
+		void AttachNode(const scene_node_ptr& node);
 		void AttachLight(size_t ref, const LightPtr& obj);
 		void AttachCamera(const CameraPtr& obj);
-		void AttachObject(const SceneObjectPtr& obj);
+		void AttachObject(const scene_object_ptr& obj);
 		void AttachRenderTarget(const RenderTargetPtr& obj);
 		const CameraPtr& Camera() const { return camera_; }
 		const LightPtrList& Lights() const { return lights_; }
 		const RenderTargetPtr GetRenderTarget() const { return render_target_; }
-		void RenderNode(const RenderManagerPtr& renderer, SceneNodeParams* rp);
-		SceneGraph* ParentGraph() { return scene_graph_; }
+		void RenderNode(const RenderManagerPtr& renderer, scene_node_params* rp);
+		scene_graph* ParentGraph() { return scene_graph_; }
 		virtual void Process(double);
 		virtual void NodeAttached();
 		void SetNodeName(const std::string& s) { name_ = s; }
 		const std::string& NodeName() const { return name_; }
 	private:
 		std::string name_;
-		SceneGraph* scene_graph_;
-		std::vector<SceneObjectPtr> objects_;
+		scene_graph* scene_graph_;
+		std::vector<scene_object_ptr> objects_;
 		LightPtrList lights_;
 		CameraPtr camera_;
 		RenderTargetPtr render_target_;
-		SceneNode();
-		SceneNode(const SceneNode&);
-		SceneNode& operator=(const SceneNode&);
+		scene_node();
+		scene_node(const scene_node&);
+		scene_node& operator=(const scene_node&);
 
-		friend std::ostream& operator<<(std::ostream& os, const SceneNode& node);
+		friend std::ostream& operator<<(std::ostream& os, const scene_node& node);
 	};
 
-	std::ostream& operator<<(std::ostream& os, const SceneNode& node);
+	std::ostream& operator<<(std::ostream& os, const scene_node& node);
 }

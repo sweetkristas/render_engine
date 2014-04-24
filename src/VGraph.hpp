@@ -32,7 +32,7 @@
 #include <vector>
 
 #include "Color.hpp"
-#include "SceneObject.hpp"
+#include "scene_object.hpp"
 #include "VGraphFwd.hpp"
 
 #ifndef M_PI
@@ -94,7 +94,7 @@ namespace KRE
 		};
 
 
-		class Context : public SceneObject
+		class Context : public scene_object
 		{
 		public:
 			Context(int width, int height);
@@ -165,7 +165,7 @@ namespace KRE
 			// Sometimes we may wish to draw some vector graphics in the context of the 2D Canvas
 			// We can do so through this member function.
 			// XXX should maybe make this a little more abstracted so that it seperates concerns
-			// between drawing as a SceneObject and Drawing to the Canvas.
+			// between drawing as a scene_object and Drawing to the Canvas.
 			//virtual void CanvasDraw() const = 0;
 
 			static ContextPtr CreateInstance(const std::string& hint, int width, int height);

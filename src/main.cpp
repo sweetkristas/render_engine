@@ -18,8 +18,8 @@
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
 #include "RenderTarget.hpp"
-#include "SceneGraph.hpp"
-#include "SceneNode.hpp"
+#include "scene_graph.hpp"
+#include "scene_node.hpp"
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
@@ -33,10 +33,10 @@ namespace
 		glm::u8vec4 color;
 	};
 
-	class SquareRenderable : public KRE::SceneObject
+	class square_renderable : public KRE::scene_object
 	{
 	public:
-		SquareRenderable() : KRE::SceneObject("square") {
+		square_renderable() : KRE::scene_object("square") {
 			using namespace KRE;
 
 			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
@@ -108,7 +108,7 @@ namespace
 			//SetColor(255,255,255);
 			SetOrder(0);
 		}
-		virtual ~SquareRenderable() {}
+		virtual ~square_renderable() {}
 	protected:
 		KRE::DisplayDeviceDef Attach(const KRE::DisplayDevicePtr& dd) {
 			KRE::DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
@@ -116,10 +116,10 @@ namespace
 			return def;
 		}
 	private:
-		SquareRenderable(const SquareRenderable&);
-		SquareRenderable& operator=(const SquareRenderable&);
+		square_renderable(const square_renderable&);
+		square_renderable& operator=(const square_renderable&);
 	};
-	typedef std::shared_ptr<SquareRenderable> SquareRenderablePtr;
+	typedef std::shared_ptr<square_renderable> square_renderable_ptr;
 }
 
 class SimpleTextureHolder : public KRE::Blittable
@@ -150,8 +150,8 @@ int main(int argc, char *argv[])
 	main_wnd->EnableVsync(false);
 	main_wnd->CreateWindow(800,600);
 
-	SceneGraphPtr scene = SceneGraph::Create("main");
-	SceneNodePtr root = scene->RootNode();
+	scene_graph_ptr scene = scene_graph::Create("main");
+	scene_node_ptr root = scene->RootNode();
 	root->SetNodeName("root_node");
 	auto scenecam = std::make_shared<Camera>("cam0", 0, 800, 0, 600);
 	scenecam->AttachFrustum(std::make_shared<Frustum>());
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 	root->AttachLight(0, sunlight);
 
-	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
+	square_renderable_ptr square(std::make_shared<square_renderable>());
 	square->SetPosition(600.0f, 400.0f);
 	square->SetScale(2.0f,2.0f);
 	root->AttachObject(square);

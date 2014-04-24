@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "SceneFwd.hpp"
+#include "scene_fwd.hpp"
 
 namespace KRE
 {

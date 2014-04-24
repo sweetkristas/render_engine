@@ -25,29 +25,29 @@
 #include "CameraObject.hpp"
 #include "LightObject.hpp"
 #include "RenderManager.hpp"
-#include "SceneGraph.hpp"
-#include "SceneNode.hpp"
-#include "SceneObject.hpp"
+#include "scene_graph.hpp"
+#include "scene_node.hpp"
+#include "scene_object.hpp"
 
 namespace KRE
 {
-	SceneNode::SceneNode(SceneGraph* sg)
+	scene_node::scene_node(scene_graph* sg)
 		: scene_graph_(sg)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
 	}
 
-	SceneNode::~SceneNode()
+	scene_node::~scene_node()
 	{
 	}
 
-	void SceneNode::AttachNode(const SceneNodePtr& node)
+	void scene_node::AttachNode(const scene_node_ptr& node)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
 		scene_graph_->AttachNode(this, node);
 	}
 
-	void SceneNode::AttachObject(const SceneObjectPtr& obj)
+	void scene_node::AttachObject(const scene_object_ptr& obj)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
 		auto dd = DisplayDevice::GetCurrent();
@@ -56,7 +56,7 @@ namespace KRE
 		obj->SetDisplayData(dd, obj->Attach(dd));
 	}
 
-	void SceneNode::AttachLight(size_t ref, const LightPtr& obj)
+	void scene_node::AttachLight(size_t ref, const LightPtr& obj)
 	{
 		auto it = lights_.find(ref);
 		if(it != lights_.end()) {
@@ -68,7 +68,7 @@ namespace KRE
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::AttachCamera(const CameraPtr& obj)
+	void scene_node::AttachCamera(const CameraPtr& obj)
 	{
 		camera_ = obj;
 		auto dd = DisplayDevice::GetCurrent();
@@ -76,7 +76,7 @@ namespace KRE
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::AttachRenderTarget(const RenderTargetPtr& obj)
+	void scene_node::AttachRenderTarget(const RenderTargetPtr& obj)
 	{
 		render_target_ = obj;
 		auto dd = DisplayDevice::GetCurrent();
@@ -84,7 +84,7 @@ namespace KRE
 		obj->SetDisplayData(dd, obj->Attach(dd));		
 	}
 
-	void SceneNode::RenderNode(const RenderManagerPtr& renderer, SceneNodeParams* rp)
+	void scene_node::RenderNode(const RenderManagerPtr& renderer, scene_node_params* rp)
 	{
 		if(camera_) {
 			rp->camera = camera_;
@@ -105,17 +105,17 @@ namespace KRE
 		}
 	}
 
-	void SceneNode::NodeAttached()
+	void scene_node::NodeAttached()
 	{
 		// nothing need be done as default
 	}
 
-	void SceneNode::Process(double)
+	void scene_node::Process(double)
 	{
 		// nothing need be done as default
 	}
 
-	std::ostream& operator<<(std::ostream& os, const SceneNode& node)
+	std::ostream& operator<<(std::ostream& os, const scene_node& node)
 	{
 		os  << "NODE(" 
 			<< node.NodeName() << " : "
