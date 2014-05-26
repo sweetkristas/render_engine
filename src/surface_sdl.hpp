@@ -92,9 +92,9 @@ namespace KRE
 			uint32_t bmask, 
 			uint32_t amask, 
 			void* pixels);
-		surface_sdl(size_t width, 
-			size_t height, 
-			size_t bpp, 
+		surface_sdl(unsigned width, 
+			unsigned height, 
+			unsigned bpp, 
 			uint32_t rmask, 
 			uint32_t gmask, 
 			uint32_t bmask, 

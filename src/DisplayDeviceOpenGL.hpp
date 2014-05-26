@@ -50,7 +50,7 @@ namespace KRE
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) override;
 
-		canvas_ptr DisplayDeviceOpenGL::GetCanvas() override;
+		canvas_ptr GetCanvas() override;
 
 	private:
 		DisplayDeviceOpenGL(const DisplayDeviceOpenGL&);

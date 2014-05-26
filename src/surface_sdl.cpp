@@ -113,7 +113,7 @@ namespace KRE
 		set_pixel_format(pixel_format_ptr(new pixel_format_sdl(surface_->format)));
 	}
 
-	surface_sdl::surface_sdl(size_t width, size_t height, PixelFormat format)
+	surface_sdl::surface_sdl(unsigned width, unsigned height, PixelFormat format)
 	{
 		// XXX todo
 	}
@@ -688,7 +688,7 @@ namespace KRE
 		// Create a destination surface
 		auto dst = new surface_sdl(width(), height(), fmt);
 		size_t dst_size = dst->row_pitch() * dst->height();
-		void* dst_pixels = new uint8_t[dst_size];
+		uint8_t* dst_pixels = new uint8_t[dst_size];
 
 		for(size_t h = 0; h != height(); ++h) {
 			unsigned offs = 0;
