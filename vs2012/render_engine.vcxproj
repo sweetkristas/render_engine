@@ -114,6 +114,7 @@
     <ClInclude Include="..\src\vector_graphics_fwd.hpp" />
     <ClInclude Include="..\src\vector_graphics_ogl.hpp" />
     <ClInclude Include="..\src\vector_graphics_oglf.hpp" />
+    <ClInclude Include="..\src\vector_graphics_patterns.hpp" />
     <ClInclude Include="..\src\window_manager.hpp" />
     <ClInclude Include="..\src\window_manager_fwd.hpp" />
   </ItemGroup>

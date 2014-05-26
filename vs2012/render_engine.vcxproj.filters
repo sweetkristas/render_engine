@@ -350,6 +350,9 @@
     <ClInclude Include="..\src\renderable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vector_graphics_patterns.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
