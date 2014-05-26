@@ -21,11 +21,52 @@
 	   distribution.
 */
 
-#include "ParticleSystemObservers.hpp"
+#pragma once
+
+#include "particle_system_fwd.hpp"
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
+		// Multi-valued parameter.
+		class parameter
+		{
+		public:
+			enum class ParameterType {
+				PARAMETER_FIXED,
+				PARAMETER_RANDOM,
+				PARAMETER_CURVED,
+				PARAMETER_OSCILLATE,
+			};
+
+			explicit parameter(ParameterType t) : type_(t) {}
+
+			virtual float get_value(float t) = 0;
+			static parameter_ptr factory(const variant& node);
+
+			ParameterType type() { return type_; }
+		protected:
+			parameter();
+			virtual ~parameter();
+		private:
+			ParameterType type_;
+			parameter(const parameter&);
+		};
+
+		class fixed_parameter : public parameter
+		{
+		public:
+			fixed_parameter(float value);
+			fixed_parameter(const variant& node);
+			virtual ~fixed_parameter();
+
+			virtual float get_value(float t) {
+				return value_;
+			}
+		private:
+			float value_;
+			fixed_parameter(const fixed_parameter&);
+		};
 	}
 }

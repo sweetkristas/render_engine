@@ -30,23 +30,23 @@
 
 namespace KRE
 {
-	class Frustum
+	class frustum
 	{
 	public:
-		Frustum();
-		virtual ~Frustum();
-		explicit Frustum(const glm::mat4& perspective, const glm::mat4& view);
+		frustum();
+		virtual ~frustum();
+		explicit frustum(const glm::mat4& perspective, const glm::mat4& view);
 		
-		void UpdateMatrices(const glm::mat4& perspective, const glm::mat4& view);
+		void update_matrices(const glm::mat4& perspective, const glm::mat4& view);
 
-		bool PointInside(const glm::vec3& pt) const;
-		bool CircleInside(const glm::vec3& pt, float radius) const;
-		bool CubeInside(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
+		bool point_inside(const glm::vec3& pt) const;
+		bool circle_inside(const glm::vec3& pt, float radius) const;
+		bool cube_inside(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
 		
-		int CircleIntersects(const glm::vec3& pt, float radius) const;
-		int CubeIntersects(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
+		int circle_intersects(const glm::vec3& pt, float radius) const;
+		int cube_intersects(const glm::vec3& pt, float xlen, float ylen, float zlen) const;
 	private:
-		enum 
+		enum
 		{
 			NEAR_PLANE,
 			RIGHT_PLANE,
@@ -60,5 +60,5 @@ namespace KRE
 		glm::mat4 vp_;
 	};
 
-	typedef std::shared_ptr<Frustum> FrustumPtr;
+	typedef std::shared_ptr<frustum> frustum_ptr;
 }

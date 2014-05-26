@@ -25,8 +25,9 @@
 
 #include "RenderFwd.hpp"
 #include "scene_fwd.hpp"
-#include "WindowManager.hpp"
 #include "treetree/tree.hpp"
+#include "variant.hpp"
+#include "util.hpp"
 
 namespace KRE
 {
@@ -37,21 +38,22 @@ namespace KRE
 	public:
 		scene_graph(const std::string& name);
 		~scene_graph();
-		void AttachNode(scene_node* parent, scene_node_ptr node);
-		static scene_graph_ptr Create(const std::string& name);
-		scene_node_ptr CreateNode(const std::string& node_type=std::string(), const variant& node=variant());
-		static void RegisterObjectType(const std::string& type, ObjectTypeFunction fn);
-		scene_node_ptr RootNode();
-		void RenderScene(const RenderManagerPtr& renderer);
-		void RenderSceneHelper(const RenderManagerPtr& renderer, the::tree<scene_node_ptr>::pre_iterator& it, scene_node_params* snp);
+		void attach_node(scene_node* parent, scene_node_ptr node);
+		static scene_graph_ptr create(const std::string& name);
+		scene_node_ptr create_node(const std::string& node_type=std::string(), const variant& node=variant());
+		static void register_object_type(const std::string& type, ObjectTypeFunction fn);
+		scene_node_ptr root_node();
+		void render_scene(const RenderManagerPtr& renderer);
+		void render_scene_helper(const RenderManagerPtr& renderer, the::tree<scene_node_ptr>::pre_iterator& it, scene_node_params* snp);
 	
-		void Process(double);
+		void process(double);
 
-		static void RegisterFactoryFunction(const std::string& type, std::function<scene_node_ptr(scene_graph*,const variant&)>);
+		static void register_factory_function(const std::string& type, std::function<scene_node_ptr(scene_graph*,const variant&)>);
 	private:
+		DISALLOW_COPY_AND_ASSIGN(scene_graph);
+
 		std::string name_;
 		the::tree<scene_node_ptr> graph_;
-		scene_graph(const scene_graph&);
 
 		friend std::ostream& operator<<(std::ostream& s, const scene_graph& sg);
 	};
@@ -59,12 +61,12 @@ namespace KRE
 	std::ostream& operator<<(std::ostream& s, const scene_graph& sg);
 
 	template<class T>
-	struct scene_nodeRegistrar
+	struct scene_node_registrar
 	{
-		scene_nodeRegistrar(const std::string& type)
+		scene_node_registrar(const std::string& type)
 		{
 			// register the class factory function 
-			scene_graph::RegisterFactoryFunction(type, [](scene_graph* sg, const variant& node) -> scene_node_ptr { return scene_node_ptr(new T(sg, node));});
+			scene_graph::register_factory_function(type, [](scene_graph* sg, const variant& node) -> scene_node_ptr { return scene_node_ptr(new T(sg, node));});
 		}
 	};
 }

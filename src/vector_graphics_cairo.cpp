@@ -26,12 +26,12 @@
 
 #include "asserts.hpp"
 #include "logger.hpp"
-#include "VGraphCairo.hpp"
+#include "vector_graphics_cairo.hpp"
 #include "DisplayDevice.hpp"
 
 namespace KRE
 {
-	namespace Vector
+	namespace vector
 	{
 		enum InstructionType {
 			INS_UNKNOWN,
@@ -44,53 +44,53 @@ namespace KRE
 			INS_TEXT_PATH,
 		};
 
-		class PathInstruction
+		class path_instruction
 		{
 		public:
-			virtual ~PathInstruction() {}
-			InstructionType GetType() const { return InstructionType(instruction_type_); }
-			virtual void Execute(cairo_t* context) = 0;
-			virtual std::string AsString() const = 0;
+			virtual ~path_instruction() {}
+			InstructionType get_type() const { return InstructionType(instruction_type_); }
+			virtual void execute(cairo_t* context) = 0;
+			virtual std::string as_string() const = 0;
 		protected:
-			PathInstruction() {}
+			path_instruction() {}
 		private:
 			enum {
 				instruction_type_ = INS_UNKNOWN
 			};
-			PathInstruction(const PathInstruction&);
+			path_instruction(const path_instruction&);
 		};
-		typedef std::shared_ptr<PathInstruction> PathInstructionPtr;
+		typedef std::shared_ptr<path_instruction> path_instructionPtr;
 
-		class ClosePathInstruction : public PathInstruction
+		class Closepath_instruction : public path_instruction
 		{
 		public:
-			ClosePathInstruction() {}
-			virtual ~ClosePathInstruction() {}
-			void Execute(cairo_t* context) override {
+			Closepath_instruction() {}
+			virtual ~Closepath_instruction() {}
+			void execute(cairo_t* context) override {
 				cairo_close_path(context);
 			}
-			std::string AsString() const override { return "close_path"; }
+			std::string as_string() const override { return "close_path"; }
 		private:
 			enum {
 				instruction_type_ = INS_CLOSE_PATH
 			};
 		};
 
-		class MoveToInstruction : public PathInstruction
+		class move_to_instruction : public path_instruction
 		{
 		public:
-			MoveToInstruction(const double x, const double y, bool relative=false) 
+			move_to_instruction(const double x, const double y, bool relative=false) 
 				: x_(x), y_(y), relative_(relative) {
 			}
-			virtual ~MoveToInstruction() {}
-			void Execute(cairo_t* context) override {
+			virtual ~move_to_instruction() {}
+			void execute(cairo_t* context) override {
 				if(relative_) {
 					cairo_rel_move_to(context, x_, y_);
 				} else {
 					cairo_move_to(context, x_, y_);
 				}
 			}
-			std::string AsString() const override { return "move_to"; }
+			std::string as_string() const override { return "move_to"; }
 		private:
 			enum {
 				instruction_type_ = INS_MOVE_TO
@@ -100,21 +100,21 @@ namespace KRE
 			bool relative_;
 		};
 
-		class LineToInstruction : public PathInstruction
+		class line_to_instruction : public path_instruction
 		{
 		public:
-			LineToInstruction(const double x, const double y, bool relative=false) 
+			line_to_instruction(const double x, const double y, bool relative=false) 
 				: x_(x), y_(y), relative_(relative) {
 			}
-			virtual ~LineToInstruction() {}
-			void Execute(cairo_t* context) override {
+			virtual ~line_to_instruction() {}
+			void execute(cairo_t* context) override {
 				if(relative_) {
 					cairo_rel_line_to(context, x_, y_);
 				} else {
 					cairo_line_to(context, x_, y_);
 				}
 			}
-			std::string AsString() const override { return "line_to"; }
+			std::string as_string() const override { return "line_to"; }
 		private:
 			enum {
 				instruction_type_ = INS_LINE_TO
@@ -124,21 +124,21 @@ namespace KRE
 			bool relative_;
 		};
 
-		class ArcInstruction : public PathInstruction
+		class arc_instruction : public path_instruction
 		{
 		public:
-			ArcInstruction(const double x, const double y, const double radius, const double start_angle, const double end_angle, bool negative=false) 
+			arc_instruction(const double x, const double y, const double radius, const double start_angle, const double end_angle, bool negative=false) 
 				: x_(x), y_(y), radius_(radius), start_angle_(start_angle), end_angle_(end_angle), negative_(negative) {
 			}
-			virtual ~ArcInstruction() {}
-			void Execute(cairo_t* context) override {
+			virtual ~arc_instruction() {}
+			void execute(cairo_t* context) override {
 				if(negative_) {
 					cairo_arc_negative(context, x_, y_, radius_, start_angle_, end_angle_);
 				} else {
 					cairo_arc(context, x_, y_, radius_, start_angle_, end_angle_);
 				}
 			}
-			std::string AsString() const override { return "arc"; }
+			std::string as_string() const override { return "arc"; }
 		private:
 			enum {
 				instruction_type_ = INS_ARC
@@ -151,21 +151,21 @@ namespace KRE
 			bool negative_;
 		};
 
-		class CubicCurveInstruction : public PathInstruction
+		class cubic_curve_instruction : public path_instruction
 		{
 		public:
-			CubicCurveInstruction(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) 
+			cubic_curve_instruction(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) 
 				: cp_x1_(x1), cp_y1_(y1), cp_x2_(x2), cp_y2_(y2), ex_(ex), ey_(ey), relative_(relative) {
 			}
-			virtual ~CubicCurveInstruction() {}
-			void Execute(cairo_t* context) override {
+			virtual ~cubic_curve_instruction() {}
+			void execute(cairo_t* context) override {
 				if(relative_) {
 					cairo_rel_curve_to(context, cp_x1_, cp_y1_, cp_x2_, cp_y2_, ex_, ey_);
 				} else {
 					cairo_curve_to(context, cp_x1_, cp_y1_, cp_x2_, cp_y2_, ex_, ey_);
 				}
 			}
-			std::string AsString() const override { return "cubic_bézier"; }
+			std::string as_string() const override { return "cubic_bézier"; }
 		private:
 			enum {
 				instruction_type_ = INS_CURVE_TO
@@ -182,14 +182,14 @@ namespace KRE
 			bool relative_;
 		};
 
-		class QuadraticCurveInstruction : public PathInstruction
+		class quadratic_curve_instruction : public path_instruction
 		{
 		public:
-			QuadraticCurveInstruction(const double x1, const double y1, const double ex, const double ey, bool relative=false) 
+			quadratic_curve_instruction(const double x1, const double y1, const double ex, const double ey, bool relative=false) 
 				: cp_x1_(x1), cp_y1_(y1), ex_(ex), ey_(ey), relative_(relative) {
 			}
-			virtual ~QuadraticCurveInstruction() {}
-			void Execute(cairo_t* context) override {
+			virtual ~quadratic_curve_instruction() {}
+			void execute(cairo_t* context) override {
 				ASSERT_LOG(cairo_has_current_point(context) != 0, "No current point defined.");
 				double cx, cy;
 				cairo_get_current_point(context, &cx, &cy);
@@ -212,7 +212,7 @@ namespace KRE
 
 				cairo_curve_to(context, cp1x, cp1y, cp2x, cp2y, nex, ney);
 			}
-			std::string AsString() const override { return "quadratic_bézier"; }
+			std::string as_string() const override { return "quadratic_bézier"; }
 		private:
 			enum {
 				instruction_type_ = INS_QUAD_CURVE_TO
@@ -226,95 +226,95 @@ namespace KRE
 			bool relative_;
 		};
 
-		class TextPathInstruction : public PathInstruction
+		class textpath_instruction : public path_instruction
 		{
 		public:
-			TextPathInstruction(const std::string& text) : text_(text) {
+			textpath_instruction(const std::string& text) : text_(text) {
 			}
-			virtual ~TextPathInstruction() {
+			virtual ~textpath_instruction() {
 			}
-			void Execute(cairo_t* context) override {
+			void execute(cairo_t* context) override {
 				cairo_text_path(context, text_.c_str());
 			}
-			std::string AsString() const override { return "text_path"; }
+			std::string as_string() const override { return "text_path"; }
 		private:
 			std::string text_;
 		};
 
 		// XXX change this to generate and store a list of commands
-		class CairoPath : public Path
+		class cairo_path : public path
 		{
 		public:
-			CairoPath(CairoContext* context) : context_(context) {
+			cairo_path(cairo_context* context) : context_(context) {
 				ASSERT_LOG(context_ != NULL, "Passed an null context");
 			}
-			virtual ~CairoPath() {
+			virtual ~cairo_path() {
 			}
-			virtual void MoveTo(const double x, const double y, const bool relative=false) override {
-				path_instructions_.emplace_back(new MoveToInstruction(x, y, relative));
+			virtual void move_to(const double x, const double y, const bool relative=false) override {
+				path_instructions_.emplace_back(new move_to_instruction(x, y, relative));
 			}
-			virtual void LineTo(const double x, const double y, const bool relative=false) override	{
-				path_instructions_.emplace_back(new LineToInstruction(x, y, relative));
+			virtual void line_to(const double x, const double y, const bool relative=false) override	{
+				path_instructions_.emplace_back(new line_to_instruction(x, y, relative));
 			}
 
 			// Helper function equivalent to drawing an arc between 0.0 and 2*M_PI
-			virtual void Circle(const double x, const double y, const double r) override {
-				path_instructions_.emplace_back(new ArcInstruction(x, y, r, 0.0, 2.0*M_PI));
+			virtual void circle(const double x, const double y, const double r) override {
+				path_instructions_.emplace_back(new arc_instruction(x, y, r, 0.0, 2.0*M_PI));
 			}
-			virtual void Line(const double x1, const double y1, const double x2, const double y2) override {
-				path_instructions_.emplace_back(new MoveToInstruction(x1, y1));
-				path_instructions_.emplace_back(new LineToInstruction(x2, y2));
-				path_instructions_.emplace_back(new ClosePathInstruction());
+			virtual void line(const double x1, const double y1, const double x2, const double y2) override {
+				path_instructions_.emplace_back(new move_to_instruction(x1, y1));
+				path_instructions_.emplace_back(new line_to_instruction(x2, y2));
+				path_instructions_.emplace_back(new Closepath_instruction());
 			}
-			virtual void Rectangle(const double x, const double y, const double width, const double height) override {
-				path_instructions_.emplace_back(new MoveToInstruction(x, y));
-				path_instructions_.emplace_back(new LineToInstruction(width, 0));
-				path_instructions_.emplace_back(new LineToInstruction(0, height));
-				path_instructions_.emplace_back(new LineToInstruction(-width, 0));
-				path_instructions_.emplace_back(new ClosePathInstruction());
+			virtual void rectangle(const double x, const double y, const double width, const double height) override {
+				path_instructions_.emplace_back(new move_to_instruction(x, y));
+				path_instructions_.emplace_back(new line_to_instruction(width, 0));
+				path_instructions_.emplace_back(new line_to_instruction(0, height));
+				path_instructions_.emplace_back(new line_to_instruction(-width, 0));
+				path_instructions_.emplace_back(new Closepath_instruction());
 			}
 
-			virtual void Arc(const double cx, const double cy, const double radius, const double start_angle, const double end_angle, bool negative=false) override {
-				path_instructions_.emplace_back(new ArcInstruction(cx, cy, radius, start_angle, end_angle, negative));
+			virtual void arc(const double cx, const double cy, const double radius, const double start_angle, const double end_angle, bool negative=false) override {
+				path_instructions_.emplace_back(new arc_instruction(cx, cy, radius, start_angle, end_angle, negative));
 			}
 				
 			// Adds a Cubic Bézier curve to the current path from the current position to the end position
 			// (ex,ey) using the control points (x1,y1) and (x2,y2)
 			// If relative is true then the curve is drawn with all positions relative to the current point.
-			virtual void CubicCurveTo(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) override {
-				path_instructions_.emplace_back(new CubicCurveInstruction(x1, y1, x2, y2, ex, ey, relative));
+			virtual void cubic_curve_to(const double x1, const double y1, const double x2, const double y2, const double ex, const double ey, bool relative=false) override {
+				path_instructions_.emplace_back(new cubic_curve_instruction(x1, y1, x2, y2, ex, ey, relative));
 			}
 			// Adds a Quadratic Bézier curve to the current path from the current position to the end position
 			// (ex,ey) using the control point (x1,y1)
 			// If relative is true then the curve is drawn with all positions relative to the current point.
-			virtual void QuadraticCurveTo(const double x1, const double y1, const double ex, const double ey, bool relative=false) override {
-				path_instructions_.emplace_back(new QuadraticCurveInstruction(x1, y1, ex, ey, relative));
+			virtual void quadratic_curve_to(const double x1, const double y1, const double ex, const double ey, bool relative=false) override {
+				path_instructions_.emplace_back(new quadratic_curve_instruction(x1, y1, ex, ey, relative));
 			}
 
 			//virtual void GlyphPath(const std::vector<Glyph>& g);
-			virtual void TextPath(const std::string& s) {
-				path_instructions_.emplace_back(new TextPathInstruction(s));
+			virtual void text_path(const std::string& s) {
+				path_instructions_.emplace_back(new textpath_instruction(s));
 			}
 
-			virtual void ClosePath() override {
-				path_instructions_.emplace_back(new ClosePathInstruction());
+			virtual void close_path() override {
+				path_instructions_.emplace_back(new Closepath_instruction());
 			}
 
-			void Execute(cairo_t* context) {
+			void execute(cairo_t* context) {
 				std::cerr << "Executing path:";
 				for(auto ins : path_instructions_) {
-					std::cerr << " " << ins->AsString();
-					ins->Execute(context);
+					std::cerr << " " << ins->as_string();
+					ins->execute(context);
 				}
 				std::cerr << std::endl;
 			}
 		private:
-			CairoContext* context_;
-			std::vector<PathInstructionPtr> path_instructions_;
+			cairo_context* context_;
+			std::vector<path_instructionPtr> path_instructions_;
 		};
 
-		CairoContext::CairoContext(int width, int height)
-			: Context(width, height),
+		cairo_context::cairo_context(int width, int height)
+			: context(width, height),
 			draw_rect_(0.0f, 0.0f, float(width), float(height))
 		{
 			surface_ = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
@@ -347,8 +347,8 @@ namespace KRE
 			}
 			tex_ = DisplayDevice::CreateTexture(w, h, pffmt);
 			tex_->SetAddressModes(Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
-			auto mat = DisplayDevice::CreateMaterial("CairoContext", std::vector<TexturePtr>(1,tex_));
-			SetMaterial(mat);
+			auto mat = DisplayDevice::CreateMaterial("cairo_context", std::vector<TexturePtr>(1,tex_));
+			set_material(mat);
 
 			auto as = DisplayDevice::CreateAttributeSet();
 			attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
@@ -356,7 +356,7 @@ namespace KRE
 			attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE,  2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
 			as->AddAttribute(AttributeBasePtr(attribs_));
 			as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
-			AddAttributeSet(as);
+			add_attribute_set(as);
 
 			float offs_x = 0.0f;
 			float offs_y = 0.0f;
@@ -368,40 +368,40 @@ namespace KRE
 			const float vx2 = draw_rect_.x2() + offs_x;
 			const float vy2 = draw_rect_.y2() + offs_y;
 
-			rectf r = Material()->GetNormalisedTextureCoords(Material()->GetTexture().begin());
+			rectf r = material()->GetNormalisedTextureCoords(material()->GetTexture().begin());
 
 			std::vector<vertex_texcoord> vertices;
 			vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
 			vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
 			vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
 			vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
-			GetAttributeSet().back()->SetCount(vertices.size());
+			get_attribute_set().back()->SetCount(vertices.size());
 			attribs_->Update(&vertices);
 		}
 
-		CairoContext::~CairoContext()
+		cairo_context::~cairo_context()
 		{
 			cairo_destroy(context_);
 			cairo_surface_destroy(surface_);
 		}
 
-		void CairoContext::Save()
+		void cairo_context::save()
 		{
 			cairo_save(context_);
 		}
 
-		void CairoContext::Restore()
+		void cairo_context::restore()
 		{
 			cairo_restore(context_);
 		}
 
 
-		void CairoContext::PushGroup()
+		void cairo_context::push_group()
 		{
 			cairo_push_group(context_);
 		}
 
-		void CairoContext::PopGroup(const bool to_source)
+		void cairo_context::pop_group(const bool to_source)
 		{
 			if(to_source) {
 				cairo_pop_group_to_source(context_);
@@ -411,98 +411,98 @@ namespace KRE
 		}
 
 
-		void CairoContext::SetSourceColor(const double r, const double g, const double b, const double a)
+		void cairo_context::set_source_color(const double r, const double g, const double b, const double a)
 		{
 			cairo_set_source_rgba(context_, r, g, b, a);
 		}
 
-		void CairoContext::SetSourceColor(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a)
+		void cairo_context::set_source_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a)
 		{
 			cairo_set_source_rgba(context_, r/255.0, g/255.0, b/255.0, a/255.0);
 		}
 
-		void CairoContext::SetSourceColor(const double r, const Color& color)
+		void cairo_context::set_source_color(const double r, const Color& color)
 		{
 			cairo_set_source_rgba(context_, color.r(), color.g(), color.b(), color.a());
 		}
 
-		void CairoContext::SetSource(const PatternPtr& p)
+		void cairo_context::set_source(const pattern_ptr& p)
 		{
 			// XXX
 			//auto pattern = std::dynamic_pointer_cast<CairoPattern>(p);
 			//pattern = 
 		}
 
-		PatternPtr CairoContext::GetSource() const
+		pattern_ptr cairo_context::get_source() const
 		{
 			// XXX 
-			return PatternPtr();
+			return pattern_ptr();
 		}
 
 
-		void CairoContext::SetFillRule(const FillRule fr)
+		void cairo_context::set_fill_rule(const FillRule fr)
 		{
 			cairo_set_fill_rule(context_, cairo_fill_rule_t(fr));
 		}
 
-		FillRule CairoContext::GetFillRule() const
+		FillRule cairo_context::get_fill_rule() const
 		{
 			auto fr = cairo_get_fill_rule(context_);
 			return FillRule(fr);
 		}
 
 
-		void CairoContext::SetLineCap(const LineCap lc)
+		void cairo_context::set_line_cap(const LineCap lc)
 		{
 			cairo_set_line_cap(context_, cairo_line_cap_t(lc));
 		}
 
-		LineCap CairoContext::GetLineCap() const
+		LineCap cairo_context::get_line_cap() const
 		{
 			auto lc = cairo_get_line_cap(context_);
 			return LineCap(lc);
 		}
 
 
-		void CairoContext::SetLineJoin(const LineJoin lj)
+		void cairo_context::set_line_join(const LineJoin lj)
 		{
 			cairo_set_line_join(context_, cairo_line_join_t(lj));
 		}
 
-		LineJoin CairoContext::GetLineJoin() const
+		LineJoin cairo_context::get_line_join() const
 		{
 			return LineJoin(cairo_get_line_join(context_));
 		}
 
 
-		void CairoContext::SetLineWidth(const double width)
+		void cairo_context::set_line_width(const double width)
 		{
 			cairo_set_line_width(context_, width);
 		}
 
-		double CairoContext::GetLineWidth() const
+		double cairo_context::get_line_width() const
 		{
 			return cairo_get_line_width(context_);
 		}
 
 
-		void CairoContext::SetMiterLimit(const double limit)
+		void cairo_context::set_miter_limit(const double limit)
 		{
 			cairo_set_miter_limit(context_, limit);
 		}
 
-		double CairoContext::GetMiterLimit() const
+		double cairo_context::get_miter_limit() const
 		{
 			return cairo_get_miter_limit(context_);
 		}
 
 
-		void CairoContext::SetDashStyle(const std::vector<double>& dashes, const double offset)
+		void cairo_context::set_dash_style(const std::vector<double>& dashes, const double offset)
 		{
 			cairo_set_dash(context_, &dashes[0], dashes.size(), offset);
 		}
 
-		const std::vector<double> CairoContext::GetDashStyle() const
+		const std::vector<double> cairo_context::get_dash_style() const
 		{
 			int cnt = cairo_get_dash_count(context_);
 			std::vector<double> dashes(cnt);
@@ -511,12 +511,12 @@ namespace KRE
 			return dashes;
 		}
 
-		void CairoContext::SetDashOffset(double offset)
+		void cairo_context::set_dash_offset(double offset)
 		{
 			// XXX
 		}
 
-		double CairoContext::GetDashOffset() const
+		double cairo_context::get_dash_offset() const
 		{
 			int cnt = cairo_get_dash_count(context_);
 			std::vector<double> dashes(cnt);
@@ -526,13 +526,13 @@ namespace KRE
 		}
 
 				
-		void CairoContext::Paint(const double alpha)
+		void cairo_context::paint(const double alpha)
 		{
 			cairo_paint_with_alpha(context_, alpha);
 		}
 
 
-		void CairoContext::Fill(const bool preserve)
+		void cairo_context::fill(const bool preserve)
 		{
 			if(preserve) {
 				cairo_fill_preserve(context_);
@@ -541,18 +541,18 @@ namespace KRE
 			}
 		}
 
-		void CairoContext::FillExtents(double& x1, double& y1, double& x2, double& y2)
+		void cairo_context::fill_extents(double& x1, double& y1, double& x2, double& y2)
 		{
 			cairo_fill_extents(context_, &x1, &y1, &x2, &y2);
 		}
 
-		bool CairoContext::InFill(const double x, const double y)
+		bool cairo_context::in_fill(const double x, const double y)
 		{
 			return cairo_in_fill(context_, x, y) ? true : false;
 		}
 
 
-		void CairoContext::Stroke(const bool preserve)
+		void cairo_context::stroke(const bool preserve)
 		{
 			if(preserve) {
 				cairo_stroke_preserve(context_);
@@ -561,18 +561,18 @@ namespace KRE
 			}
 		}
 
-		void CairoContext::StrokeExtents(double& x1, double& y1, double& x2, double& y2)
+		void cairo_context::stroke_extents(double& x1, double& y1, double& x2, double& y2)
 		{
 			cairo_stroke_extents(context_, &x1, &y1, &x2, &y2);
 		}
 
-		bool CairoContext::InStroke(const double x, const double y)
+		bool cairo_context::in_stroke(const double x, const double y)
 		{
 			return cairo_in_stroke(context_, x, y) ? true : false;
 		}
 
 
-		void CairoContext::Clip(const bool preserve)
+		void cairo_context::clip(const bool preserve)
 		{
 			if(preserve) {
 				cairo_clip_preserve(context_);
@@ -581,17 +581,17 @@ namespace KRE
 			}
 		}
 
-		void CairoContext::ClipExtents(double& x1, double& y1, double& x2, double& y2)
+		void cairo_context::clip_extents(double& x1, double& y1, double& x2, double& y2)
 		{
 			cairo_clip_extents(context_, &x1, &y1, &x2, &y2);
 		}
 
-		bool CairoContext::InClip(const double x, const double y)
+		bool cairo_context::in_clip(const double x, const double y)
 		{
 			return cairo_in_clip(context_, x, y) ? true : false;
 		}
 
-		void CairoContext::ClipReset()
+		void cairo_context::clip_reset()
 		{
 			cairo_reset_clip(context_);
 		}
@@ -601,50 +601,50 @@ namespace KRE
 		//AntiAliasing get_antialiasing() const
 
 
-		void CairoContext::GetCurrentPoint(double& x, double& y)
+		void cairo_context::get_current_point(double& x, double& y)
 		{
 			cairo_get_current_point(context_, &x, &y);
 		}
 
-		bool CairoContext::HasCurrentPoint()
+		bool cairo_context::has_current_point()
 		{
 			return cairo_has_current_point(context_) ? true : false;
 		}
 
-		PathPtr CairoContext::NewPath()
+		path_ptr cairo_context::new_path()
 		{
-			return PathPtr(new CairoPath(this));
+			return path_ptr(new cairo_path(this));
 		}
 
-		void CairoContext::AddPath(const PathPtr& path)
+		void cairo_context::add_path(const path_ptr& path)
 		{
-			auto cpath = std::dynamic_pointer_cast<CairoPath>(path);
+			auto cpath = std::dynamic_pointer_cast<cairo_path>(path);
 			ASSERT_LOG(cpath != NULL, "Couldn't convert path to appropriate type CairoPath");
-			cpath->Execute(context_);
+			cpath->execute(context_);
 		}
 
-		void CairoContext::AddSubPath(const PathPtr& path)
+		void cairo_context::add_sub_path(const path_ptr& path)
 		{
-			auto cpath = std::dynamic_pointer_cast<CairoPath>(path);
+			auto cpath = std::dynamic_pointer_cast<cairo_path>(path);
 			ASSERT_LOG(cpath != NULL, "Couldn't convert path to appropriate type CairoPath");
 			cairo_new_sub_path(context_);
-			cpath->Execute(context_);
+			cpath->execute(context_);
 		}
 
-		void CairoContext::PreRender() 
+		void cairo_context::pre_render() 
 		{
 			std::vector<unsigned> stride (1, cairo_image_surface_get_width(surface_));
 			tex_->Update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
 		}
 
-		void CairoContext::PathExtents(double& x1, double& y1, double& x2, double& y2) 
+		void cairo_context::path_extents(double& x1, double& y1, double& x2, double& y2) 
 		{
 			cairo_path_extents(context_, &x1, &y1, &x2, &y2);
 		}
 
-		DisplayDeviceDef CairoContext::Attach(const DisplayDevicePtr& dd)
+		DisplayDeviceDef cairo_context::Attach(const DisplayDevicePtr& dd)
 		{
-			DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
+			DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
 			return def;
 		}
 	}

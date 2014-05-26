@@ -21,29 +21,29 @@
 	   distribution.
 */
 
-#include "Canvas.hpp"
+#include "canvas.hpp"
 #include "DisplayDevice.hpp"
 
 namespace KRE
 {
-	Canvas::Canvas()
+	canvas::canvas()
 		: width_(0),
 		height_(0)
 	{
 	}
 
-	void Canvas::SetDimensions(unsigned w, unsigned h)
+	void canvas::set_dimensions(unsigned w, unsigned h)
 	{
 		width_ = w;
 		height_ = h;
-		HandleDimensionsChanged();
+		handle_dimensions_changed();
 	}
 
-	Canvas::~Canvas()
+	canvas::~canvas()
 	{
 	}
 
-	CanvasPtr Canvas::GetInstance()
+	canvas_ptr canvas::get_instance()
 	{
 		return DisplayDevice::GetCurrent()->GetCanvas();
 	}

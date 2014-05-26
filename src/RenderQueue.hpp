@@ -27,7 +27,7 @@
 #include <cstdint>
 
 #include "RenderFwd.hpp"
-#include "WindowManagerFwd.hpp"
+#include "window_manager_fwd.hpp"
 
 namespace KRE
 {
@@ -39,14 +39,14 @@ namespace KRE
 
 		const std::string& name() const { return name_; }
 
-		void Enqueue(uint64_t order, RenderablePtr p);	
+		void Enqueue(uint64_t order, renderable_ptr p);	
 		void Dequeue(uint64_t order);
 
-		void PreRender();
-		void Render(const WindowManagerPtr& wm) const;
+		void pre_render();
+		void Render(const window_manager_ptr& wm) const;
 		void PostRender();
 	private:
-		std::map<uint64_t, RenderablePtr> renderables_;
+		std::map<uint64_t, renderable_ptr> renderables_;
 		std::string name_;
 		RenderQueue();
 		RenderQueue(const RenderQueue&);

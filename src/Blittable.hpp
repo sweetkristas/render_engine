@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "Material.hpp"
 #include "scene_object.hpp"
 
@@ -32,7 +32,7 @@ namespace KRE
 	// This is basically a helper class that lets you blit a 
 	// texture to the screen in what should be a relatively 
 	// optimised manner.
-	class Blittable : public scene_object
+	class blittable : public scene_object
 	{
 	public:
 		enum class Centre {
@@ -43,30 +43,30 @@ namespace KRE
 			BOTTOM_RIGHT,
 			MANUAL,
 		};
-		Blittable();
-		explicit Blittable(const TexturePtr& tex);
-		explicit Blittable(const MaterialPtr& mat);
-		virtual ~Blittable();
-		void SetTexture(const TexturePtr& tex);
+		blittable();
+		explicit blittable(const TexturePtr& tex);
+		explicit blittable(const MaterialPtr& mat);
+		virtual ~blittable();
+		void set_texture(const TexturePtr& tex);
 
 		template<typename T>
-		void SetDrawRect(const Geometry::Rect<T>& r) {
+		void set_draw_rect(const geometry::rect_t<T>& r) {
 			draw_rect_ = r.template as_type<float>();
 		}
-		virtual void PreRender() override;
+		virtual void pre_render() override;
 
-		Centre GetCentre() const { return centre_; }
-		void SetCentre(Centre c);
-		const pointf& GetCentreCoords() const { return centre_offset_; }
+		Centre get_centre() const { return centre_; }
+		void set_centre(Centre c);
+		const pointf& get_centre_coords() const { return centre_offset_; }
 		template<typename T>
-		void SetCentreCoords(const Geometry::Point<T>& p) {
+		void set_centre_coords(const geometry::point_t<T>& p) {
 			centre_offset_ = p;
 			centre_ = Centre::MANUAL;
 		}
 
 		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
 	private:
-		void Init();
+		void init();
 		std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
 		rectf draw_rect_;
 		pointf centre_offset_;

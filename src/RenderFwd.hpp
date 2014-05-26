@@ -28,8 +28,8 @@
 
 namespace KRE
 {
-	class Renderable;
-	typedef std::shared_ptr<Renderable> RenderablePtr;
+	class renderable;
+	typedef std::shared_ptr<renderable> renderable_ptr;
 
 	class RenderQueue;
 	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;

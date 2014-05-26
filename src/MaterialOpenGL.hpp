@@ -24,7 +24,6 @@
 #pragma once
 
 #include "Material.hpp"
-#include "WindowManagerFwd.hpp"
 
 namespace KRE
 {

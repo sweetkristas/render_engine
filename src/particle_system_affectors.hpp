@@ -23,16 +23,16 @@
 
 #pragma once
 
-#include "ParticleSystemFwd.hpp"
+#include "particle_system.hpp"
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
 		class affector : public emit_object
 		{
 		public:
-			explicit affector(ParticleSystemContainer* parent, const variant& node);
+			explicit affector(particle_system_container* parent, const variant& node);
 			virtual ~affector();
 			virtual affector* clone() = 0;
 
@@ -43,11 +43,15 @@ namespace KRE
 				technique_ = tq;
 			}
 
-			static affector* factory(ParticleSystemContainer* parent, const variant& node);
+			void process(double t) {
+				handle_process(t);
+			}
+
+			static affector* factory(particle_system_container* parent, const variant& node);
 		protected:
 			//virtual void handle_apply(std::vector<particle>& particles, float t) = 0;
 			//virtual void handle_apply(std::vector<emit_object_ptr>& objs, float t) = 0;
-			virtual void handle_process(float t);
+			virtual void handle_process(double t);
 			virtual void internal_apply(particle& p, float t) = 0;
 
 			float mass() const { return mass_; }

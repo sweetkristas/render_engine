@@ -11,7 +11,7 @@
 
 	   1. The origin of this software must not be misrepresented; you must not
 	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgement in the product documentation would be
+	   in a product, an acknowledgment in the product documentation would be
 	   appreciated but is not required.
 
 	   2. Altered source versions must be plainly marked as such, and must not be
@@ -21,15 +21,11 @@
 	   distribution.
 */
 
-#pragma once
-
-#include <memory>
+#include "particle_system_observers.hpp"
 
 namespace KRE
 {
-	class surface;
-	typedef std::shared_ptr<surface> surface_ptr;
-
-	class WindowManager;
-	typedef std::shared_ptr<WindowManager> WindowManagerPtr;
+	namespace particles
+	{
+	}
 }

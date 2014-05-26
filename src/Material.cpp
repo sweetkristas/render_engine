@@ -23,7 +23,6 @@
 
 #include "Material.hpp"
 #include "surface.hpp"
-#include "WindowManager.hpp"
 
 namespace KRE
 {

@@ -23,10 +23,10 @@
 
 #include <algorithm>
 #include <regex>
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "lexical_cast.hpp"
 
-namespace Geometry
+namespace geometry
 {
 	namespace
 	{
@@ -39,7 +39,7 @@ namespace Geometry
 	}
 
 	template<typename T> inline
-	Point<T>::Point(const std::vector<T>& v)
+	point_t<T>::point_t(const std::vector<T>& v)
 		: x(0), y(0)
 	{
 		if(v.size() == 1) {
@@ -51,25 +51,25 @@ namespace Geometry
 	}
 
 	template<typename T> inline
-	bool operator==(const Point<T>& a, const Point<T>& b)
+	bool operator==(const point_t<T>& a, const point_t<T>& b)
 	{
 		return a.x == b.y && a.y == b.y;
 	}
 
 	template<typename T> inline
-	bool operator!=(const Point<T>& a, const Point<T>& b)
+	bool operator!=(const point_t<T>& a, const point_t<T>& b)
 	{
 		return !operator==(a, b);
 	}
 	
 	template<typename T> inline
-	bool operator<(const Point<T>& a, const Point<T>& b)
+	bool operator<(const point_t<T>& a, const point_t<T>& b)
 	{
 		return a.x < b.x || a.x == b.x && a.y < b.y;
 	}
 
 	template<typename T> inline
-	Rect<T> Rect<T>::FromCoordinates(T x1, T y1, T x2, T y2)
+	rect_t<T> rect_t<T>::from_coordinates(T x1, T y1, T x2, T y2)
 	{
 		if(x1 > x2+1) {
 			std::swap(x1, x2);
@@ -78,40 +78,40 @@ namespace Geometry
 		if(y1 > y2+1) {
 			std::swap(y1, y2);
 		}
-	return Rect(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1);
+	return rect_t(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1);
 	}
 
 	template<typename T> inline
-	Rect<T>::Rect(T x, T y, T w, T h)
+	rect_t<T>::rect_t(T x, T y, T w, T h)
 	  : top_left_(std::min(x, x+w), std::min(y, y+h)),
 		bottom_right_(std::max(x, x+w), std::max(y, y+h))
 	{
 	}
 
 	template<typename T> inline
-	Rect<T>::Rect(const SDL_Rect& r)
+	rect_t<T>::rect_t(const SDL_Rect& r)
 	  : top_left_(std::min(T(r.x), T(r.x)+T(r.w)), std::min(T(r.y), T(r.y)+T(r.h))),
 		bottom_right_(std::max(T(r.x), T(r.x)+T(r.w)), std::max(T(r.y), T(r.y)+T(r.h)))
 	{
 	}
 
 	template<typename T> inline
-	Rect<T>::Rect(const std::vector<T>& v)
+	rect_t<T>::rect_t(const std::vector<T>& v)
 	{
 		from_vector(v);
 	}
 
 	template<typename T> inline
-	Rect<T>::Rect(const variant& v)
+	rect_t<T>::rect_t(const variant& v)
 	{
 		ASSERT_LOG(false, "No template specialisation for Rect<T>(const varaint&)");
 	}
 
 	template<typename T> inline
-	Rect<T>::Rect(const std::string& str)
+	rect_t<T>::rect_t(const std::string& str)
 	{
 		if(str.empty()) {
-			*this = Rect<T>();
+			*this = rect_t<T>();
 			return;
 		}
 
@@ -124,16 +124,16 @@ namespace Geometry
 
 		switch(num_items) {
 			case 2:
-				*this = Rect<T>::FromCoordinates(items[0], items[1], T(1), T(1));
+				*this = rect_t<T>::from_coordinates(items[0], items[1], T(1), T(1));
 				break;
 			case 3:
-				*this = Rect<T>::FromCoordinates(items[0], items[1], items[2], T(1));
+				*this = rect_t<T>::from_coordinates(items[0], items[1], items[2], T(1));
 				break;
 			case 4:
-				*this = Rect<T>::FromCoordinates(items[0], items[1], items[2], items[3]);
+				*this = rect_t<T>::from_coordinates(items[0], items[1], items[2], items[3]);
 				break;
 			default:
-				*this = Rect<T>();
+				*this = rect_t<T>();
 				break;
 		}
 	}

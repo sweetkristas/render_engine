@@ -336,7 +336,7 @@ namespace KRE
 			unsigned h = n>0 ? Height()/2 : Height();
 			unsigned d = n>0 ? Depth()/2 : Depth();
 
-			const void* pixels = Getsurface() ? Getsurface()->Pixels() : 0;
+			const void* pixels = Getsurface() ? Getsurface()->pixels() : 0;
 			switch(GetType()) {
 				case Type::TEXTURE_1D:
 					glTexImage1D(GetGLTextureType(GetType()), 0, internal_format_, w, 0, format_, type_, pixels);

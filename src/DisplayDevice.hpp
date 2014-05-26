@@ -28,11 +28,11 @@
 #include <string>
 
 #include "AttributeSet.hpp"
-#include "Canvas.hpp"
+#include "canvas.hpp"
 #include "Color.hpp"
 #include "DisplayDeviceFwd.hpp"
 #include "Material.hpp"
-#include "Renderable.hpp"
+#include "renderable.hpp"
 #include "RenderTarget.hpp"
 #include "variant.hpp"
 
@@ -109,7 +109,7 @@ namespace KRE
 		virtual void Init(size_t width, size_t height) = 0;
 		virtual void PrintDeviceInfo() = 0;
 
-		virtual void Render(const RenderablePtr& r) = 0;
+		virtual void Render(const renderable_ptr& r) = 0;
 
 		static TexturePtr CreateTexture(const std::string& filename, 
 			Texture::Type type=Texture::Type::TEXTURE_2D, 
@@ -123,7 +123,7 @@ namespace KRE
 		static TexturePtr CreateTexture(unsigned width, unsigned height, PixelFormat fmt, Texture::Type type=Texture::Type::TEXTURE_2D);
 		static TexturePtr CreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat fmt);
 
-		virtual CanvasPtr GetCanvas() = 0;
+		virtual canvas_ptr GetCanvas() = 0;
 
 		static void BlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch);
 

@@ -28,8 +28,8 @@
 #include <memory>
 #include <tuple>
 
-#include "Geometry.hpp"
-#include "WindowManagerFwd.hpp"
+#include "geometry.hpp"
+#include "window_manager_fwd.hpp"
 
 namespace KRE
 {

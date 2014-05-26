@@ -22,10 +22,10 @@
 */
 
 #include "asserts.hpp"
-#include "ParticleSystem.hpp"
-#include "ParticleSystemAffectors.hpp"
-#include "ParticleSystemEmitters.hpp"
-#include "ParticleSystemParameters.hpp"
+#include "particle_system.hpp"
+#include "particle_system_affectors.hpp"
+#include "particle_system_emitters.hpp"
+#include "particle_system_parameters.hpp"
 
 namespace KRE
 {
@@ -123,12 +123,12 @@ namespace KRE
 		glm::vec4 color_;
 	};*/
 
-	namespace Particles
+	namespace particles
 	{
 		class circle_emitter : public emitter
 		{
 		public:
-			circle_emitter(ParticleSystemContainer* parent, const variant& node) 			
+			circle_emitter(particle_system_container* parent, const variant& node) 			
 				: emitter(parent, node), 
 				circle_radius_(node["circle_radius"].as_float(0)), 
 				circle_step_(node["circle_step"].as_float(0.1f)), 
@@ -162,7 +162,7 @@ namespace KRE
 		class box_emitter : public emitter
 		{
 		public:
-			box_emitter(ParticleSystemContainer* parent, const variant& node) 
+			box_emitter(particle_system_container* parent, const variant& node) 
 				: emitter(parent, node), box_dimensions_(100.0f) {
 				if(node.has_key("box_width")) {
 					box_dimensions_.x = node["box_width"].as_float();
@@ -192,7 +192,7 @@ namespace KRE
 		class line_emitter : public emitter
 		{
 		public:
-			line_emitter(ParticleSystemContainer* parent, const variant& node) 
+			line_emitter(particle_system_container* parent, const variant& node) 
 				: emitter(parent, node), line_end_(0.0f), 
 				line_deviation_(0.0f),
 				min_increment_(0.0f), 
@@ -228,7 +228,7 @@ namespace KRE
 		class point_emitter : public emitter
 		{
 		public:
-			point_emitter(ParticleSystemContainer* parent, const variant& node) : emitter(parent, node) {}
+			point_emitter(particle_system_container* parent, const variant& node) : emitter(parent, node) {}
 			virtual ~point_emitter() {}
 		protected:
 			void internal_create(particle& p, float t) {
@@ -244,7 +244,7 @@ namespace KRE
 		class sphere_surface_emitter : public emitter
 		{
 		public:
-			sphere_surface_emitter(ParticleSystemContainer* parent, const variant& node) 
+			sphere_surface_emitter(particle_system_container* parent, const variant& node) 
 				: emitter(parent, node), 
 				radius_(node["radius"].as_float(1.0)) {
 			}
@@ -266,13 +266,13 @@ namespace KRE
 		};
 
 
-		emitter::emitter(ParticleSystemContainer* parent, const variant& node)
+		emitter::emitter(particle_system_container* parent, const variant& node)
 			: emit_object(parent, node), 
 			emission_fraction_(0.0f),
 			force_emission_(node["force_emission"].as_bool(false)),
 			force_emission_processed_(false), 
 			can_be_deleted_(false),
-			emits_type_(EMITS_VISUAL),
+			emits_type_(EMITS_TYPE::EMITS_VISUAL),
 			color_(1.0f,1.0f,1.0f,1.0f)
 		{
 			init_physics_parameters(initial);
@@ -362,15 +362,15 @@ namespace KRE
 					"PSYSTEM2: Emitters that specify the 'emits_type' attribute must give have and 'emits_type' attribute");
 				const std::string& etype = node["emits_type"].as_string();
 				if(etype == "emitter_particle") {
-					emits_type_ = EMITS_EMITTER;
+					emits_type_ = EMITS_TYPE::EMITS_EMITTER;
 				} else if(etype == "visual_particle") {
-					emits_type_ = EMITS_VISUAL;
+					emits_type_ = EMITS_TYPE::EMITS_VISUAL;
 				} else if(etype == "technique_particle") {
-					emits_type_ = EMITS_TECHNIQUE;
+					emits_type_ = EMITS_TYPE::EMITS_TECHNIQUE;
 				} else if(etype == "affector_particle") {
-					emits_type_ = EMITS_AFFECTOR;
+					emits_type_ = EMITS_TYPE::EMITS_AFFECTOR;
 				} else if(etype == "system_particle") {
-					emits_type_ = EMITS_SYSTEM;
+					emits_type_ = EMITS_TYPE::EMITS_SYSTEM;
 				} else {
 					ASSERT_LOG(false, "PSYSTEM2: Unrecognised 'emit_type' attribute value: " << etype);
 				}
@@ -426,14 +426,14 @@ namespace KRE
 			duration_remaining_ = duration_->get_value(0);
 		}
 
-		void emitter::handle_process(float t) 
+		void emitter::handle_process(double t) 
 		{
 			ASSERT_LOG(technique_ != NULL, "PSYSTEM2: technique is null");
 			std::vector<particle>& particles = technique_->active_particles();
 
 			float duration = duration_->get_value(t);
 			if(duration == 0.0f || duration_remaining_ >= 0.0f) {
-				if(emits_type_ == EMITS_VISUAL) {
+				if(emits_type_ == EMITS_TYPE::EMITS_VISUAL) {
 					std::vector<particle>::iterator start;
 
 					//create_particles(particles, start, end, t);
@@ -458,7 +458,7 @@ namespace KRE
 					}
 					set_particle_starting_values(start, particles.end());
 				} else {
-					if(emits_type_ == EMITS_EMITTER) {
+					if(emits_type_ == EMITS_TYPE::EMITS_EMITTER) {
 						size_t cnt = calculate_particles_to_emit(t, technique_->emitter_quota(), technique_->active_emitters().size());
 						//std::cerr << "XXX: Emitting " << cnt << " emitters" << std::endl;
 						for(int n = 0; n != cnt; ++n) {
@@ -469,7 +469,7 @@ namespace KRE
 							memcpy(&e->current, &e->initial, sizeof(e->current));
 							technique_->add_emitter(e);
 						}
-					} else if(emits_type_ == EMITS_AFFECTOR) {
+					} else if(emits_type_ == EMITS_TYPE::EMITS_AFFECTOR) {
 						size_t cnt = calculate_particles_to_emit(t, technique_->affector_quota(), technique_->active_affectors().size());
 						for(int n = 0; n != cnt; ++n) {
 							affector_ptr a = parent_container()->clone_affector(emits_name_);
@@ -479,7 +479,7 @@ namespace KRE
 							memcpy(&a->current, &a->initial, sizeof(a->current));
 							technique_->add_affector(a);
 						}
-					} else if(emits_type_ == EMITS_TECHNIQUE) {
+					} else if(emits_type_ == EMITS_TYPE::EMITS_TECHNIQUE) {
 						size_t cnt = calculate_particles_to_emit(t, technique_->technique_quota(), technique_->get_particle_system()->active_techniques().size());
 						for(int n = 0; n != cnt; ++n) {
 							technique_ptr tq = parent_container()->clone_technique(emits_name_);
@@ -489,7 +489,7 @@ namespace KRE
 							memcpy(&tq->current, &tq->initial, sizeof(tq->current));
 							technique_->get_particle_system()->add_technique(tq);
 						}
-					} else if(emits_type_ == EMITS_SYSTEM) {
+					} else if(emits_type_ == EMITS_TYPE::EMITS_SYSTEM) {
 						size_t cnt = calculate_particles_to_emit(t, technique_->system_quota(), parent_container()->active_particle_systems().size());
 						for(int n = 0; n != cnt; ++n) {
 							particle_system_ptr ps = parent_container()->clone_particle_system(emits_name_);
@@ -500,7 +500,7 @@ namespace KRE
 							parent_container()->add_particle_system(ps.get());
 						}
 					} else {
-						ASSERT_LOG(false, "PSYSTEM2: unknown emits_type: " << emits_type_);
+						ASSERT_LOG(false, "PSYSTEM2: unknown emits_type");
 					}
 				}
 
@@ -587,7 +587,7 @@ namespace KRE
 			ASSERT_LOG(technique_ != NULL, "PSYSTEM2: technique_ is null");
 			ASSERT_LOG(technique_->get_particle_system() != NULL, "PSYSTEM2: technique_->get_parent_system() is null");
 			float angle = angle_->get_value(technique_->get_particle_system()->elapsed_time());
-			if(angle_->type() == parameter::PARAMETER_FIXED) {
+			if(angle_->type() == parameter::ParameterType::PARAMETER_FIXED) {
 				return get_random_float() * angle;
 			}
 			return angle;
@@ -627,7 +627,7 @@ namespace KRE
 			}*/
 		}
 
-		emitter* emitter::factory(ParticleSystemContainer* parent, const variant& node)
+		emitter* emitter::factory(particle_system_container* parent, const variant& node)
 		{
 			ASSERT_LOG(node.has_key("type"), "PSYSTEM2: emitter must have 'type' attribute");
 			const std::string& ntype = node["type"].as_string();

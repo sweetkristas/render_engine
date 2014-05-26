@@ -23,7 +23,7 @@
 
 #include <glm/glm.hpp>
 
-#include "Frustum.hpp"
+#include "frustum.hpp"
 
 namespace KRE
 {
@@ -40,19 +40,19 @@ namespace KRE
 		};
 	}
 
-	Frustum::Frustum()
+	frustum::frustum()
 	{
 		planes_.resize(MAX_PLANES);
 	}
 
-	Frustum::~Frustum()
+	frustum::~frustum()
 	{
 	}
 
-	Frustum::Frustum(const glm::mat4& perspective, const glm::mat4& view)
+	frustum::frustum(const glm::mat4& perspective, const glm::mat4& view)
 	{
 		planes_.resize(MAX_PLANES);
-		UpdateMatrices(perspective, view);
+		update_matrices(perspective, view);
 	}
 
 	namespace
@@ -63,7 +63,7 @@ namespace KRE
 		}
 	}
 
-	void Frustum::UpdateMatrices(const glm::mat4& perspective, const glm::mat4& view)
+	void frustum::update_matrices(const glm::mat4& perspective, const glm::mat4& view)
 	{
 		vp_ = glm::transpose(perspective * view);
 
@@ -75,7 +75,7 @@ namespace KRE
 		planes_[TOP_PLANE] = normalize(vp_ * glm::vec4(0,-1,0,1));
 	}
 
-	bool Frustum::PointInside(const glm::vec3& pt) const
+	bool frustum::point_inside(const glm::vec3& pt) const
 	{
 		for(int n = NEAR_PLANE; n < MAX_PLANES; ++n) {
 			if(glm::dot(planes_[n], glm::vec4(pt, 1.0f)) < 0.0f) {
@@ -85,7 +85,7 @@ namespace KRE
 		return true;
 	}
 
-	bool Frustum::CircleInside(const glm::vec3& pt, float radius) const
+	bool frustum::circle_inside(const glm::vec3& pt, float radius) const
 	{
 		for(int n = NEAR_PLANE; n < MAX_PLANES; ++n) {
 			if(glm::dot(planes_[n], glm::vec4(pt, 1.0f)) < -radius) {
@@ -98,7 +98,7 @@ namespace KRE
 	// Returns >0 if circle is inside the frustum
 	// Returns <0 if circle is outside frustum
 	// Returns 0 if circle intersects.
-	int Frustum::CircleIntersects(const glm::vec3& pt, float radius) const
+	int frustum::circle_intersects(const glm::vec3& pt, float radius) const
 	{
 		int out = 0;
 		int in = 0;
@@ -114,7 +114,7 @@ namespace KRE
 
 	// Cube specified by one corner and the three side lenghts
 	// returns true if is inside else false
-	bool Frustum::CubeInside(const glm::vec3& pt, float xlen, float ylen, float zlen) const
+	bool frustum::cube_inside(const glm::vec3& pt, float xlen, float ylen, float zlen) const
 	{
 		for(int n = NEAR_PLANE; n < MAX_PLANES; ++n) {
 			if(glm::dot(planes_[n], glm::vec4(pt.x, pt.y, pt.z, 1.0)) >= 0.0f) {
@@ -150,7 +150,7 @@ namespace KRE
 	// Returns >0 if cube is inside the frustum
 	// Returns <0 if cube is outside frustum
 	// Returns 0 if cube intersects.
-	int Frustum::CubeIntersects(const glm::vec3& pt, float xlen, float ylen, float zlen) const
+	int frustum::cube_intersects(const glm::vec3& pt, float xlen, float ylen, float zlen) const
 	{
 		int in = 0;
 		int out = 0;

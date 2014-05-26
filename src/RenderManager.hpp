@@ -26,7 +26,7 @@
 #include <map>
 
 #include "RenderFwd.hpp"
-#include "WindowManagerFwd.hpp"
+#include "window_manager_fwd.hpp"
 
 namespace KRE
 {
@@ -39,8 +39,8 @@ namespace KRE
 		void AddQueue(int priority, RenderQueuePtr queue);
 		void RemoveQueue(int priority);
 
-		void Render(const WindowManagerPtr& wm) const;
-		void AddRenderableToQueue(size_t q, size_t order, const RenderablePtr& r);
+		void Render(const window_manager_ptr& wm) const;
+		void AddRenderableToQueue(size_t q, size_t order, const renderable_ptr& r);
 	private:
 		typedef std::map<size_t,RenderQueuePtr> RenderQueueList;
 		RenderQueueList render_queues_;

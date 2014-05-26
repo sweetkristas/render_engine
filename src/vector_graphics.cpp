@@ -22,48 +22,53 @@
 */
 
 #include "asserts.hpp"
-#include "RenderQueue.hpp"
-#include "window_manager.hpp"
+#include "vector_graphics.hpp"
+#include "vector_graphics_cairo.hpp"
+#include "vector_graphics_ogl.hpp"
+#include "vector_graphics_oglf.hpp"
 
 namespace KRE
 {
-	RenderQueue::RenderQueue(const std::string& name) 
-		: name_(name)
+	namespace vector
 	{
-	}
-
-	RenderQueue::~RenderQueue() 
-	{
-	}
-
-	void RenderQueue::Enqueue(uint64_t order, renderable_ptr p)
-	{
-		renderables_[order] = p;
-	}
-
-	void RenderQueue::Dequeue(uint64_t order)
-	{
-		auto it = renderables_.find(order);
-		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
-		renderables_.erase(it);
-	}
-
-	void RenderQueue::pre_render()
-	{
-		for(auto r : renderables_) {
-			r.second->pre_render();
+		context::context()
+			: scene_object("vector::context")
+		{
 		}
-	}
 
-	void RenderQueue::Render(const window_manager_ptr& wm) const 
-	{
-		for(auto r : renderables_) {
-			wm->render(r.second);
+		context::context(int width, int height)
+			: scene_object("vector::context"), 
+			width_(width), height_(height)
+			
+		{
 		}
-	}
 
-	void RenderQueue::PostRender()
-	{
-		renderables_.clear();
+		context::~context()
+		{
+		}
+
+		context_ptr context::create_instance(const std::string& hint, int width, int height)
+		{
+			if(hint == "cairo") {
+				return context_ptr(new cairo_context(width, height));
+			} else if(hint == "opengl") {
+				// XXX
+				// return context_ptr(new opengl_context(width, height));
+			} else if(hint == "opengl-fixed") {
+				// XXX
+				// return context_ptr(new opengl_fixed_context(width, height));
+			} else {
+				ASSERT_LOG(false, "Unrecognised hint to create vector graphics instance: " << hint);
+			}
+			return context_ptr();
+		}
+
+		path::path()
+		{
+		}
+
+		path::~path()
+		{
+		}
 	}
 }

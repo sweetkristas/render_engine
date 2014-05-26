@@ -42,16 +42,10 @@
     <ClCompile Include="..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\WindowManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\DisplayDevice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\logger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\RenderManager.cpp">
@@ -63,25 +57,13 @@
     <ClCompile Include="..\src\LightObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\CameraObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\SceneParameters.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Frustum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Color.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\VGraph.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\VGraphCairo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\variant.cpp">
@@ -96,21 +78,6 @@
     <ClCompile Include="..\src\Material.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ParticleSystem.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ParticleSystemAffectors.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ParticleSystemEmitters.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ParticleSystemObservers.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ParticleSystemParameters.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\MaterialOpenGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
@@ -120,16 +87,10 @@
     <ClCompile Include="..\src\TextureOpenGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\VGraphOpenGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ShadersOpenGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp">
-      <Filter>Source Files\OpenGLFixed</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\VGraphOpenGLFixed.cpp">
       <Filter>Source Files\OpenGLFixed</Filter>
     </ClCompile>
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp">
@@ -150,15 +111,6 @@
     <ClCompile Include="..\src\AttributeSetOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Blittable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Canvas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\CanvasOGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\scene_object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -174,15 +126,60 @@
     <ClCompile Include="..\src\surface_sdl.cpp">
       <Filter>Source Files\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\window_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vector_graphics_cairo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vector_graphics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\blittable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\camera_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\particle_system.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\particle_system_affectors.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\prticle_system_emitters.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\particle_system_observers.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\particle_system_parameters.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\canvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\canvas_ogl.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vector_graphics_ogl.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vector_graphics_oglf.cpp">
+      <Filter>Source Files\OpenGLFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\renderable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\logger.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\asserts.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\WindowManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\DisplayDevice.hpp">
@@ -194,9 +191,6 @@
     <ClInclude Include="..\src\profile_timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Renderable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\RenderManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -206,19 +200,10 @@
     <ClInclude Include="..\src\LightObject.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\CameraObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\SceneParameters.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\spline.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Frustum.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\WindowManagerFwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\RenderFwd.hpp">
@@ -233,16 +218,7 @@
     <ClInclude Include="..\src\Texture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\VGraph.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\VGraphFwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Color.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\VGraphCairo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\json.hpp">
@@ -257,29 +233,8 @@
     <ClInclude Include="..\src\formatter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Geometry.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Material.hpp">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystem.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystemAffectors.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystemEmitters.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystemFwd.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystemObservers.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ParticleSystemParameters.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
     </ClInclude>
     <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
@@ -288,9 +243,6 @@
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\TextureOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\VGraphOpenGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ShadersOpenGL.hpp">
@@ -302,9 +254,6 @@
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp">
       <Filter>Header Files\SDL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\VGraphOpenGLFixed.hpp">
-      <Filter>Header Files\OpenGLFixed</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\TextureSDL.hpp">
       <Filter>Header Files\SDL</Filter>
     </ClInclude>
@@ -314,22 +263,10 @@
     <ClInclude Include="..\src\FboOpenGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Util.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\AttributeSet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\AttributeSetOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Blittable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Canvas.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\CanvasOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\scene_object.hpp">
@@ -349,6 +286,69 @@
     </ClInclude>
     <ClInclude Include="..\src\surface_sdl.hpp">
       <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\window_manager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\window_manager_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vector_graphics.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vector_graphics_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vector_graphics_cairo.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blittable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\geometry.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\camera_object.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system_fwd.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system_affectors.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system_emitters.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system_observers.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\particle_system_parameters.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\frustum.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\canvas.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\canvas_ogl.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vector_graphics_ogl.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vector_graphics_oglf.hpp">
+      <Filter>Header Files\OpenGLFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\renderable.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

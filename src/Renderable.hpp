@@ -29,73 +29,76 @@
 #include "Material.hpp"
 #include "RenderQueue.hpp"
 #include "scene_fwd.hpp"
+#include "util.hpp"
 
 namespace KRE
 {
-	class Renderable
+	class renderable
 	{
 	public:
-		Renderable();
-		Renderable(size_t order);
-		virtual ~Renderable();
+		renderable();
+		renderable(size_t order);
+		virtual ~renderable();
 
-		void SetPosition(const glm::vec3& position);
-		void SetPosition(float x, float y, float z=0.0f);
-		void SetPosition(int x, int y, int z=0);
-		const glm::vec3& Position() const { return position_; }
+		void set_position(const glm::vec3& position);
+		void set_position(float x, float y, float z=0.0f);
+		void set_position(int x, int y, int z=0);
+		const glm::vec3& position() const { return position_; }
 
-		void SetRotation(float angle, const glm::vec3& axis);
-		void SetRotation(const glm::quat& rot);
-		const glm::quat& Rotation() const { return rotation_; }
+		void set_rotation(float angle, const glm::vec3& axis);
+		void set_rotation(const glm::quat& rot);
+		const glm::quat& rotation() const { return rotation_; }
 
-		void SetScale(float xs, float ys, float zs=1.0f);
-		void SetScale(const glm::vec3& scale);
-		const glm::vec3& Scale() const { return scale_; }
+		void set_scale(float xs, float ys, float zs=1.0f);
+		void set_scale(const glm::vec3& scale);
+		const glm::vec3& scale() const { return scale_; }
 
-		glm::mat4 ModelMatrix() const;
+		glm::mat4 model_matrix() const;
 
-		void SetColor(float r, float g, float b, float a=1.0);
-		void SetColor(int r, int g, int b, int a=255);
-		void SetColor(const Color& color);
-		const Color& GetColor() const { return color_; }
-		bool IsColorSet() const { return color_set_; }
+		void set_color(float r, float g, float b, float a=1.0);
+		void set_color(int r, int g, int b, int a=255);
+		void set_color(const Color& color);
+		const Color& get_color() const { return color_; }
+		bool is_color_set() const { return color_set_; }
 
-		size_t Order() const { return order_; }
-		void SetOrder(size_t o) { order_ = o; }
+		size_t order() const { return order_; }
+		void set_order(size_t o) { order_ = o; }
 
-		const CameraPtr& Camera() const { return camera_; }
-		void SetCamera(const CameraPtr& camera);
+		const camera_ptr& camera() const { return camera_; }
+		void set_camera(const camera_ptr& camera);
 
-		const LightPtrList& Lights() const { return lights_; }
-		void SetLights(const LightPtrList& lights);
+		const LightPtrList& lights() const { return lights_; }
+		void set_lights(const LightPtrList& lights);
 
-		const MaterialPtr& Material() const { return material_; }
-		void SetMaterial(const MaterialPtr& material);
+		const MaterialPtr& material() const { return material_; }
+		void set_material(const MaterialPtr& material);
 
-		const RenderTargetPtr& GetRenderTarget() const { return render_target_; }
-		void SetRenderTarget(const RenderTargetPtr& rt);
+		const RenderTargetPtr& get_render_target() const { return render_target_; }
+		void set_render_target(const RenderTargetPtr& rt);
 
-		void SetDisplayData(const DisplayDevicePtr& dd, const DisplayDeviceDef& def);
-		const DisplayDeviceDataPtr& GetDisplayData() const { return display_data_; }
+		void set_display_data(const DisplayDevicePtr& dd, const DisplayDeviceDef& def);
+		const DisplayDeviceDataPtr& get_display_data() const { return display_data_; }
 
-		void AddAttributeSet(const AttributeSetPtr& attrset);
-		//void AddUniformSet(const UniformSetPtr& uniset);
-		const std::vector<AttributeSetPtr>& GetAttributeSet() const { return attributes_; }
-		//const std::vector<UniformSetPtr>& GetUniformSet() const { return uniforms_; }
+		void add_attribute_set(const AttributeSetPtr& attrset);
+		//void add_uniform_set(const UniformSetPtr& uniset);
+		const std::vector<AttributeSetPtr>& get_attribute_set() const { return attributes_; }
+		//const std::vector<UniformSetPtr>& get_uniform_set() const { return uniforms_; }
 
-		virtual void PreRender() {}
+		virtual void pre_render() {}
 
 		// Called just before rendering this item, after shaders and other variables
 		// have been set-up
-		virtual void RenderBegin() {}
+		virtual void render_begin() {}
 		// Called after draw commands have been sent before anything is torn down.
-		virtual void RenderEnd() {}
+		virtual void render_end() {}
 	private:
+		DISALLOW_COPY_AND_ASSIGN(renderable);
+
 		size_t order_;
 		glm::vec3 position_;
 		glm::quat rotation_;
 		glm::vec3 scale_;
-		CameraPtr camera_;
+		camera_ptr camera_;
 		LightPtrList lights_;
 		MaterialPtr material_;
 		RenderTargetPtr render_target_;
@@ -106,6 +109,5 @@ namespace KRE
 		//std::vector<UniformSetPtr> uniforms_;
 
 		DisplayDeviceDataPtr display_data_;
-		Renderable(const Renderable&);
 	};
 }

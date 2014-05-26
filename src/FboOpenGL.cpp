@@ -28,7 +28,6 @@
 #include "asserts.hpp"
 #include "DisplayDevice.hpp"
 #include "FboOpenGL.hpp"
-#include "WindowManager.hpp"
 
 namespace KRE
 {
@@ -158,7 +157,7 @@ namespace KRE
 				}
 				auto mat = dd->CreateMaterial("fbo_mat", textures);
 				mat->SetCoords(rect(0, 0, Width(), Height()));
-				SetMaterial(mat);
+				set_material(mat);
 
 				framebuffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id) {
 					glDeleteFramebuffers(1, id); 
@@ -187,7 +186,7 @@ namespace KRE
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		SetOrder(999999);
+		set_order(999999);
 	}
 
 	FboOpenGL::~FboOpenGL()
@@ -196,14 +195,14 @@ namespace KRE
 
 	DisplayDeviceDef FboOpenGL::Attach(const DisplayDevicePtr& dd)
 	{
-		DisplayDeviceDef def(GetAttributeSet());
+		DisplayDeviceDef def(get_attribute_set());
 		if(!shader_hint_.empty()) {
 			def.SetHint("shader", shader_hint_);
 		}
 		return def;
 	}
 
-	void FboOpenGL::PreRender()
+	void FboOpenGL::pre_render()
 	{
 		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
 		// XXX wip
@@ -217,7 +216,7 @@ namespace KRE
 			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
 
-		Blittable::PreRender();
+		blittable::pre_render();
 	}
 
 	void FboOpenGL::HandleApply()

@@ -23,33 +23,9 @@
 
 #pragma once
 
-#include <cmath>
-#include <memory>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/perpendicular.hpp>
-
-#include "variant.hpp"
-
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
-		class emit_object;
-		typedef std::shared_ptr<emit_object> emit_object_ptr;
-		class ParticleSystemContainer;
-		class particle_system;
-		typedef std::shared_ptr<particle_system> particle_system_ptr;
-		class technique;
-		typedef std::shared_ptr<technique> technique_ptr;
-		class parameter;
-		typedef std::shared_ptr<parameter> parameter_ptr;
-		class emitter;
-		typedef std::shared_ptr<emitter> emitter_ptr;
-		class affector;
-		typedef std::shared_ptr<affector> affector_ptr;
-
-		float get_random_float(float min = 0.0f, float max = 1.0f);
 	}
 }

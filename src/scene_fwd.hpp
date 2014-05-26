@@ -36,8 +36,8 @@ namespace KRE
 	class Light;
 	typedef std::shared_ptr<Light> LightPtr;
 	typedef std::unordered_map<size_t, LightPtr> LightPtrList;
-	class Camera;
-	typedef std::shared_ptr<Camera> CameraPtr;
+	class camera;
+	typedef std::shared_ptr<camera> camera_ptr;
 	class Parameter;
 	typedef std::shared_ptr<Parameter> ParameterPtr;
 	class scene_object;
@@ -49,12 +49,12 @@ namespace KRE
 
 	struct scene_node_params
 	{
-		CameraPtr camera;
+		camera_ptr camera;
 		LightPtrList lights;
 		RenderTargetPtr render_target;
 	};
 
-	class Blittable;
+	class blittable;
 
 	struct vertex_texcoord
 	{

@@ -23,7 +23,7 @@
 
 #include "asserts.hpp"
 #include "spline.hpp"
-#include "ParticleSystemParameters.hpp"
+#include "particle_system_parameters.hpp"
 
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
@@ -31,7 +31,7 @@
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
 		namespace
 		{
@@ -66,7 +66,7 @@ namespace KRE
 			virtual ~oscillate_parameter();
 			virtual float get_value(float t);
 		private:
-			enum WaveType {
+			enum class WaveType {
 				TYPE_SINE,
 				TYPE_SQUARE,
 			};
@@ -81,7 +81,7 @@ namespace KRE
 		class curved_parameter : public parameter
 		{
 		public:
-			enum InterpolationType {
+			enum class InterpolationType {
 				INTERPOLATE_LINEAR,
 				INTERPOLATE_SPLINE,
 			};
@@ -109,9 +109,9 @@ namespace KRE
 			} else if(ntype == "dyn_random") {
 				return parameter_ptr(new random_parameter(node));
 			} else if(ntype == "dyn_curved_linear") {
-				return parameter_ptr(new curved_parameter(curved_parameter::INTERPOLATE_LINEAR, node));
+				return parameter_ptr(new curved_parameter(curved_parameter::InterpolationType::INTERPOLATE_LINEAR, node));
 			} else if(ntype == "dyn_curved_spline") {
-				return parameter_ptr(new curved_parameter(curved_parameter::INTERPOLATE_SPLINE, node));
+				return parameter_ptr(new curved_parameter(curved_parameter::InterpolationType::INTERPOLATE_SPLINE, node));
 			} else if(ntype == "dyn_oscillate") {
 				return parameter_ptr(new oscillate_parameter(node));
 			} else {
@@ -129,7 +129,7 @@ namespace KRE
 		}
 
 		fixed_parameter::fixed_parameter(float value)
-			: parameter(PARAMETER_FIXED), value_(value)
+			: parameter(ParameterType::PARAMETER_FIXED), value_(value)
 		{
 		}
 
@@ -143,7 +143,7 @@ namespace KRE
 		}
 
 		random_parameter::random_parameter(const variant& node)
-			: parameter(PARAMETER_RANDOM), 
+			: parameter(ParameterType::PARAMETER_RANDOM), 
 			min_value_(node["min"].as_float(0.1f)),
 			max_value_(node["max"].as_float(1.0f))
 		{
@@ -159,9 +159,9 @@ namespace KRE
 		}
 
 		oscillate_parameter::oscillate_parameter(const variant& node)
-			: parameter(PARAMETER_OSCILLATE), 
+			: parameter(ParameterType::PARAMETER_OSCILLATE), 
 			frequency_(1.0f), phase_(0.0f), base_(0.0f), amplitude_(1.0f),
-			osc_type_(TYPE_SINE)
+			osc_type_(WaveType::TYPE_SINE)
 		{
 			if(node.has_key("oscillate_frequency")) {
 				frequency_ = node["oscillate_frequency"].as_float();
@@ -178,9 +178,9 @@ namespace KRE
 			if(node.has_key("oscillate_type")) {
 				const std::string& type = node["oscillate_type"].as_string();
 				if(type == "sine") {
-					osc_type_ = TYPE_SINE;
+					osc_type_ = WaveType::TYPE_SINE;
 				} else if(type == "square") {
-					osc_type_ = TYPE_SQUARE;
+					osc_type_ = WaveType::TYPE_SQUARE;
 				} else {
 					ASSERT_LOG(false, "PSYSTEM2: unrecognised oscillate type: " << type);
 				}
@@ -193,16 +193,16 @@ namespace KRE
 
 		float oscillate_parameter::get_value(float t)
 		{
-			if(osc_type_ == TYPE_SINE) {
+			if(osc_type_ == WaveType::TYPE_SINE) {
 				return float(base_ + amplitude_ * sin(2*M_PI*frequency_*t + phase_));
-			} else if(osc_type_ == TYPE_SQUARE) {
+			} else if(osc_type_ == WaveType::TYPE_SQUARE) {
 				return float(base_ + amplitude_ * sign(sin(2*M_PI*frequency_*t + phase_)));
 			}
 			return 0;
 		}
 
 		curved_parameter::curved_parameter(InterpolationType type, const variant& node)
-			: parameter(PARAMETER_OSCILLATE), curve_type_(type)
+			: parameter(ParameterType::PARAMETER_OSCILLATE), curve_type_(type)
 		{
 			ASSERT_LOG(node.has_key("control_point") 
 				&& node["control_point"].is_list()
@@ -240,7 +240,7 @@ namespace KRE
 
 		float curved_parameter::get_value(float t)
 		{
-			if(curve_type_ == INTERPOLATE_LINEAR) {
+			if(curve_type_ == InterpolationType::INTERPOLATE_LINEAR) {
 				auto it = find_closest_point(t);
 				auto it2 = it + 1;
 				if(it2 == control_points_.end()) {
@@ -249,7 +249,7 @@ namespace KRE
 					// linear interpolate, see http://en.wikipedia.org/wiki/Linear_interpolation
 					return float(it->second + (it2->second - it->second) * (t - it->first) / (it2->first - it->first));
 				}
-			} else if(curve_type_ == INTERPOLATE_SPLINE) {
+			} else if(curve_type_ == InterpolationType::INTERPOLATE_SPLINE) {
 				// http://en.wikipedia.org/wiki/Spline_interpolation
 				geometry::spline spl(control_points_);
 				return float(spl.interpolate(t));

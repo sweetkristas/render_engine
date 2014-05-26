@@ -23,25 +23,25 @@
 
 #pragma once
 
-#include "Renderable.hpp"
+#include "renderable.hpp"
 #include "scene_fwd.hpp"
+#include "util.hpp"
 
 namespace KRE
 {
-	class scene_object : public Renderable
+	class scene_object : public renderable
 	{
 	public:
 		scene_object(const std::string& name);
 		virtual ~scene_object();
-		size_t Queue() const { return queue_; }
-		void SetQueue(size_t q) { queue_ = q; }
-		const std::string& ObjectName() const { return name_; }
+		size_t queue() const { return queue_; }
+		void set_queue(size_t q) { queue_ = q; }
+		const std::string& object_name() const { return name_; }
 		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) = 0;
 	private:
+		DISALLOW_COPY_ASSIGN_AND_DEFAULT(scene_object);
 
 		size_t queue_;
 		std::string name_;
-		scene_object();
-		scene_object(const scene_object&);
 	};
 }

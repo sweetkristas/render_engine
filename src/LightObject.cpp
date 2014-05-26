@@ -61,7 +61,7 @@ namespace KRE
 
 	DisplayDeviceDef Light::Attach(const DisplayDevicePtr& dd)
 	{
-		DisplayDeviceDef def(GetAttributeSet());
+		DisplayDeviceDef def(get_attribute_set());
 		// XXX
 		return def;
 	}

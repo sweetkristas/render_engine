@@ -23,19 +23,22 @@
 
 #pragma once
 
-#include <memory>
+#include "canvas.hpp"
 
 namespace KRE
 {
-	namespace Vector
+	class canvas_ogl : public canvas
 	{
-		class Pattern;
-		typedef std::shared_ptr<Pattern> PatternPtr;
+	public:
+		canvas_ogl();
+		virtual ~canvas_ogl();
 
-		class Path;
-		typedef std::shared_ptr<Path> PathPtr;
+		void blit_texture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color) override;
+		void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) override;
 
-		class Context;
-		typedef std::shared_ptr<Context> ContextPtr;
-	}
+		static canvas_ptr get_instance();
+	private:
+		void handle_dimensions_changed() override;
+		glm::mat4 mvp_;
+	};
 }

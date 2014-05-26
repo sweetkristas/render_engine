@@ -57,16 +57,16 @@ namespace KRE
 	{
 	}
 
-	scene_node_ptr scene_graph::RootNode()
+	scene_node_ptr scene_graph::root_node()
 	{
 		return *graph_.begin();
 	}
 
-	void scene_graph::AttachNode(scene_node* parent, scene_node_ptr node) 
+	void scene_graph::attach_node(scene_node* parent, scene_node_ptr node) 
 	{
 		if(parent == NULL) {
 			graph_.insert(graph_.end_child(), node);
-			node->NodeAttached();
+			node->node_attached();
 			return;
 		}
 		the::tree<scene_node_ptr>::pre_iterator it = graph_.begin();
@@ -74,22 +74,22 @@ namespace KRE
 			if(it->get() == parent) {
 				//graph_.insert(it, node);
 				graph_.insert_below(it, node);
-				node->NodeAttached();
+				node->node_attached();
 				return;
 			}
 		}
 		ASSERT_LOG(false, "parent node not found when attaching a child node");
 	}
 
-	scene_graph_ptr scene_graph::Create(const std::string& name) 
+	scene_graph_ptr scene_graph::create(const std::string& name) 
 	{
 		// Create graph then insert a root node into the tree.
 		auto sg = std::make_shared<scene_graph>(name);
-		sg->graph_.insert(sg->graph_.end(), sg->CreateNode());
+		sg->graph_.insert(sg->graph_.end(), sg->create_node());
 		return sg;
 	}
 	
-	scene_node_ptr scene_graph::CreateNode(const std::string& node_type, const variant& node)
+	scene_node_ptr scene_graph::create_node(const std::string& node_type, const variant& node)
 	{
 		auto it = get_scene_node_registry().find(node_type);
 		if(node_type.empty()) {
@@ -99,7 +99,7 @@ namespace KRE
 		return it->second(this, node);
 	}
 
-	void scene_graph::RegisterFactoryFunction(const std::string& type, std::function<scene_node_ptr(scene_graph*,const variant&)> create_fn)
+	void scene_graph::register_factory_function(const std::string& type, std::function<scene_node_ptr(scene_graph*,const variant&)> create_fn)
 	{
 		auto it = get_scene_node_registry().find(type);
 		if(it != get_scene_node_registry().end()) {
@@ -116,14 +116,14 @@ namespace KRE
 		return it->second(name);
 	}*/
 
-	void scene_graph::RegisterObjectType(const std::string& type, ObjectTypeFunction fn)
+	void scene_graph::register_object_type(const std::string& type, ObjectTypeFunction fn)
 	{
 		auto it = get_object_factory().find(type);
 		ASSERT_LOG(it != get_object_factory().end(), "Type(" << type << ") already registered");
 		get_object_factory()[type] = fn;
 	}
 
-	void scene_graph::RenderSceneHelper(const RenderManagerPtr& renderer, 
+	void scene_graph::render_scene_helper(const RenderManagerPtr& renderer, 
 		the::tree<scene_node_ptr>::pre_iterator& it, 
 		scene_node_params* snp)
 	{
@@ -131,23 +131,23 @@ namespace KRE
 			return;
 		}
 		// XXX the logic isn't quite right here, snp needs to be cleared at some point.
-		(*it)->RenderNode(renderer, snp);
-		RenderSceneHelper(renderer, ++it, snp);
+		(*it)->render_node(renderer, snp);
+		render_scene_helper(renderer, ++it, snp);
 	}
 
-	void scene_graph::RenderScene(const RenderManagerPtr& renderer)
+	void scene_graph::render_scene(const RenderManagerPtr& renderer)
 	{
 		the::tree<scene_node_ptr>::pre_iterator it = graph_.begin();
 		//LOG_DEBUG("RenderScene: " << (*it)->NodeName());
 		scene_node_params snp;
-		RenderSceneHelper(renderer, it, &snp);
+		render_scene_helper(renderer, it, &snp);
 	}
 
-	void scene_graph::Process(double elapsed_time)
+	void scene_graph::process(double elapsed_time)
 	{
 		the::tree<scene_node_ptr>::pre_iterator it = graph_.begin();
 		for(; it != graph_.end(); ++it) {
-			(*it)->Process(elapsed_time);
+			(*it)->process(elapsed_time);
 		}
 	}
 

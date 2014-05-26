@@ -32,7 +32,7 @@
 #include <vector>
 #include "asserts.hpp"
 #include "DisplayDeviceFwd.hpp"
-#include "Util.hpp"
+#include "util.hpp"
 
 namespace KRE
 {

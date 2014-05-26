@@ -21,43 +21,43 @@
 	   distribution.
 */
 
-#include "Blittable.hpp"
+#include "blittable.hpp"
 #include "DisplayDevice.hpp"
 #include "Material.hpp"
 
 namespace KRE
 {
-	Blittable::Blittable()
+	blittable::blittable()
 		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{
-		Init();
+		init();
 	}
 
-	Blittable::Blittable(const TexturePtr& tex)
+	blittable::blittable(const TexturePtr& tex)
 		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{
-		SetTexture(tex);
-		Init();
+		set_texture(tex);
+		init();
 	}
 
-	Blittable::Blittable(const MaterialPtr& mat)
+	blittable::blittable(const MaterialPtr& mat)
 		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
 	{
-		SetMaterial(mat);
-		Init();
+		set_material(mat);
+		init();
 	}
 
-	Blittable::~Blittable()
+	blittable::~blittable()
 	{
 	}
 
-	void Blittable::Init()
+	void blittable::init()
 	{
 		auto as = DisplayDevice::CreateAttributeSet();
 		attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
@@ -66,21 +66,21 @@ namespace KRE
 		as->AddAttribute(AttributeBasePtr(attribs_));
 		as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
 		
-		AddAttributeSet(as);
+		add_attribute_set(as);
 	}
 
-	void Blittable::SetTexture(const TexturePtr& tex)
+	void blittable::set_texture(const TexturePtr& tex)
 	{
-		SetMaterial(DisplayDevice::CreateMaterial("blittable", std::vector<TexturePtr>(1,tex)));
+		set_material(DisplayDevice::CreateMaterial("blittable", std::vector<TexturePtr>(1,tex)));
 	}
 
-	DisplayDeviceDef Blittable::Attach(const DisplayDevicePtr& dd) 
+	DisplayDeviceDef blittable::Attach(const DisplayDevicePtr& dd) 
 	{
-		DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
+		DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
 		return def;
 	}
 
-	void Blittable::PreRender()
+	void blittable::pre_render()
 	{
 		float offs_x = 0.0f;
 		float offs_y = 0.0f;
@@ -114,18 +114,18 @@ namespace KRE
 		const float vx2 = draw_rect_.x2() + offs_x;
 		const float vy2 = draw_rect_.y2() + offs_y;
 
-		rectf r = Material()->GetNormalisedTextureCoords(Material()->GetTexture().begin());
+		rectf r = material()->GetNormalisedTextureCoords(material()->GetTexture().begin());
 
 		std::vector<vertex_texcoord> vertices;
 		vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
 		vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
 		vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
 		vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
-		GetAttributeSet().back()->SetCount(vertices.size());
+		get_attribute_set().back()->SetCount(vertices.size());
 		attribs_->Update(&vertices);
 	}
 
-	void Blittable::SetCentre(Centre c)
+	void blittable::set_centre(Centre c)
 	{
 		centre_  = c;
 		centre_offset_ = pointf();

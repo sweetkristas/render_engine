@@ -23,17 +23,17 @@
 
 #pragma once
 
-#include "ParticleSystemFwd.hpp"
+#include "particle_system_fwd.hpp"
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
 
 		class emitter : public emit_object
 		{
 		public:
-			explicit emitter(ParticleSystemContainer* parent, const variant& node);
+			explicit emitter(particle_system_container* parent, const variant& node);
 			virtual ~emitter();
 			emitter(const emitter&);
 
@@ -44,15 +44,19 @@ namespace KRE
 				technique_ = tq;
 			}
 
+			void process(double t) {
+				handle_process(t);
+			}
+
 			virtual emitter* clone() = 0;
-			static emitter* factory(ParticleSystemContainer* parent, const variant& node);
+			static emitter* factory(particle_system_container* parent, const variant& node);
 		protected:
 			virtual void internal_create(particle& p, float t) = 0;
-			virtual void handle_process(float t);
+			virtual void handle_process(double t);
 			virtual void handle_draw() const;
 			virtual bool duration_expired() { return can_be_deleted_; }
 
-			enum EMITS_TYPE {
+			enum class EMITS_TYPE {
 				EMITS_VISUAL,
 				EMITS_EMITTER,
 				EMITS_AFFECTOR,

@@ -52,10 +52,10 @@ namespace KRE
 		render_queues_.erase(it);
 	}
 
-	void RenderManager::Render(const WindowManagerPtr& wm) const
+	void RenderManager::Render(const window_manager_ptr& wm) const
 	{
 		for(auto& q : render_queues_) {
-			q.second->PreRender();
+			q.second->pre_render();
 		}
 		for(auto& q : render_queues_) {
 			q.second->Render(wm);
@@ -65,7 +65,7 @@ namespace KRE
 		}
 	}
 
-	void RenderManager::AddRenderableToQueue(size_t q, size_t order, const RenderablePtr& r)
+	void RenderManager::AddRenderableToQueue(size_t q, size_t order, const renderable_ptr& r)
 	{
 		auto it = render_queues_.find(q);
 		ASSERT_LOG(it != render_queues_.end(), "Tried to add renderable to non-existant render queue at priority: " << q);

@@ -24,43 +24,43 @@
 #pragma once
 
 #include "Color.hpp"
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "Material.hpp"
-#include "Util.hpp"
-#include "VGraph.hpp"
+#include "util.hpp"
+#include "vector_graphics.hpp"
 
 namespace KRE
 {
-	class Canvas;
-	typedef std::shared_ptr<Canvas> CanvasPtr;
+	class canvas;
+	typedef std::shared_ptr<canvas> canvas_ptr;
 
 	// A 2D canvas class for drawing on. Not in the renderable pipelines.
 	// Canvas writes are done in the order in the code.
 	// Intended for making things like UI's.
-	class Canvas
+	class canvas
 	{
 	public:
-		virtual ~Canvas();
+		virtual ~canvas();
 
-		void SetDimensions(unsigned w, unsigned h);
+		void set_dimensions(unsigned w, unsigned h);
 
-		unsigned Width() const { return width_; }
-		unsigned Height() const { return height_; }
+		unsigned width() const { return width_; }
+		unsigned height() const { return height_; }
 
 		// Blit's a texture from co-ordinates given in src to the screen co-ordinates dst
-		virtual void BlitTexture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color) = 0;
+		virtual void blit_texture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color) = 0;
 
 		// Blit's a material from internal co-ordinates to destination screen co-ordinates.
-		virtual void BlitTexture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) = 0;
+		virtual void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) = 0;
 
 		//void DrawVectorContext(const Vector::ContextPtr& context);
-		static CanvasPtr GetInstance();
+		static canvas_ptr get_instance();
 	protected:
-		Canvas();
+		canvas();
 	private:
-		DISALLOW_COPY_AND_ASSIGN(Canvas);
+		DISALLOW_COPY_AND_ASSIGN(canvas);
 		unsigned width_;
 		unsigned height_;
-		virtual void HandleDimensionsChanged() = 0;
+		virtual void handle_dimensions_changed() = 0;
 	};
 }

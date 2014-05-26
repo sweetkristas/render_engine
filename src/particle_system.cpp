@@ -24,17 +24,17 @@
 #include <cmath>
 #include <chrono>
 
-#include "ParticleSystem.hpp"
-#include "ParticleSystemAffectors.hpp"
-#include "ParticleSystemParameters.hpp"
-#include "ParticleSystemEmitters.hpp"
+#include "DisplayDevice.hpp"
+#include "particle_system.hpp"
+#include "particle_system_affectors.hpp"
+#include "particle_system_parameters.hpp"
+#include "particle_system_emitters.hpp"
 #include "scene_graph.hpp"
 #include "spline.hpp"
-#include "WindowManager.hpp"
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
 		// This is set to be the frame rate/process interval
 		// XXX: This really should be a global system constant somewhere
@@ -42,7 +42,7 @@ namespace KRE
 
 		namespace 
 		{
-			scene_nodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
+			scene_node_registrar<particle_system_container> psc_register("particle_system_container");
 
 			std::default_random_engine& get_rng_engine() 
 			{
@@ -144,7 +144,7 @@ namespace KRE
 			return q * v;
 		}
 
-		particle_system::particle_system(scene_graph* sg, ParticleSystemContainer* parent, const variant& node)
+		particle_system::particle_system(scene_graph* sg, particle_system_container* parent, const variant& node)
 			: emit_object(parent, node), 
 			scene_node(sg),
 			elapsed_time_(0.0f), 
@@ -210,7 +210,7 @@ namespace KRE
 
 		particle_system::particle_system(const particle_system& ps)
 			: emit_object(ps),
-			scene_node(const_cast<particle_system&>(ps).ParentGraph()),
+			scene_node(const_cast<particle_system&>(ps).parent_graph()),
 			elapsed_time_(0),
 			scale_velocity_(ps.scale_velocity_),
 			scale_time_(ps.scale_time_),
@@ -224,21 +224,21 @@ namespace KRE
 			}
 		}
 
-		void particle_system::NodeAttached()
+		void particle_system::node_attached()
 		{
 			for(auto t : active_techniques_) {
-				AttachObject(t);
+				attach_object(t);
 			}
 		}
 
-		void particle_system::update(float dt)
+		void particle_system::update(double dt)
 		{
 			for(auto t : active_techniques_) {
 				t->process(dt);
 			}
 		}
 
-		void particle_system::handle_process(float t)
+		void particle_system::process(double t)
 		{
 			update(t);
 			elapsed_time_ += t;
@@ -250,12 +250,12 @@ namespace KRE
 			tq->set_parent(this);
 		}
 
-		particle_system* particle_system::factory(ParticleSystemContainer* parent, const variant& node)
+		particle_system* particle_system::factory(particle_system_container* parent, const variant& node)
 		{
-			return new particle_system(parent->ParentGraph(), parent, node);
+			return new particle_system(parent->parent_graph(), parent, node);
 		}
 
-		technique::technique(ParticleSystemContainer* parent, const variant& node)
+		technique::technique(particle_system_container* parent, const variant& node)
 			: scene_object("technique"),
 			emit_object(parent, node), 
 			default_particle_width_(node["default_particle_width"].as_float(1.0f)),
@@ -270,7 +270,7 @@ namespace KRE
 			ASSERT_LOG(node.has_key("visual_particle_quota"), "PSYSTEM2: 'technique' must have 'visual_particle_quota' attribute.");
 			particle_quota_ = node["visual_particle_quota"].as_int();
 			ASSERT_LOG(node.has_key("material"), "PSYSTEM2: 'technique' must have 'material' attribute.");
-			SetMaterial(DisplayDevice::CreateMaterial(node["material"]));
+			set_material(DisplayDevice::CreateMaterial(node["material"]));
 			//ASSERT_LOG(node.has_key("renderer"), "PSYSTEM2: 'technique' must have 'renderer' attribute.");
 			//renderer_.reset(new renderer(node["renderer"]));
 			if(node.has_key("emitter")) {
@@ -330,7 +330,7 @@ namespace KRE
 			// In order to create as few re-allocations of particles, reserve space here
 			active_particles_.reserve(particle_quota_);
 
-			Init();
+			init();
 		}
 
 		technique::~technique()
@@ -338,7 +338,7 @@ namespace KRE
 		}
 
 		technique::technique(const technique& tq) 
-			: scene_object(tq.ObjectName()),
+			: scene_object(tq.object_name()),
 			emit_object(tq),
 			default_particle_width_(tq.default_particle_width_),
 			default_particle_height_(tq.default_particle_height_),
@@ -352,8 +352,8 @@ namespace KRE
 			velocity_(tq.velocity_),
 			particle_system_(tq.particle_system_)
 		{
-			if(tq.Material()) {
-				SetMaterial(tq.Material());
+			if(tq.material()) {
+				set_material(tq.material());
 			}
 			if(tq.max_velocity_) {
 				max_velocity_.reset(new float(*tq.max_velocity_));
@@ -371,7 +371,7 @@ namespace KRE
 			}
 			active_particles_.reserve(particle_quota_);
 
-			Init();
+			init();
 		}
 
 		void technique::set_parent(particle_system* parent)
@@ -394,7 +394,7 @@ namespace KRE
 			instanced_affectors_.push_back(a);
 		}
 
-		void technique::handle_process(float t)
+		void technique::process(double t)
 		{
 			// run objects
 			for(auto e : active_emitters_) {
@@ -433,7 +433,7 @@ namespace KRE
 				if(max_velocity_ && e->current.velocity*glm::length(e->current.direction) > *max_velocity_) {
 					e->current.direction *= *max_velocity_ / glm::length(e->current.direction);
 				}
-				e->current.position += e->current.direction * /*scale_velocity * */ t;
+				e->current.position += e->current.direction * /*scale_velocity * */ float(t);
 				//std::cerr << *e << std::endl;
 			}
 
@@ -443,7 +443,7 @@ namespace KRE
 					p.current.direction *= *max_velocity_ / glm::length(p.current.direction);
 				}
 
-				p.current.position += p.current.direction * /*scale_velocity * */ t;
+				p.current.position += p.current.direction * /*scale_velocity * */ float(t);
 
 				//std::cerr << p << std::endl;
 			}
@@ -452,7 +452,7 @@ namespace KRE
 			//std::cerr << "XXX: Active Emitter Count: " << active_emitters_.size() << std::endl;
 		}
 
-		void technique::Init()
+		void technique::init()
 		{
 			// XXX We need to render to a billboard style renderer ala 
 			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
@@ -465,7 +465,7 @@ namespace KRE
 
 			auto as = DisplayDevice::CreateAttributeSet(true);
 			as->SetDrawMode(AttributeSet::DrawMode::TRIANGLES);
-			AddAttributeSet(as);
+			add_attribute_set(as);
 
 			arv_ = std::make_shared<Attribute<vertex_texture_color>>(AccessFreqHint::DYNAMIC);
 			arv_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 3, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texture_color), offsetof(vertex_texture_color, vertex)));
@@ -474,20 +474,20 @@ namespace KRE
 
 			as->AddAttribute(arv_);
 
-			SetOrder(1);
+			set_order(1);
 		}
 
 		DisplayDeviceDef technique::Attach(const DisplayDevicePtr& dd) {
 			//DisplayDeviceDef def(AttributeRenderVariables(), UniformRenderVariables());
 			//def.SetHint("shader", "vtc_shader");
-			DisplayDeviceDef def(GetAttributeSet());
+			DisplayDeviceDef def(get_attribute_set());
 			def.SetHint("shader", "vtc_shader");
 			return def;
 		}
 
-		void technique::PreRender()
+		void technique::pre_render()
 		{
-			//LOG_DEBUG("technique::PreRender, particle count: " << active_particles_.size());
+			//LOG_DEBUG("technique::pre_render, particle count: " << active_particles_.size());
 			std::vector<vertex_texture_color> vtc;
 			vtc.reserve(active_particles_.size() * 6);
 			for(auto& p : active_particles_) {
@@ -501,10 +501,10 @@ namespace KRE
 			}
 			arv_->Update(&vtc);
 
-			GetAttributeSet().back()->SetCount(active_particles_.size());
+			get_attribute_set().back()->SetCount(active_particles_.size());
 		}
 
-		ParticleSystemContainer::ParticleSystemContainer(scene_graph* sg, const variant& node) 
+		particle_system_container::particle_system_container(scene_graph* sg, const variant& node) 
 			: scene_node(sg)
 		{
 			if(node.has_key("systems")) {
@@ -536,52 +536,52 @@ namespace KRE
 			}
 		}
 
-		void ParticleSystemContainer::NodeAttached()
+		void particle_system_container::node_attached()
 		{
 			for(auto& a : active_particle_systems_) {
-				AttachNode(a);
-				a->SetNodeName("ps_node_" + a->name());
+				attach_node(a);
+				a->set_node_name("ps_node_" + a->name());
 			}
 		}
 
-		ParticleSystemContainer::~ParticleSystemContainer()
+		particle_system_container::~particle_system_container()
 		{
 		}
 
-		void ParticleSystemContainer::Process(double current_time)
+		void particle_system_container::process(double current_time)
 		{
-			//LOG_DEBUG("ParticleSystemContainer::Process: " << current_time);
+			//LOG_DEBUG("particle_system_container::Process: " << current_time);
 			for(auto ps : active_particle_systems_) {
 				ps->process(process_step_time);
 			}
 		}
 
-		void ParticleSystemContainer::add_particle_system(particle_system* obj)
+		void particle_system_container::add_particle_system(particle_system* obj)
 		{
 			particle_systems_.push_back(particle_system_ptr(obj));
 		}
 
-		void ParticleSystemContainer::add_technique(technique* obj)
+		void particle_system_container::add_technique(technique* obj)
 		{
 			techniques_.push_back(technique_ptr(obj));
 		}
 
-		void ParticleSystemContainer::add_emitter(emitter* obj)
+		void particle_system_container::add_emitter(emitter* obj)
 		{
 			emitters_.push_back(emitter_ptr(obj));
 		}
 
-		void ParticleSystemContainer::add_affector(affector* obj) 
+		void particle_system_container::add_affector(affector* obj) 
 		{
 			affectors_.push_back(affector_ptr(obj));
 		}
 
-		void ParticleSystemContainer::activate_particle_system(const std::string& name)
+		void particle_system_container::activate_particle_system(const std::string& name)
 		{
 			active_particle_systems_.push_back(clone_particle_system(name));
 		}
 
-		particle_system_ptr ParticleSystemContainer::clone_particle_system(const std::string& name)
+		particle_system_ptr particle_system_container::clone_particle_system(const std::string& name)
 		{
 			for(auto ps : particle_systems_) {
 				if(ps->name() == name) {
@@ -592,7 +592,7 @@ namespace KRE
 			return particle_system_ptr();
 		}
 
-		technique_ptr ParticleSystemContainer::clone_technique(const std::string& name)
+		technique_ptr particle_system_container::clone_technique(const std::string& name)
 		{
 			for(auto tq : techniques_) {
 				if(tq->name() == name) {
@@ -603,7 +603,7 @@ namespace KRE
 			return technique_ptr();
 		}
 
-		emitter_ptr ParticleSystemContainer::clone_emitter(const std::string& name)
+		emitter_ptr particle_system_container::clone_emitter(const std::string& name)
 		{
 			for(auto e : emitters_) {
 				if(e->name() == name) {
@@ -614,7 +614,7 @@ namespace KRE
 			return emitter_ptr();
 		}
 
-		affector_ptr ParticleSystemContainer::clone_affector(const std::string& name)
+		affector_ptr particle_system_container::clone_affector(const std::string& name)
 		{
 			for(auto a : affectors_) {
 				if(a->name() == name) {
@@ -625,7 +625,7 @@ namespace KRE
 			return affector_ptr();
 		}
 
-		std::vector<particle_system_ptr> ParticleSystemContainer::clone_particle_systems()
+		std::vector<particle_system_ptr> particle_system_container::clone_particle_systems()
 		{
 			std::vector<particle_system_ptr> res;
 			for(auto ps : particle_systems_) {
@@ -634,7 +634,7 @@ namespace KRE
 			return res;
 		}
 		
-		std::vector<technique_ptr> ParticleSystemContainer::clone_techniques()
+		std::vector<technique_ptr> particle_system_container::clone_techniques()
 		{
 			std::vector<technique_ptr> res;
 			for(auto tq : techniques_) {
@@ -643,7 +643,7 @@ namespace KRE
 			return res;
 		}
 
-		std::vector<emitter_ptr> ParticleSystemContainer::clone_emitters()
+		std::vector<emitter_ptr> particle_system_container::clone_emitters()
 		{
 			std::vector<emitter_ptr> res;
 			for(auto e : emitters_) {
@@ -652,7 +652,7 @@ namespace KRE
 			return res;
 		}
 
-		std::vector<affector_ptr> ParticleSystemContainer::clone_affectors()
+		std::vector<affector_ptr> particle_system_container::clone_affectors()
 		{
 			std::vector<affector_ptr> res;
 			for(auto a : affectors_) {

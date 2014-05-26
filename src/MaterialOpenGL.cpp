@@ -123,7 +123,7 @@ namespace KRE
 	{
 		ASSERT_LOG(node.has_key("image") || node.has_key("texture"), "Must have either 'image' or 'texture' attribute.");
 		const std::string image_name = node.has_key("image") ? node["image"].as_string() : node["texture"].as_string();
-		auto surface = surface::Create(image_name);
+		auto surface = surface::create(image_name);
 		return TexturePtr(new OpenGLTexture(surface, node));
 	}
 }

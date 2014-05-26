@@ -25,8 +25,8 @@
 
 #include "asserts.hpp"
 #include "AttributeSetOpenGL.hpp"
-#include "CameraObject.hpp"
-#include "CanvasOGL.hpp"
+#include "camera_object.hpp"
+#include "canvas_ogl.hpp"
 #include "DisplayDeviceOpenGL.hpp"
 #include "FboOpenGL.hpp"
 #include "LightObject.hpp"
@@ -223,9 +223,9 @@ namespace KRE
 		return DisplayDeviceDataPtr(dd);
 	}
 
-	void DisplayDeviceOpenGL::Render(const RenderablePtr& r)
+	void DisplayDeviceOpenGL::Render(const renderable_ptr& r)
 	{
-		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->GetDisplayData());
+		auto dd = std::static_pointer_cast<OpenGLDeviceData>(r->get_display_data());
 		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
 		auto shader = dd->GetShader();
 		shader->MakeActive();
@@ -234,33 +234,33 @@ namespace KRE
 		// so we grab the return of the Material::Apply() function
 		// to find whether to apply it or not.
 		bool use_lighting = true;
-		if(r->Material()) {
-			use_lighting = r->Material()->Apply();
+		if(r->material()) {
+			use_lighting = r->material()->Apply();
 		}
 
 		glm::mat4 pmat(1.0f);
-		if(r->Camera()) {
+		if(r->camera()) {
 			// set camera here.
-			pmat = r->Camera()->ProjectionMat() * r->Camera()->ViewMat();
+			pmat = r->camera()->projection_mat() * r->camera()->view_mat();
 		}
 
 		if(use_lighting) {
-			for(auto lp : r->Lights()) {
+			for(auto lp : r->lights()) {
 				/// xxx need to set lights here.
 			}
 		}
 
-		if(r->GetRenderTarget()) {
-			r->GetRenderTarget()->Apply();
+		if(r->get_render_target()) {
+			r->get_render_target()->Apply();
 		}
 
 		if(shader->GetMvpUniform() != shader->UniformsIteratorEnd()) {
-			pmat *= r->ModelMatrix();
+			pmat *= r->model_matrix();
 			shader->SetUniformValue(shader->GetMvpUniform(), glm::value_ptr(pmat));
 		}
 
-		if(shader->GetColorUniform() != shader->UniformsIteratorEnd() && r->IsColorSet()) {
-			shader->SetUniformValue(shader->GetColorUniform(), r->GetColor().AsFloatVector());
+		if(shader->GetColorUniform() != shader->UniformsIteratorEnd() && r->is_color_set()) {
+			shader->SetUniformValue(shader->GetColorUniform(), r->get_color().AsFloatVector());
 		}
 
 		if(shader->GetTexMapUniform() != shader->UniformsIteratorEnd()) {
@@ -278,7 +278,7 @@ namespace KRE
 
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
-		for(auto as : r->GetAttributeSet()) {
+		for(auto as : r->get_attribute_set()) {
 			GLenum draw_mode = convertDrawingMode(as->GetDrawMode());
 			std::vector<GLuint> enabled_attribs;
 
@@ -287,7 +287,7 @@ namespace KRE
 				//auto attrogl = std::dynamic_pointer_cast<AttributeOGL>(attr);
 				attr_hw->Bind();
 				for(auto& attrdesc : attr->GetAttrDesc()) {
-					auto ddp = std::dynamic_pointer_cast<RenderVariableDeviceData>(attrdesc.GetDisplayData());
+					auto ddp = std::static_pointer_cast<RenderVariableDeviceData>(attrdesc.GetDisplayData());
 					ASSERT_LOG(ddp != NULL, "converting attribute device data was NULL.");
 					glEnableVertexAttribArray(ddp->GetActiveMapIterator()->second.location);
 					
@@ -326,11 +326,11 @@ namespace KRE
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-		if(r->Material()) {
-			r->Material()->Unapply();
+		if(r->material()) {
+			r->material()->Unapply();
 		}
-		if(r->GetRenderTarget()) {
-			r->GetRenderTarget()->Unapply();
+		if(r->get_render_target()) {
+			r->get_render_target()->Unapply();
 		}
 	}
 
@@ -361,7 +361,7 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::HandleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
 	{
-		auto surface = surface::Create(filename);
+		auto surface = surface::create(filename);
 		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
 	}
 
@@ -406,9 +406,9 @@ namespace KRE
 		return HardwareAttributePtr(new HardwareAttributeOGL(parent));
 	}
 
-	CanvasPtr DisplayDeviceOpenGL::GetCanvas()
+	canvas_ptr DisplayDeviceOpenGL::GetCanvas()
 	{
-		return CanvasOGL::GetInstance();
+		return canvas_ogl::get_instance();
 	}
 	
 	bool DisplayDeviceOpenGL::DoCheckForFeature(DisplayDeviceCapabilties cap)
@@ -430,7 +430,7 @@ namespace KRE
 	// XXX Need a way to deal with blits with Camera/Lighting.
 	void DisplayDeviceOpenGL::DoBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
-		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
+		auto texture = std::static_pointer_cast<OpenGLTexture>(tex);
 		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
 
 		const float tx1 = float(srcx) / texture->Width();

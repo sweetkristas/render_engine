@@ -30,7 +30,7 @@
 #include "surface_sdl.hpp"
 #include "SDL.h"
 #include "SDL_image.h"
-#include "WindowManager.hpp"
+#include "window_manager.hpp"
 
 namespace KRE
 {
@@ -56,11 +56,11 @@ namespace KRE
 		}
 	}
 
-	class SDLWindowManager : public WindowManager
+	class sdl_window_manager : public window_manager
 	{
 	public:
-		SDLWindowManager(const std::string& title, const std::string& renderer_hint) 
-			: WindowManager(title), 
+		sdl_window_manager(const std::string& title, const std::string& renderer_hint) 
+			: window_manager(title), 
 			renderer_hint_(renderer_hint),
 			renderer_(NULL),
 			context_(NULL) {
@@ -69,11 +69,11 @@ namespace KRE
 			}
 			current_display_device() = display_ = DisplayDevice::Factory(renderer_hint_);
 		}
-		~SDLWindowManager() {
-			DestroyWindow();
+		~sdl_window_manager() {
+			destroy_window();
 		}
 
-		void CreateWindow(size_t width, size_t height) override {
+		void create_window(size_t width, size_t height) override {
 			logical_width_ = width_ = width;
 			logical_height_ = height_ = height;
 
@@ -87,7 +87,7 @@ namespace KRE
 				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 				SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 				SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-				if(Use16bpp()) {
+				if(use_16bpp()) {
 					SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 					SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 					SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -98,11 +98,11 @@ namespace KRE
 					SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 					SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 				}
-				if(UseMultiSampling()) {
+				if(use_multisampling()) {
 					if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) != 0) {
-						LOG_WARN("MSAA(" << MultiSamples() << ") requested but mutlisample buffer couldn't be allocated.");
+						LOG_WARN("MSAA(" << multisamples() << ") requested but mutlisample buffer couldn't be allocated.");
 					} else {
-						size_t msaa = next_pow2(MultiSamples());
+						size_t msaa = next_pow2(multisamples());
 						if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa) != 0) {
 							LOG_INFO("Requested MSAA of " << msaa << " but couldn't allocate");
 						}
@@ -111,7 +111,7 @@ namespace KRE
 				wnd_flags |= SDL_WINDOW_OPENGL;
 			}
 
-			if(Resizeable()) {
+			if(resizeable()) {
 				wnd_flags |= SDL_WINDOW_RESIZABLE;
 			}
 
@@ -119,7 +119,7 @@ namespace KRE
 			int y = SDL_WINDOWPOS_CENTERED;
 			int w = width_;
 			int h = height_;
-			switch(FullscreenMode()) {
+			switch(fullscreen_mode()) {
 				case WINDOWED_MODE:		break;
 				case FULLSCREEN_WINDOWED_MODE:
 					x = y = SDL_WINDOWPOS_UNDEFINED;
@@ -131,7 +131,7 @@ namespace KRE
 					wnd_flags |= SDL_WINDOW_FULLSCREEN;
 					break;
 			}
-			window_.reset(SDL_CreateWindow(Title().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
+			window_.reset(SDL_CreateWindow(title().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
 				if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
 					SDL_DestroyRenderer(renderer_);
 				}
@@ -145,7 +145,7 @@ namespace KRE
 
 			if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
 				Uint32 rnd_flags = SDL_RENDERER_ACCELERATED;
-				if(Vsync()) {
+				if(vsync()) {
 					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
 				}
 				renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
@@ -162,18 +162,18 @@ namespace KRE
 			display_->Init(width_, height_);
 			display_->PrintDeviceInfo();
 			display_->Clear(DisplayDevice::DISPLAY_CLEAR_ALL);
-			Swap();
+			swap();
 		}
 
-		void DestroyWindow() override {
+		void destroy_window() override {
 			window_.reset();
 		}
 
-		void Clear(DisplayDevice::ClearFlags f) override {
+		void clear(DisplayDevice::ClearFlags f) override {
 			display_->Clear(DisplayDevice::DISPLAY_CLEAR_ALL);
 		}
 
-		void Swap() override {
+		void swap() override {
 			// This is a little bit hacky -- ideally the display device should swap buffers.
 			// But SDL provides a device independent way of doing it which is really nice.
 			// So we use that.
@@ -185,26 +185,26 @@ namespace KRE
 			}
 		}
 
-		void SetWindowIcon(const std::string& name) override {
+		void set_window_icon(const std::string& name) override {
 			// XXX SDL_SetWindowIcon(window_.get(), wm_icon.get());
 		}
 		
-		bool SetWindowSize(size_t width, size_t height) override {
+		bool set_window_size(size_t width, size_t height) override {
 			// XXX
 			return false;
 		}
 
-		bool SetLogicalWindowSize(size_t width, size_t height) override {
+		bool set_logical_window_size(size_t width, size_t height) override {
 			// XXX
 			return false;
 		}
 
-		bool AutoWindowSize(size_t& width, size_t& height) override {
+		bool auto_window_size(size_t& width, size_t& height) override {
 			// XXX
 			return false;
 		}
 
-		surface_ptr Createsurface(size_t width, 
+		surface_ptr create_surface(size_t width, 
 			size_t height, 
 			size_t bpp, 
 			uint32_t rmask, 
@@ -213,7 +213,7 @@ namespace KRE
 			uint32_t amask) override {
 			return surface_ptr(new surface_sdl(width, height, bpp, rmask, gmask, bmask, amask));
 		}
-		surface_ptr Createsurface(size_t width, 
+		surface_ptr create_surface(size_t width, 
 			size_t height, 
 			size_t bpp, 
 			size_t row_pitch, 
@@ -227,33 +227,35 @@ namespace KRE
 			return surface_ptr(new surface_sdl(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels));
 		}
 
-		surface_ptr Createsurface(const std::string& filename) override {
+		surface_ptr create_surface(const std::string& filename) override {
 			// XXX Here is were we can abstract image loading and provide an
 			// image cache.
 			// return surface_ptr(WindowManager::LoadImage(filename));
-			return surface::Create(filename);
+			return surface::create(filename);
 		}
 
-		void SetWindowTitle(const std::string& title) override {
+		void set_window_title(const std::string& title) override {
 			ASSERT_LOG(window_ != NULL, "Window is null");
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 
-		virtual void Render(const RenderablePtr& r) override {
+		virtual void render(const renderable_ptr& r) override {
 			ASSERT_LOG(display_ != NULL, "No display to render to.");
 			display_->Render(r);
 		}
 	protected:
 	private:
-		void HandleSetClearColor() {
+		DISALLOW_COPY_AND_ASSIGN(sdl_window_manager);
+
+		void handle_set_clear_color() override {
 			if(display_ != NULL) {
 				display_->SetClearColor(clear_color_);
 			}
 		}
-		void ChangeFullscreenMode() override {
+		void change_fullscreen_mode() override {
 			// XXX
 		}
-		bool HandleLogicalWindowSizeChange() override {
+		bool handle_logical_window_size_change() override {
 			// XXX
 			return false;
 		}
@@ -262,10 +264,9 @@ namespace KRE
 		SDL_GLContext context_;
 		SDL_Renderer* renderer_;
 		std::string renderer_hint_;
-		SDLWindowManager(const SDLWindowManager&);
 	};
 
-	WindowManager::WindowManager(const std::string& title)
+	window_manager::window_manager(const std::string& title)
 		: width_(0), 
 		height_(0),
 		logical_width_(0),
@@ -279,38 +280,38 @@ namespace KRE
 	{
 	}
 
-	WindowManager::~WindowManager()
+	window_manager::~window_manager()
 	{
 	}
 
-	void WindowManager::Enable16bpp(bool bpp) {
+	void window_manager::enable_16bpp(bool bpp) {
 		use_16bpp_ = bpp;
 	}
 
-	void WindowManager::EnableMultisampling(bool multi_sampling, size_t samples) {
+	void window_manager::enable_multisampling(bool multi_sampling, size_t samples) {
 		use_multi_sampling_ = multi_sampling;
 		samples_ = samples;
 	}
 
-	void WindowManager::EnableResizeableWindow(bool en) {
+	void window_manager::enable_resizeable_window(bool en) {
 		is_resizeable_ = en;
 	}
 
-	void WindowManager::SetFullscreenMode(FullScreenMode mode)
+	void window_manager::set_fullscreen_mode(FullScreenMode mode)
 	{
 		bool modes_differ = fullscreen_mode_ != mode;
 		fullscreen_mode_ = mode;
 		if(modes_differ) {
-			ChangeFullscreenMode();
+			change_fullscreen_mode();
 		}
 	}
 
-	void WindowManager::EnableVsync(bool en)
+	void window_manager::enable_vsync(bool en)
 	{
 		use_vsync_ = en;
 	}
 
-	void WindowManager::MapMousePosition(size_t* x, size_t* y) 
+	void window_manager::map_mouse_position(size_t* x, size_t* y) 
 	{
 		if(x) {
 			*x = int(*x * double(logical_width_) / width_);
@@ -320,30 +321,30 @@ namespace KRE
 		}
 	}
 
-	bool WindowManager::SetLogicalWindowSize(size_t width, size_t height)
+	bool window_manager::set_logical_window_size(size_t width, size_t height)
 	{
 		logical_width_ = width;
 		logical_height_ = height;
-		return HandleLogicalWindowSizeChange();
+		return handle_logical_window_size_change();
 	}
 
-	void WindowManager::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void window_manager::set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
 		clear_color_ = Color(r,g,b,a);
-		HandleSetClearColor();
+		handle_set_clear_color();
 	}
 
-	void WindowManager::SetClearColor(float r, float g, float b, float a)
+	void window_manager::set_clear_color(float r, float g, float b, float a)
 	{
 		clear_color_ = Color(r,g,b,a);
-		HandleSetClearColor();
+		handle_set_clear_color();
 	}
 
-	WindowManagerPtr WindowManager::Factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)
+	window_manager_ptr window_manager::factory(const std::string& title, const std::string& wnd_hint, const std::string& rend_hint)
 	{
 		// We really only support one sub-class of the window manager
 		// at the moment, so we just return it. We could use hint in the
 		// future if we had more.
-		return WindowManagerPtr(new SDLWindowManager(title, rend_hint));
+		return window_manager_ptr(new sdl_window_manager(title, rend_hint));
 	}
 }

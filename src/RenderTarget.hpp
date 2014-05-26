@@ -25,11 +25,11 @@
 
 #include <memory>
 #include "variant.hpp"
-#include "Blittable.hpp"
+#include "blittable.hpp"
 
 namespace KRE
 {
-	class RenderTarget : public Blittable
+	class RenderTarget : public blittable
 	{
 	public:
 		explicit RenderTarget(unsigned width, unsigned height, 

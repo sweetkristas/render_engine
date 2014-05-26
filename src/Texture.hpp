@@ -26,7 +26,7 @@
 #include <memory>
 #include <string>
 #include "Color.hpp"
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "surface.hpp"
 #include "variant.hpp"
 

@@ -22,19 +22,19 @@
 */
 
 #include "asserts.hpp"
-#include "ParticleSystem.hpp"
-#include "ParticleSystemAffectors.hpp"
-#include "ParticleSystemEmitters.hpp"
-#include "ParticleSystemParameters.hpp"
+#include "particle_system.hpp"
+#include "particle_system_affectors.hpp"
+#include "particle_system_emitters.hpp"
+#include "particle_system_parameters.hpp"
 
 namespace KRE
 {
-	namespace Particles
+	namespace particles
 	{
 		class time_color_affector : public affector
 		{
 		public:
-			explicit time_color_affector(ParticleSystemContainer* parent, const variant& node);
+			explicit time_color_affector(particle_system_container* parent, const variant& node);
 			virtual ~time_color_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -58,7 +58,7 @@ namespace KRE
 		class jet_affector : public affector
 		{
 		public:
-			explicit jet_affector(ParticleSystemContainer* parent, const variant& node);
+			explicit jet_affector(particle_system_container* parent, const variant& node);
 			virtual ~jet_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -88,7 +88,7 @@ namespace KRE
 		class scale_affector : public affector
 		{
 		public:
-			explicit scale_affector(ParticleSystemContainer* parent, const variant& node);
+			explicit scale_affector(particle_system_container* parent, const variant& node);
 			virtual ~scale_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -108,7 +108,7 @@ namespace KRE
 		class vortex_affector : public affector
 		{
 		public:
-			explicit vortex_affector(ParticleSystemContainer* parent, const variant& node);
+			explicit vortex_affector(particle_system_container* parent, const variant& node);
 			virtual ~vortex_affector() {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -124,7 +124,7 @@ namespace KRE
 		class gravity_affector : public affector
 		{
 		public:
-			explicit gravity_affector(ParticleSystemContainer* parent, const variant& node);
+			explicit gravity_affector(particle_system_container* parent, const variant& node);
 			virtual ~gravity_affector()  {}
 		protected:
 			virtual void internal_apply(particle& p, float t);
@@ -139,14 +139,14 @@ namespace KRE
 		class particle_follower_affector : public affector
 		{
 		public:
-			explicit particle_follower_affector(ParticleSystemContainer* parent, const variant& node)
+			explicit particle_follower_affector(particle_system_container* parent, const variant& node)
 				: affector(parent, node),
 				min_distance_(node["min_distance"].as_float(1.0f)),
 				max_distance_(node["max_distance"].as_float(std::numeric_limits<float>::max())) {
 			}
 			virtual ~particle_follower_affector() {}
 		protected:
-			virtual void handle_process(float t) {
+			virtual void handle_process(double t) {
 				std::vector<particle>& particles = get_technique()->active_particles();
 				// keeps particles following wihin [min_distance, max_distance]
 				if(particles.size() < 1) {
@@ -177,7 +177,7 @@ namespace KRE
 		class align_affector : public affector
 		{
 		public:
-			explicit align_affector(ParticleSystemContainer* parent, const variant& node) 
+			explicit align_affector(particle_system_container* parent, const variant& node) 
 				: affector(parent, node), resize_(node["resize"].as_bool(false)) {
 			}
 			virtual ~align_affector() {}
@@ -194,7 +194,7 @@ namespace KRE
 				p.current.orientation.y = distance.y;
 				p.current.orientation.z = distance.z;
 			}
-			virtual void handle_process(float t) {
+			virtual void handle_process(double t) {
 				std::vector<particle>& particles = get_technique()->active_particles();
 				if(particles.size() < 1) {
 					return;
@@ -217,7 +217,7 @@ namespace KRE
 		class randomiser_affector : public affector
 		{
 		public:
-			explicit randomiser_affector(ParticleSystemContainer* parent, const variant& node) 
+			explicit randomiser_affector(particle_system_container* parent, const variant& node) 
 				: affector(parent, node), max_deviation_(0.0f), 
 				time_step_(float(node["time_step"].as_float(0))), 
 				random_direction_(node["use_direction"].as_bool(true)) {
@@ -265,7 +265,7 @@ namespace KRE
 					}
 				}
 			}
-			virtual void handle_process(float t) {
+			virtual void handle_process(double t) {
 				handle_apply(get_technique()->active_particles(), t);
 				handle_apply(get_technique()->active_emitters(), t);
 			}
@@ -284,7 +284,7 @@ namespace KRE
 		class sine_force_affector : public affector
 		{
 		public:
-			explicit sine_force_affector(ParticleSystemContainer* parent, const variant& node) 
+			explicit sine_force_affector(particle_system_container* parent, const variant& node) 
 				: affector(parent, node),
 				min_frequency_(1.0f),
 				max_frequency_(1.0f),
@@ -320,10 +320,10 @@ namespace KRE
 			}
 			virtual ~sine_force_affector() {}
 		protected:
-			virtual void handle_process(float t) {
+			virtual void handle_process(double t) {
 				angle_ += /*2.0f * M_PI **/ frequency_ * t;
 				float sine_value = sin(angle_);
-				scale_vector_ = force_vector_ * t * sine_value;
+				scale_vector_ = force_vector_ * float(t) * sine_value;
 				//std::cerr << "XXX: angle: " << angle_ << " scale_vec: " << scale_vector_ << std::endl;
 				if(angle_ > float(M_PI*2.0f)) {
 					angle_ -= float(M_PI*2.0f);
@@ -358,7 +358,7 @@ namespace KRE
 			sine_force_affector();
 		};
 
-		affector::affector(ParticleSystemContainer* parent, const variant& node)
+		affector::affector(particle_system_container* parent, const variant& node)
 			: emit_object(parent, node), enabled_(node["enabled"].as_bool(true)), 
 			mass_(float(node["mass_affector"].as_float(1.0f))),
 			position_(0.0f), scale_(1.0f)
@@ -379,7 +379,7 @@ namespace KRE
 		{
 		}
 
-		void affector::handle_process(float t) 
+		void affector::handle_process(double t) 
 		{
 			ASSERT_LOG(technique_ != NULL, "PSYSTEM2: technique_ is null");
 			for(auto& e : technique_->active_emitters()) {
@@ -401,7 +401,7 @@ namespace KRE
 			return std::find(excluded_emitters_.begin(), excluded_emitters_.end(), name) != excluded_emitters_.end();
 		}
 
-		affector* affector::factory(ParticleSystemContainer* parent, const variant& node)
+		affector* affector::factory(particle_system_container* parent, const variant& node)
 		{
 			ASSERT_LOG(node.has_key("type"), "PSYSTEM2: affector must have 'type' attribute");
 			const std::string& ntype = node["type"].as_string();
@@ -429,7 +429,7 @@ namespace KRE
 			return NULL;
 		}
 
-		time_color_affector::time_color_affector(ParticleSystemContainer* parent, const variant& node)
+		time_color_affector::time_color_affector(particle_system_container* parent, const variant& node)
 			: affector(parent, node), operation_(time_color_affector::COLOR_OP_SET)
 		{
 			if(node.has_key("colour_operation")) {
@@ -530,7 +530,7 @@ namespace KRE
 			return --it;
 		}
 
-		jet_affector::jet_affector(ParticleSystemContainer* parent, const variant& node)
+		jet_affector::jet_affector(particle_system_container* parent, const variant& node)
 			: affector(parent, node)
 		{
 			if(node.has_key("acceleration")) {
@@ -550,7 +550,7 @@ namespace KRE
 			}
 		}
 
-		vortex_affector::vortex_affector(ParticleSystemContainer* parent, const variant& node)
+		vortex_affector::vortex_affector(particle_system_container* parent, const variant& node)
 			: affector(parent, node), rotation_axis_(1.0f, 0.0f, 0.0f, 0.0f)
 		{
 			if(node.has_key("rotation_speed")) {
@@ -572,7 +572,7 @@ namespace KRE
 			p.current.direction = rotation_axis_ * p.current.direction;
 		}
 
-		gravity_affector::gravity_affector(ParticleSystemContainer* parent, const variant& node)
+		gravity_affector::gravity_affector(particle_system_container* parent, const variant& node)
 			: affector(parent, node), gravity_(float(node["gravity"].as_float(1.0f)))
 		{
 		}
@@ -587,7 +587,7 @@ namespace KRE
 			}
 		}
 
-		scale_affector::scale_affector(ParticleSystemContainer* parent, const variant& node)
+		scale_affector::scale_affector(particle_system_container* parent, const variant& node)
 			: affector(parent, node), since_system_start_(node["since_system_start"].as_bool(false))
 		{
 			if(node.has_key("scale_x")) {

@@ -21,54 +21,21 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "VGraph.hpp"
-#include "VGraphCairo.hpp"
-#include "VGraphOpenGL.hpp"
-#include "VGraphOpenGLFixed.hpp"
+#pragma once
+
+#include <memory>
 
 namespace KRE
 {
-	namespace Vector
+	namespace vector
 	{
-		Context::Context()
-			: scene_object("vector::context")
-		{
-		}
+		class pattern;
+		typedef std::shared_ptr<pattern> pattern_ptr;
 
-		Context::Context(int width, int height)
-			: scene_object("vector::context"), 
-			width_(width), height_(height)
-			
-		{
-		}
+		class path;
+		typedef std::shared_ptr<path> path_ptr;
 
-		Context::~Context()
-		{
-		}
-
-		ContextPtr Context::CreateInstance(const std::string& hint, int width, int height)
-		{
-			if(hint == "cairo") {
-				return ContextPtr(new CairoContext(width, height));
-			} else if(hint == "opengl") {
-				// XXX
-				// return ContextPtr(new OpenGLContext(width, height));
-			} else if(hint == "opengl-fixed") {
-				// XXX
-				// return ContextPtr(new OpenGLFixedContext(width, height));
-			} else {
-				ASSERT_LOG(false, "Unrecognised hint to create vector graphics instance: " << hint);
-			}
-			return ContextPtr();
-		}
-
-		Path::Path()
-		{
-		}
-
-		Path::~Path()
-		{
-		}
+		class context;
+		typedef std::shared_ptr<context> context_ptr;
 	}
 }

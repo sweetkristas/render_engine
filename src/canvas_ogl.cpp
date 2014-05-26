@@ -23,7 +23,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "CanvasOGL.hpp"
+#include "canvas_ogl.hpp"
 #include "ShadersOpenGL.hpp"
 #include "TextureOpenGL.hpp"
 
@@ -31,30 +31,30 @@ namespace KRE
 {
 	namespace
 	{
-		CanvasPtr& get_instance()
+		canvas_ptr& get_canvas_instance()
 		{
-			static CanvasPtr res = CanvasPtr(new CanvasOGL());
+			static canvas_ptr res = canvas_ptr(new canvas_ogl());
 			return res;
 		}
 	}
 
-	CanvasOGL::CanvasOGL()
+	canvas_ogl::canvas_ogl()
 	{
-		HandleDimensionsChanged();
+		handle_dimensions_changed();
 	}
 
-	CanvasOGL::~CanvasOGL()
+	canvas_ogl::~canvas_ogl()
 	{
 	}
 
-	void CanvasOGL::HandleDimensionsChanged()
+	void canvas_ogl::handle_dimensions_changed()
 	{
-		mvp_ = glm::ortho(0.0f, float(Width()), float(Height()), 0.0f);
+		mvp_ = glm::ortho(0.0f, float(width()), float(height()), 0.0f);
 	}
 
-	void CanvasOGL::BlitTexture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color)
+	void canvas_ogl::blit_texture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color)
 	{
-		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
+		auto texture = std::static_pointer_cast<OpenGLTexture>(tex);
 		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
 
 		const float tx1 = float(src.x()) / texture->Width();
@@ -100,7 +100,7 @@ namespace KRE
 		glDisableVertexAttribArray(shader->GetVertexAttribute()->second.location);
 	}
 
-	void CanvasOGL::BlitTexture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color)
+	void canvas_ogl::blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color)
 	{
 		const float vx1 = float(dst.x());
 		const float vy1 = float(dst.y());
@@ -122,7 +122,7 @@ namespace KRE
 		shader->SetUniformValue(shader->GetTexMapUniform(), 0);
 
 		for(auto it = mat->GetTexture().begin(); it != mat->GetTexture().end(); ++it) {
-			auto texture = std::dynamic_pointer_cast<OpenGLTexture>(*it);
+			auto texture = std::static_pointer_cast<OpenGLTexture>(*it);
 			ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
 
 			auto uv_coords = mat->GetNormalisedTextureCoords(it);
@@ -142,8 +142,8 @@ namespace KRE
 		}
 	}
 
-	CanvasPtr CanvasOGL::GetInstance()
+	canvas_ptr canvas_ogl::get_instance()
 	{
-		return get_instance();
+		return get_canvas_instance();
 	}
 }

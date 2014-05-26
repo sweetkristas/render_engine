@@ -43,14 +43,14 @@ namespace KRE
 		void SetClearColor(float r, float g, float b, float a) override;
 		void SetClearColor(const Color& color) override;
 
-		void Render(const RenderablePtr& r) override;
-
-		CanvasPtr GetCanvas() override;
+		void Render(const renderable_ptr& r) override;
 
 		void Init(size_t width, size_t height) override;
 		void PrintDeviceInfo() override;
 
 		virtual DisplayDeviceDataPtr CreateDisplayDeviceData(const DisplayDeviceDef& def) override;
+
+		canvas_ptr DisplayDeviceOpenGL::GetCanvas() override;
 
 	private:
 		DisplayDeviceOpenGL(const DisplayDeviceOpenGL&);
