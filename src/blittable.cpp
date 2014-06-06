@@ -22,7 +22,7 @@
 */
 
 #include "blittable.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "Material.hpp"
 
 namespace KRE
@@ -35,7 +35,7 @@ namespace KRE
 		init();
 	}
 
-	blittable::blittable(const TexturePtr& tex)
+	blittable::blittable(const texture_ptr& tex)
 		: scene_object("blittable"),
 		centre_(Centre::MIDDLE),
 		centre_offset_()
@@ -59,24 +59,24 @@ namespace KRE
 
 	void blittable::init()
 	{
-		auto as = DisplayDevice::CreateAttributeSet();
-		attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
-		attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
-		attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE,  2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
-		as->AddAttribute(AttributeBasePtr(attribs_));
-		as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+		auto as = display_device::create_attribute_set();
+		attribs_.reset(new attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
+		attribs_->set_attr_desc(attribute_desc(attribute_desc::Type::POSITION, 2, attribute_desc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
+		attribs_->set_attr_desc(attribute_desc(attribute_desc::Type::TEXTURE,  2, attribute_desc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
+		as->add_attribute(attribute_base_ptr(attribs_));
+		as->set_draw_mode(attribute_set::DrawMode::TRIANGLE_STRIP);
 		
 		add_attribute_set(as);
 	}
 
-	void blittable::set_texture(const TexturePtr& tex)
+	void blittable::set_texture(const texture_ptr& tex)
 	{
-		set_material(DisplayDevice::CreateMaterial("blittable", std::vector<TexturePtr>(1,tex)));
+		set_material(display_device::create_material("blittable", std::vector<texture_ptr>(1,tex)));
 	}
 
-	DisplayDeviceDef blittable::Attach(const DisplayDevicePtr& dd) 
+	display_device_def blittable::attach(const display_device_ptr& dd) 
 	{
-		DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
+		display_device_def def(get_attribute_set()/*, get_uniform_set()*/);
 		return def;
 	}
 
@@ -114,15 +114,15 @@ namespace KRE
 		const float vx2 = draw_rect_.x2() + offs_x;
 		const float vy2 = draw_rect_.y2() + offs_y;
 
-		rectf r = material()->GetNormalisedTextureCoords(material()->GetTexture().begin());
+		rectf r = material()->GetNormalisedtextureCoords(material()->Gettexture().begin());
 
 		std::vector<vertex_texcoord> vertices;
 		vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
 		vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
 		vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
 		vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
-		get_attribute_set().back()->SetCount(vertices.size());
-		attribs_->Update(&vertices);
+		get_attribute_set().back()->set_count(vertices.size());
+		attribs_->update(&vertices);
 	}
 
 	void blittable::set_centre(Centre c)

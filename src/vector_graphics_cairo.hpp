@@ -48,7 +48,7 @@ namespace KRE
 
 			virtual void set_source_color(const double r, const double g, const double b, const double a=1.0) override;
 			virtual void set_source_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a=255) override;
-			virtual void set_source_color(const double r, const Color& color) override;
+			virtual void set_source_color(const double r, const color& color) override;
 			virtual void set_source(const pattern_ptr& p) override;
 			virtual pattern_ptr get_source() const override;
 
@@ -101,10 +101,10 @@ namespace KRE
 		
 			virtual void pre_render() override;
 
-			virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+			virtual display_device_def attach(const display_device_ptr& dd);
 		protected:
 			cairo_t* GetContext() { return context_; }
-			cairo_surface_t* Getsurface() { return surface_; }
+			cairo_surface_t* get_surface() { return surface_; }
 		private:
 			cairo_t* context_;
 			cairo_surface_t* surface_;
@@ -112,8 +112,8 @@ namespace KRE
 			std::vector<path_ptr> path_list_;
 
 			rectf draw_rect_;
-			TexturePtr tex_;
-			std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
+			texture_ptr tex_;
+			std::shared_ptr<attribute<vertex_texcoord>> attribs_;
 
 			friend class CairoPath;
 		};

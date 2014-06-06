@@ -24,13 +24,13 @@
 #pragma once
 
 #include <vector>
-#include "AttributeSet.hpp"
-#include "RenderTarget.hpp"
+#include "attribute_set.hpp"
+#include "renderTarget.hpp"
 #include "variant.hpp"
 
 namespace KRE
 {
-	class FboOpenGL : public RenderTarget
+	class FboOpenGL : public renderTarget
 	{
 	public:
 		explicit FboOpenGL(unsigned width, unsigned height, 
@@ -43,11 +43,11 @@ namespace KRE
 		virtual ~FboOpenGL();
 		virtual void pre_render() override;
 	private:
-		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
+		virtual display_device_def attach(const display_device_ptr& dd) override;
 		void HandleCreate() override;
 		void HandleApply() override;
 		void HandleUnapply() override;
-		void HandleClear() override;
+		void Handleclear() override;
 		void GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format);
 		bool uses_ext_;
 		std::shared_ptr<GLuint> depth_stencil_buffer_id_;

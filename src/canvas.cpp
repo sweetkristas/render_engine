@@ -22,7 +22,7 @@
 */
 
 #include "canvas.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 
 namespace KRE
 {
@@ -45,6 +45,6 @@ namespace KRE
 
 	canvas_ptr canvas::get_instance()
 	{
-		return DisplayDevice::GetCurrent()->GetCanvas();
+		return display_device::get_current()->get_canvas();
 	}
 }

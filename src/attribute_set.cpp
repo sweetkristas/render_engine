@@ -21,12 +21,12 @@
 	   distribution.
 */
 
-#include "AttributeSet.hpp"
-#include "DisplayDevice.hpp"
+#include "attribute_set.hpp"
+#include "display_device.hpp"
 
 namespace KRE
 {
-	AttributeSet::AttributeSet(bool indexed, bool instanced)
+	attribute_set::attribute_set(bool indexed, bool instanced)
 		: draw_mode_(DrawMode::TRIANGLES),
 		indexed_draw_(indexed),
 		instanced_draw_(instanced),
@@ -37,69 +37,69 @@ namespace KRE
 	{
 	}
 
-	AttributeSet::~AttributeSet()
+	attribute_set::~attribute_set()
 	{
 	}
 
-	void AttributeSet::SetDrawMode(DrawMode dm)
+	void attribute_set::set_draw_mode(DrawMode dm)
 	{
 		draw_mode_ = dm;
 	}
 
-	void AttributeSet::UpdateIndicies(const std::vector<uint8_t>& value) 
+	void attribute_set::update_indicies(const std::vector<uint8_t>& value) 
 	{
 		index_type_ = IndexType::INDEX_UCHAR;
 		index8_ = value;
 		count_ = index8_.size();
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::UpdateIndicies(const std::vector<uint16_t>& value) 
+	void attribute_set::update_indicies(const std::vector<uint16_t>& value) 
 	{
 		index_type_ = IndexType::INDEX_USHORT;
 		index16_ = value;
 		count_ = index16_.size();
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::UpdateIndicies(const std::vector<uint32_t>& value) 
+	void attribute_set::update_indicies(const std::vector<uint32_t>& value) 
 	{
 		index_type_ = IndexType::INDEX_ULONG;
 		index32_ = value;
 		count_ = index32_.size();
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::UpdateIndicies(std::vector<uint8_t>* value)
+	void attribute_set::update_indicies(std::vector<uint8_t>* value)
 	{
 		index_type_ = IndexType::INDEX_UCHAR;
 		index8_.swap(*value);
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::UpdateIndicies(std::vector<uint16_t>* value)
+	void attribute_set::update_indicies(std::vector<uint16_t>* value)
 	{
 		index_type_ = IndexType::INDEX_USHORT;
 		index16_.swap(*value);
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::UpdateIndicies(std::vector<uint32_t>* value)
+	void attribute_set::update_indicies(std::vector<uint32_t>* value)
 	{
 		index_type_ = IndexType::INDEX_ULONG;
 		index32_.swap(*value);
-		HandleIndexUpdate();
+		handle_index_update();
 	}
 
-	void AttributeSet::AddAttribute(const AttributeBasePtr& attrib) 
+	void attribute_set::add_attribute(const attribute_base_ptr& attrib) 
 	{
 		attributes_.emplace_back(attrib);
-		auto hwbuffer = DisplayDevice::CreateAttributeBuffer(IsHardwareBacked(), attrib.get());
-		attrib->SetDeviceBufferData(hwbuffer);
+		auto hwbuffer = display_device::create_attribute_buffer(is_hardware_backed(), attrib.get());
+		attrib->set_device_buffer_data(hwbuffer);
 	}
 
 
-	AttributeDesc::AttributeDesc(Type type, 
+	attribute_desc::attribute_desc(Type type, 
 		unsigned num_elements,
 		VariableType var_type,
 		bool normalise,
@@ -124,7 +124,7 @@ namespace KRE
 		}
 	}
 
-	AttributeDesc::AttributeDesc(const std::string& type_name, 
+	attribute_desc::attribute_desc(const std::string& type_name, 
 		unsigned num_elements,
 		VariableType var_type,
 		bool normalise,

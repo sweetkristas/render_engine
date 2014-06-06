@@ -25,9 +25,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "asserts.hpp"
-#include "ShadersOpenGL.hpp"
+#include "shaders_ogl.hpp"
 
-namespace Shader
+namespace shader
 {
 	namespace
 	{
@@ -177,73 +177,73 @@ namespace Shader
 			{"color", "a_color"},
 		};
 
-		typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
+		typedef std::map<std::string, shader_program_ptr> shader_factory_map;
 		shader_factory_map& get_shader_factory()
 		{
 			static shader_factory_map res;
 			if(res.empty()) {
 				// XXX this is ugly and prone to introducing bugs.
-				auto spp = ShaderProgramPtr(new ShaderProgram("default", 
-					ShaderDef("default_vs", default_vs), 
-					ShaderDef("default_fs", default_fs)));
+				auto spp = shader_program_ptr(new shader_program("default", 
+					shader_def("default_vs", default_vs), 
+					shader_def("default_fs", default_fs)));
 				res["default"] = spp;
 				for(auto& dum : default_uniform_mapping) {
-					spp->SetAlternateUniformName(dum.name, dum.alt_name);
+					spp->set_alternate_uniform_name(dum.name, dum.alt_name);
 				}
 				for(auto& dam : default_attribue_mapping) {
-					spp->SetAlternateAttributeName(dam.name, dam.alt_name);
+					spp->set_alternate_attribute_name(dam.name, dam.alt_name);
 				}
-				spp->SetActives();
+				spp->set_actives();
 
-				spp = ShaderProgramPtr(new ShaderProgram("simple", 
-					ShaderDef("simple_vs", simple_vs), 
-					ShaderDef("simple_fs", simple_fs)));
+				spp = shader_program_ptr(new shader_program("simple", 
+					shader_def("simple_vs", simple_vs), 
+					shader_def("simple_fs", simple_fs)));
 				res["simple"] = spp;
 				for(auto& sum : simple_uniform_mapping) {
-					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+					spp->set_alternate_uniform_name(sum.name, sum.alt_name);
 				}
 				for(auto& sam : simple_attribue_mapping) {
-					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+					spp->set_alternate_attribute_name(sam.name, sam.alt_name);
 				}
-				spp->SetActives();
+				spp->set_actives();
 
-				spp = ShaderProgramPtr(new ShaderProgram("attr_color_shader", 
-					ShaderDef("attr_color_vs", attr_color_vs), 
-					ShaderDef("attr_color_fs", attr_color_fs)));
+				spp = shader_program_ptr(new shader_program("attr_color_shader", 
+					shader_def("attr_color_vs", attr_color_vs), 
+					shader_def("attr_color_fs", attr_color_fs)));
 				res["attr_color_shader"] = spp;
 				for(auto& sum : attr_color_uniform_mapping) {
-					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+					spp->set_alternate_uniform_name(sum.name, sum.alt_name);
 				}
 				for(auto& sam : attr_color_attribue_mapping) {
-					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+					spp->set_alternate_attribute_name(sam.name, sam.alt_name);
 				}
-				spp->SetActives();
+				spp->set_actives();
 
-				spp = ShaderProgramPtr(new ShaderProgram("vtc_shader", 
-					ShaderDef("vtc_vs", vtc_vs), 
-					ShaderDef("vtc_fs", vtc_fs)));
+				spp = shader_program_ptr(new shader_program("vtc_shader", 
+					shader_def("vtc_vs", vtc_vs), 
+					shader_def("vtc_fs", vtc_fs)));
 				res["vtc_shader"] = spp;
 				for(auto& sum : vtc_uniform_mapping) {
-					spp->SetAlternateUniformName(sum.name, sum.alt_name);
+					spp->set_alternate_uniform_name(sum.name, sum.alt_name);
 				}
 				for(auto& sam : vtc_attribue_mapping) {
-					spp->SetAlternateAttributeName(sam.name, sam.alt_name);
+					spp->set_alternate_attribute_name(sam.name, sam.alt_name);
 				}
-				spp->SetActives();
+				spp->set_actives();
 				// XXX load some default shaders here.
 			}
 			return res;
 		}
 	}
 
-	Shader::Shader(GLenum type, const std::string& name, const std::string& code)
+	shader::shader(GLenum type, const std::string& name, const std::string& code)
 		: type_(type), shader_(0), name_(name)
 	{
-		bool compiled_ok = Compile(code);
+		bool compiled_ok = compile(code);
 		ASSERT_LOG(compiled_ok == true, "Error compiling shader for " << name_);
 	}
 
-	bool Shader::Compile(const std::string& code)
+	bool shader::compile(const std::string& code)
 	{
 		GLint compiled;
 		if(shader_) {
@@ -278,13 +278,13 @@ namespace Shader
 		return true;
 	}
 
-	ShaderProgram::ShaderProgram(const std::string& name, const ShaderDef& vs, const ShaderDef& fs)
+	shader_program::shader_program(const std::string& name, const shader_def& vs, const shader_def& fs)
 		: object_(0)
 	{
-		Init(name, vs, fs);
+		init(name, vs, fs);
 	}
 
-	ShaderProgram::~ShaderProgram()
+	shader_program::~shader_program()
 	{
 		if(object_ != 0) {
 			glDeleteShader(object_);
@@ -292,26 +292,26 @@ namespace Shader
 		}
 	}
 
-	void ShaderProgram::Init(const std::string& name, const ShaderDef& vs, const ShaderDef& fs)
+	void shader_program::init(const std::string& name, const shader_def& vs, const shader_def& fs)
 	{
 		name_ = name;
-		vs_.reset(new Shader(GL_VERTEX_SHADER, vs.first, vs.second));
-		fs_.reset(new Shader(GL_FRAGMENT_SHADER, fs.first, fs.second));
-		bool linked_ok = Link();
+		vs_.reset(new shader(GL_VERTEX_SHADER, vs.first, vs.second));
+		fs_.reset(new shader(GL_FRAGMENT_SHADER, fs.first, fs.second));
+		bool linked_ok = link();
 		ASSERT_LOG(linked_ok == true, "Error linking program: " << name_);
 	}
 
-	GLint ShaderProgram::GetAttributeOrDie(const std::string& attr) const
+	GLint shader_program::get_attribute_or_die(const std::string& attr) const
 	{
-		return GetAttributeIterator(attr)->second.location;
+		return get_attribute_iterator(attr)->second.location;
 	}
 
-	GLint ShaderProgram::GetUniformOrDie(const std::string& attr) const
+	GLint shader_program::get_uniform_or_die(const std::string& attr) const
 	{
-		return GetUniformIterator(attr)->second.location;
+		return get_uniform_iterator(attr)->second.location;
 	}
 
-	GLint ShaderProgram::GetAttribute(const std::string& attr) const
+	GLint shader_program::get_attribute(const std::string& attr) const
 	{
 		auto it = attribs_.find(attr);
 		if(it != attribs_.end()) {
@@ -319,18 +319,18 @@ namespace Shader
 		}
 		auto alt_name_it = attribute_alternate_name_map_.find(attr);
 		if(alt_name_it == attribute_alternate_name_map_.end()) {
-			LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
+			LOG_WARN("attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			return GLint(-1);
 		}
 		it = attribs_.find(alt_name_it->second);
 		if(it == attribs_.end()) {
-			LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
+			LOG_WARN("attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 			return GLint(-1);
 		}
 		return it->second.location;
 	}
 
-	GLint ShaderProgram::GetUniform(const std::string& attr) const
+	GLint shader_program::get_uniform(const std::string& attr) const
 	{
 		auto it = uniforms_.find(attr);
 		if(it != uniforms_.end()) {
@@ -349,21 +349,21 @@ namespace Shader
 		return it->second.location;
 	}
 
-	ConstActivesMapIterator ShaderProgram::GetAttributeIterator(const std::string& attr) const
+	const_actives_map_iterator shader_program::get_attribute_iterator(const std::string& attr) const
 	{
 		auto it = attribs_.find(attr);
 		if(it == attribs_.end()) {
 			auto alt_name_it = attribute_alternate_name_map_.find(attr);
 			ASSERT_LOG(alt_name_it != attribute_alternate_name_map_.end(), 
-				"Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
+				"attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 			it = attribs_.find(alt_name_it->second);
 			ASSERT_LOG(it != attribs_.end(), 
-				"Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
+				"attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 		}
 		return it;
 	}
 
-	ConstActivesMapIterator ShaderProgram::GetUniformIterator(const std::string& attr) const
+	const_actives_map_iterator shader_program::get_uniform_iterator(const std::string& attr) const
 	{
 		auto it = uniforms_.find(attr);
 		if(it == uniforms_.end()) {
@@ -377,7 +377,7 @@ namespace Shader
 		return it;
 	}
 
-	bool ShaderProgram::Link()
+	bool shader_program::link()
 	{
 		if(object_) {
 			glDeleteProgram(object_);
@@ -385,8 +385,8 @@ namespace Shader
 		}
 		object_ = glCreateProgram();
 		ASSERT_LOG(object_ != 0, "Unable to create program object.");
-		glAttachShader(object_, vs_->Get());
-		glAttachShader(object_, fs_->Get());
+		glAttachShader(object_, vs_->get());
+		glAttachShader(object_, fs_->get());
 		glLinkProgram(object_);
 		GLint linked = 0;
 		glGetProgramiv(object_, GL_LINK_STATUS, &linked);
@@ -404,10 +404,10 @@ namespace Shader
 			object_ = 0;
 			return false;
 		}
-		return QueryUniforms() && QueryAttributes();
+		return query_uniforms() && query_attributes();
 	}
 
-	bool ShaderProgram::QueryUniforms()
+	bool shader_program::query_uniforms()
 	{
 		GLint active_uniforms;
 		glGetProgramiv(object_, GL_ACTIVE_UNIFORMS, &active_uniforms);
@@ -416,7 +416,7 @@ namespace Shader
 		std::vector<char> name;
 		name.resize(uniform_max_len+1);
 		for(int i = 0; i < active_uniforms; i++) {
-			Actives u;
+			actives u;
 			GLsizei size;
 			glGetActiveUniform(object_, i, name.size(), &size, &u.num_elements, &u.type, &name[0]);
 			u.name = std::string(&name[0], &name[size]);
@@ -427,7 +427,7 @@ namespace Shader
 		return true;
 	}
 
-	bool ShaderProgram::QueryAttributes()
+	bool shader_program::query_attributes()
 	{
 		GLint active_attribs;
 		glGetProgramiv(object_, GL_ACTIVE_ATTRIBUTES, &active_attribs);
@@ -436,7 +436,7 @@ namespace Shader
 		std::vector<char> name;
 		name.resize(attributes_max_len+1);
 		for(int i = 0; i < active_attribs; i++) {
-			Actives a;
+			actives a;
 			GLsizei size;
 			glGetActiveAttrib(object_, i, name.size(), &size, &a.num_elements, &a.type, &name[0]);
 			a.name = std::string(&name[0], &name[size]);
@@ -447,14 +447,14 @@ namespace Shader
 		return true;
 	}
 
-	void ShaderProgram::MakeActive()
+	void shader_program::make_active()
 	{
 		glUseProgram(object_);
 	}
 
-	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const void* value)
+	void shader_program::set_uniform_value(const_actives_map_iterator it, const void* value)
 	{
-		const Actives& u = it->second;
+		const actives& u = it->second;
 		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
 		switch(u.type) {
 		case GL_INT:
@@ -509,9 +509,9 @@ namespace Shader
 		}
 	}
 
-	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint value)
+	void shader_program::set_uniform_value(const_actives_map_iterator it, const GLint value)
 	{
-		const Actives& u = it->second;
+		const actives& u = it->second;
 		switch(u.type) {
 		case GL_INT:
 		case GL_BOOL:
@@ -524,9 +524,9 @@ namespace Shader
 		}
 	}
 
-	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLfloat value)
+	void shader_program::set_uniform_value(const_actives_map_iterator it, const GLfloat value)
 	{
-		const Actives& u = it->second;
+		const actives& u = it->second;
 		switch(u.type) {
 		case GL_FLOAT: {
 			glUniform1f(u.location, value);
@@ -537,9 +537,9 @@ namespace Shader
 		}	
 	}
 
-	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLint* value)
+	void shader_program::set_uniform_value(const_actives_map_iterator it, const GLint* value)
 	{
-		const Actives& u = it->second;
+		const actives& u = it->second;
 		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
 		switch(u.type) {
 		case GL_INT:
@@ -565,9 +565,9 @@ namespace Shader
 		}
 	}
 
-	void ShaderProgram::SetUniformValue(ConstActivesMapIterator it, const GLfloat* value)
+	void shader_program::set_uniform_value(const_actives_map_iterator it, const GLfloat* value)
 	{
-		const Actives& u = it->second;
+		const actives& u = it->second;
 		ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
 		switch(u.type) {
 		case GL_FLOAT: {
@@ -603,66 +603,66 @@ namespace Shader
 		}	
 	}
 
-	void ShaderProgram::SetAlternateUniformName(const std::string& name, const std::string& alt_name)
+	void shader_program::set_alternate_uniform_name(const std::string& name, const std::string& alt_name)
 	{
 		ASSERT_LOG(uniform_alternate_name_map_.find(alt_name) == uniform_alternate_name_map_.end(),
 			"Trying to replace alternative uniform name: " << alt_name << " " << name);
 		uniform_alternate_name_map_[alt_name] = name;
 	}
 
-	void ShaderProgram::SetAlternateAttributeName(const std::string& name, const std::string& alt_name)
+	void shader_program::set_alternate_attribute_name(const std::string& name, const std::string& alt_name)
 	{
 		ASSERT_LOG(attribute_alternate_name_map_.find(alt_name) == attribute_alternate_name_map_.end(),
 			"Trying to replace alternative attribute name: " << alt_name << " " << name);
 		attribute_alternate_name_map_[alt_name] = name;
 	}
 
-	void ShaderProgram::SetActives()
+	void shader_program::set_actives()
 	{
 		glUseProgram(object_);
 		// Cache some frequently used uniforms.
-		if(GetUniform("mvp_matrix") != -1) {
-			u_mvp_ = GetUniformIterator("mvp_matrix");
+		if(get_uniform("mvp_matrix") != -1) {
+			u_mvp_ = get_uniform_iterator("mvp_matrix");
 		} else {
 			u_mvp_ = uniforms_.end();
 		}
-		if(GetUniform("color") != -1) {
-			u_color_ = GetUniformIterator("color");
-			SetUniformValue(u_color_, glm::value_ptr(glm::vec4(1.0f)));
+		if(get_uniform("color") != -1) {
+			u_color_ = get_uniform_iterator("color");
+			set_uniform_value(u_color_, glm::value_ptr(glm::vec4(1.0f)));
 		} else {
 			u_color_ = uniforms_.end();
 		}
-		if(GetUniform("tex_map") != -1) {
-			u_tex_ = GetUniformIterator("tex_map");
+		if(get_uniform("tex_map") != -1) {
+			u_tex_ = get_uniform_iterator("tex_map");
 		} else {
 			u_tex_ = uniforms_.end();
 		}
-		if(GetAttribute("position") != -1) {
-			a_vertex_ = GetAttributeIterator("position");
+		if(get_attribute("position") != -1) {
+			a_vertex_ = get_attribute_iterator("position");
 		} else {
 			a_vertex_ = attribs_.end();
 		}
-		if(GetAttribute("texcoord") != -1) {
-			a_texcoord_ = GetAttributeIterator("texcoord");
+		if(get_attribute("texcoord") != -1) {
+			a_texcoord_ = get_attribute_iterator("texcoord");
 		} else {
 			a_texcoord_ = attribs_.end();
 		}
-		if(GetAttribute("a_color") != -1) {
-			a_color_ = GetAttributeIterator("a_color");
+		if(get_attribute("a_color") != -1) {
+			a_color_ = get_attribute_iterator("a_color");
 		} else {
 			a_color_ = attribs_.end();
 		}
 	}
 
-	ShaderProgramPtr ShaderProgram::Factory(const std::string& name)
+	shader_program_ptr shader_program::factory(const std::string& name)
 	{
 		auto& sf = get_shader_factory();
 		auto it = sf.find(name);
-		ASSERT_LOG(it != sf.end(), "Shader '" << name << "' not found in the list of shaders.");
+		ASSERT_LOG(it != sf.end(), "shader '" << name << "' not found in the list of shaders.");
 		return it->second;
 	}
 
-	ShaderProgramPtr ShaderProgram::DefaultSystemShader()
+	shader_program_ptr shader_program::default_system_shader()
 	{
 		auto& sf = get_shader_factory();
 		auto it = sf.find("default");

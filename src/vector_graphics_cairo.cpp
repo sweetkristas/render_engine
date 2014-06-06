@@ -27,7 +27,7 @@
 #include "asserts.hpp"
 #include "logger.hpp"
 #include "vector_graphics_cairo.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 
 namespace KRE
 {
@@ -345,17 +345,17 @@ namespace KRE
 				default:
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
-			tex_ = DisplayDevice::CreateTexture(w, h, pffmt);
-			tex_->SetAddressModes(Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
-			auto mat = DisplayDevice::CreateMaterial("cairo_context", std::vector<TexturePtr>(1,tex_));
+			tex_ = display_device::create_texture(w, h, pffmt);
+			tex_->set_address_modes(texture::address_mode::CLAMP, texture::address_mode::CLAMP);
+			auto mat = display_device::create_material("cairo_context", std::vector<texture_ptr>(1,tex_));
 			set_material(mat);
 
-			auto as = DisplayDevice::CreateAttributeSet();
-			attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
-			attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
-			attribs_->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::TEXTURE,  2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
-			as->AddAttribute(AttributeBasePtr(attribs_));
-			as->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+			auto as = display_device::create_attribute_set();
+			attribs_.reset(new attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
+			attribs_->set_attr_desc(attribute_desc(attribute_desc::Type::POSITION, 2, attribute_desc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
+			attribs_->set_attr_desc(attribute_desc(attribute_desc::Type::TEXTURE,  2, attribute_desc::VariableType::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
+			as->add_attribute(attribute_base_ptr(attribs_));
+			as->set_draw_mode(attribute_set::DrawMode::TRIANGLE_STRIP);
 			add_attribute_set(as);
 
 			float offs_x = 0.0f;
@@ -368,15 +368,15 @@ namespace KRE
 			const float vx2 = draw_rect_.x2() + offs_x;
 			const float vy2 = draw_rect_.y2() + offs_y;
 
-			rectf r = material()->GetNormalisedTextureCoords(material()->GetTexture().begin());
+			rectf r = material()->GetNormalisedtextureCoords(material()->Gettexture().begin());
 
 			std::vector<vertex_texcoord> vertices;
 			vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
 			vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
 			vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
 			vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
-			get_attribute_set().back()->SetCount(vertices.size());
-			attribs_->Update(&vertices);
+			get_attribute_set().back()->set_count(vertices.size());
+			attribs_->update(&vertices);
 		}
 
 		cairo_context::~cairo_context()
@@ -421,7 +421,7 @@ namespace KRE
 			cairo_set_source_rgba(context_, r/255.0, g/255.0, b/255.0, a/255.0);
 		}
 
-		void cairo_context::set_source_color(const double r, const Color& color)
+		void cairo_context::set_source_color(const double r, const color& color)
 		{
 			cairo_set_source_rgba(context_, color.r(), color.g(), color.b(), color.a());
 		}
@@ -634,7 +634,7 @@ namespace KRE
 		void cairo_context::pre_render() 
 		{
 			std::vector<unsigned> stride (1, cairo_image_surface_get_width(surface_));
-			tex_->Update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
+			tex_->update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
 		}
 
 		void cairo_context::path_extents(double& x1, double& y1, double& x2, double& y2) 
@@ -642,9 +642,9 @@ namespace KRE
 			cairo_path_extents(context_, &x1, &y1, &x2, &y2);
 		}
 
-		DisplayDeviceDef cairo_context::Attach(const DisplayDevicePtr& dd)
+		display_device_def cairo_context::attach(const display_device_ptr& dd)
 		{
-			DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
+			display_device_def def(get_attribute_set()/*, get_uniform_set()*/);
 			return def;
 		}
 	}

@@ -37,9 +37,12 @@ namespace KRE
 		size_t queue() const { return queue_; }
 		void set_queue(size_t q) { queue_ = q; }
 		const std::string& object_name() const { return name_; }
-		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) = 0;
+		virtual display_device_def attach(const display_device_ptr& dd) = 0;
 	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(scene_object);
+		//DISALLOW_COPY_ASSIGN_AND_DEFAULT(scene_object);
+		scene_object();
+		scene_object(const scene_object&);
+		void operator=(const scene_object&);
 
 		size_t queue_;
 		std::string name_;

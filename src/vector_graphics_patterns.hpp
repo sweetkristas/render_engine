@@ -24,7 +24,7 @@
 #pragma once
 
 #include <cstdint>
-#include "Color.hpp"
+#include "color.hpp"
 #include "vector_graphics_fwd.hpp"
 #include "util.hpp"
 
@@ -64,11 +64,11 @@ namespace KRE
 			double green() const { return color_.green(); }
 			double blue() const { return color_.blue(); }
 			double alpha() const { return color_.alpha(); }
-			const Color& color() const { return color_; }
+			const color& color() const { return color_; }
 		private:
 			DISALLOW_COPY_AND_ASSIGN(solid_pattern);
 
-			Color color_;
+			color color_;
 		};
 
 		/*class surface_pattern : public pattern
@@ -79,14 +79,14 @@ namespace KRE
 		private:
 		};*/
 
-		typedef std::pair<double,Color> color_stop;
+		typedef std::pair<double,color> color_stop;
 
 		class linear_pattern : public pattern
 		{
 		public:
 			linear_pattern(const double x1, const double y1, const double x2, const double y2);
 			virtual ~linear_pattern();
-			void add_color_stop(double offset, const Color& color);
+			void add_color_stop(double offset, const color& color);
 			void add_color_stop(double offset, const double r, const double g, const double b, const double a=1.0);
 			void add_color_stop(double offset, const int r, const int g, const int b, const int a=255);
 			const std::vector<color_stop>& get_color_stops() const { return color_stops_; }
@@ -104,7 +104,7 @@ namespace KRE
 		public:
 			radial_pattern(const double cx1, const double cy1, const double r1, const double cx2, const double cy2, const double r2);
 			virtual ~radial_pattern();
-			void add_color_stop(double offset, const Color& color);
+			void add_color_stop(double offset, const color& color);
 			void add_color_stop(double offset, const double r, const double g, const double b, const double a=1.0);
 			void add_color_stop(double offset, const int r, const int g, const int b, const int a=255);
 			const std::vector<color_stop>& get_color_stops() const { return color_stops_; }
@@ -124,7 +124,7 @@ namespace KRE
 			void set_control_point(const size_t n, const double x, const double y);
 			void set_corner_color(const size_t corner, const double r, const double g, const double b, const double a=1.0);
 			void set_corner_color(const size_t corner, const int r, const int g, const int b, const int a=255);
-			void set_corner_color(const size_t corner, const Color& color);
+			void set_corner_color(const size_t corner, const color& color);
 		private:
 			DISALLOW_COPY_AND_ASSIGN(mesh_patch);
 		};

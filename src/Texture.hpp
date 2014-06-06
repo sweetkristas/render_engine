@@ -25,7 +25,7 @@
 
 #include <memory>
 #include <string>
-#include "Color.hpp"
+#include "color.hpp"
 #include "geometry.hpp"
 #include "surface.hpp"
 #include "variant.hpp"
@@ -43,7 +43,7 @@ namespace KRE
 		return n;
 	}
 
-	class Texture
+	class texture
 	{
 	public:
 		enum class Type {
@@ -52,87 +52,87 @@ namespace KRE
 			TEXTURE_3D,
 			TEXTURE_CUBIC,
 		};
-		enum class AddressMode {
+		enum class address_mode {
 			WRAP,
 			CLAMP,
 			MIRROR,
 			BORDER,
 		};
-		enum class Filtering {
+		enum class filtering {
 			NONE,
 			POINT,
 			LINEAR,
 			ANISOTROPIC,
 		};
-		Texture(const surface_ptr& surface, const variant& node);
-		Texture(const surface_ptr& surface, 
+		texture(const surface_ptr& surface, const variant& node);
+		texture(const surface_ptr& surface, 
 			Type type=Type::TEXTURE_2D, 
 			int mipmap_levels=0);
-		Texture(unsigned width, 
+		texture(unsigned width, 
 			unsigned height, 
 			unsigned depth,
 			PixelFormat fmt, 
-			Texture::Type type);
-		virtual ~Texture();
+			texture::Type type);
+		virtual ~texture();
 
-		void SetAddressModes(AddressMode u, AddressMode v=AddressMode::WRAP, AddressMode w=AddressMode::WRAP, const Color& bc=Color(0.0f,0.0f,0.0f));
-		void SetAddressModes(const AddressMode uvw[3], const Color& bc=Color(0.0f,0.0f,0.0f));
+		void set_address_modes(address_mode u, address_mode v=address_mode::WRAP, address_mode w=address_mode::WRAP, const color& bc=color(0.0f,0.0f,0.0f));
+		void set_address_modes(const address_mode uvw[3], const color& bc=color(0.0f,0.0f,0.0f));
 
-		void SetFiltering(Filtering min, Filtering max, Filtering mip);
-		void SetFiltering(const Filtering f[3]);
+		void set_filtering(filtering min, filtering max, filtering mip);
+		void set_filtering(const filtering f[3]);
 
-		void SetBorderColor(const Color& bc);
+		void set_border_color(const color& bc);
 
-		Type GetType() const { return type_; }
-		int GetMipMapLevels() const { return mipmaps_; }
-		int GetMaxAnisotropy() const { return max_anisotropy_; }
-		AddressMode GetAddressModeU() const { return address_mode_[0]; }
-		AddressMode GetAddressModeV() const { return address_mode_[1]; }
-		AddressMode GetAddressModeW() const { return address_mode_[2]; }
-		Filtering GetFilteringMin() const { return filtering_[0]; }
-		Filtering GetFilteringMax() const { return filtering_[1]; }
-		Filtering GetFilteringMip() const { return filtering_[2]; }
-		const Color& GetBorderColor() const { return border_color_; }
-		float GetLodBias() const { return lod_bias_; }
+		Type get_type() const { return type_; }
+		int get_mipmap_levels() const { return mipmaps_; }
+		int get_max_anisotropy() const { return max_anisotropy_; }
+		address_mode get_address_mode_u() const { return address_mode_[0]; }
+		address_mode get_address_mode_v() const { return address_mode_[1]; }
+		address_mode get_address_mode_w() const { return address_mode_[2]; }
+		filtering get_filtering_min() const { return filtering_[0]; }
+		filtering get_filtering_max() const { return filtering_[1]; }
+		filtering get_filtering_mip() const { return filtering_[2]; }
+		const color& get_border_color() const { return border_color_; }
+		float get_lod_bias() const { return lod_bias_; }
 
-		void InternalInit();
+		void internal_init();
 
-		unsigned Width() const { return width_; }
-		unsigned Height() const { return height_; }
-		unsigned Depth() const { return depth_; }
+		unsigned width() const { return width_; }
+		unsigned height() const { return height_; }
+		unsigned depth() const { return depth_; }
 
-		unsigned surfaceWidth() const { return surface_width_; }
-		unsigned surfacehHeight() const { return surface_height_; }
+		unsigned surface_width() const { return surface_width_; }
+		unsigned surface_height() const { return surface_height_; }
 
-		virtual void Init() = 0;
-		virtual void Bind() = 0;
-		virtual unsigned ID() = 0;
+		virtual void init() = 0;
+		virtual void bind() = 0;
+		virtual unsigned id() = 0;
 
-		virtual void Update(int x, unsigned width, void* pixels) = 0;
-		virtual void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) = 0;
-		virtual void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) = 0;
+		virtual void update(int x, unsigned width, void* pixels) = 0;
+		virtual void update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) = 0;
+		virtual void update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) = 0;
 
-		static void RebuildAll();
+		static void rebuild_all();
 	protected:
-		const surface_ptr& Getsurface() const { return surface_; }
-		void SetTextureDimensions(unsigned w, unsigned h, unsigned d=0);
+		const surface_ptr& get_surface() const { return surface_; }
+		void set_texture_dimensions(unsigned w, unsigned h, unsigned d=0);
 	private:
-		virtual void Rebuild() = 0;
+		virtual void rebuild() = 0;
 
 		Type type_;
 		int mipmaps_;
-		AddressMode address_mode_[3]; // u,v,w
-		Filtering filtering_[3]; // minification, magnification, mip
-		Color border_color_;
+		address_mode address_mode_[3]; // u,v,w
+		filtering filtering_[3]; // minification, magnification, mip
+		color border_color_;
 		int max_anisotropy_;
 		float lod_bias_;
-		Texture();
+		texture();
 		surface_ptr surface_;
 		
 		unsigned surface_width_;
 		unsigned surface_height_;
 
-		// Width/Height/Depth of the created texture -- may be a 
+		// width/height/depth of the created texture -- may be a 
 		// different size than the surface if things like only
 		// allowing power-of-two textures is in effect.
 		unsigned width_;
@@ -140,5 +140,5 @@ namespace KRE
 		unsigned depth_;
 	};
 
-	typedef std::shared_ptr<Texture> TexturePtr;
+	typedef std::shared_ptr<texture> texture_ptr;
 }

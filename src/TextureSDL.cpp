@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#include "TextureSDL.hpp"
+#include "textureSDL.hpp"
 
 namespace KRE
 {

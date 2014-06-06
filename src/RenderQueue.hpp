@@ -26,16 +26,16 @@
 #include <map>
 #include <cstdint>
 
-#include "RenderFwd.hpp"
+#include "renderFwd.hpp"
 #include "window_manager_fwd.hpp"
 
 namespace KRE
 {
-	class RenderQueue
+	class renderQueue
 	{
 	public:
-		RenderQueue(const std::string& name);
-		~RenderQueue();
+		renderQueue(const std::string& name);
+		~renderQueue();
 
 		const std::string& name() const { return name_; }
 
@@ -43,12 +43,12 @@ namespace KRE
 		void Dequeue(uint64_t order);
 
 		void pre_render();
-		void Render(const window_manager_ptr& wm) const;
-		void PostRender();
+		void render(const window_manager_ptr& wm) const;
+		void Postrender();
 	private:
 		std::map<uint64_t, renderable_ptr> renderables_;
 		std::string name_;
-		RenderQueue();
-		RenderQueue(const RenderQueue&);
+		renderQueue();
+		renderQueue(const renderQueue&);
 	};
 }

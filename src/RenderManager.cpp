@@ -23,20 +23,20 @@
 
 #include "asserts.hpp"
 #include "logger.hpp"
-#include "RenderManager.hpp"
-#include "RenderQueue.hpp"
+#include "renderManager.hpp"
+#include "renderQueue.hpp"
 
 namespace KRE
 {
-	RenderManager::RenderManager()
+	renderManager::renderManager()
 	{
 	}
 
-	RenderManager::~RenderManager()
+	renderManager::~renderManager()
 	{
 	}
 
-	void RenderManager::AddQueue(int priority, RenderQueuePtr queue)
+	void renderManager::AddQueue(int priority, renderQueuePtr queue)
 	{
 		auto it = render_queues_.find(priority);
 		if(it != render_queues_.end()) {
@@ -45,27 +45,27 @@ namespace KRE
 		render_queues_[priority] = queue;
 	}
 
-	void RenderManager::RemoveQueue(int priority)
+	void renderManager::RemoveQueue(int priority)
 	{
 		auto it = render_queues_.find(priority);
 		ASSERT_LOG(it != render_queues_.end(), "Tried to remove non-existant render queue at priority: " << priority);
 		render_queues_.erase(it);
 	}
 
-	void RenderManager::Render(const window_manager_ptr& wm) const
+	void renderManager::render(const window_manager_ptr& wm) const
 	{
 		for(auto& q : render_queues_) {
 			q.second->pre_render();
 		}
 		for(auto& q : render_queues_) {
-			q.second->Render(wm);
+			q.second->render(wm);
 		}
 		for(auto& q : render_queues_) {
-			q.second->PostRender();
+			q.second->Postrender();
 		}
 	}
 
-	void RenderManager::AddRenderableToQueue(size_t q, size_t order, const renderable_ptr& r)
+	void renderManager::AddrenderableToQueue(size_t q, size_t order, const renderable_ptr& r)
 	{
 		auto it = render_queues_.find(q);
 		ASSERT_LOG(it != render_queues_.end(), "Tried to add renderable to non-existant render queue at priority: " << q);

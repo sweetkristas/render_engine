@@ -27,14 +27,14 @@
 
 namespace KRE
 {
-	class DisplayDeviceDef;
+	class display_device_def;
 
-	class DisplayDevice;
-	typedef std::shared_ptr<DisplayDevice> DisplayDevicePtr;
+	class display_device;
+	typedef std::shared_ptr<display_device> display_device_ptr;
 
-	class DisplayDeviceData;
-	typedef std::shared_ptr<DisplayDeviceData> DisplayDeviceDataPtr;
+	class display_device_data;
+	typedef std::shared_ptr<display_device_data> display_device_data_ptr;
 
-	class Texture;
-	typedef std::shared_ptr<Texture> TexturePtr;
+	class texture;
+	typedef std::shared_ptr<texture> texture_ptr;
 }

@@ -27,6 +27,6 @@ namespace KRE
 {
 	/* XX
 		Private member of class
-		SDL_Renderer* renderer_;		
+		SDL_renderer* renderer_;		
 	*/
 }

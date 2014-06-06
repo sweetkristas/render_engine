@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "RenderFwd.hpp"
+#include "renderFwd.hpp"
 #include "scene_fwd.hpp"
 
 namespace KRE
@@ -40,11 +40,11 @@ namespace KRE
 		void attach_light(size_t ref, const LightPtr& obj);
 		void attach_camera(const camera_ptr& obj);
 		void attach_object(const scene_object_ptr& obj);
-		void attach_render_target(const RenderTargetPtr& obj);
+		void attach_render_target(const render_target_ptr& obj);
 		const camera_ptr& camera() const { return camera_; }
 		const LightPtrList& lights() const { return lights_; }
-		const RenderTargetPtr get_render_target() const { return render_target_; }
-		void render_node(const RenderManagerPtr& renderer, scene_node_params* rp);
+		const render_target_ptr get_render_target() const { return render_target_; }
+		void render_node(const renderManagerPtr& renderer, scene_node_params* rp);
 		scene_graph* parent_graph() { return scene_graph_; }
 		virtual void process(double);
 		virtual void node_attached();
@@ -56,7 +56,7 @@ namespace KRE
 		std::vector<scene_object_ptr> objects_;
 		LightPtrList lights_;
 		camera_ptr camera_;
-		RenderTargetPtr render_target_;
+		render_target_ptr render_target_;
 		scene_node();
 		scene_node(const scene_node&);
 		scene_node& operator=(const scene_node&);

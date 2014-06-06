@@ -36,7 +36,7 @@ namespace KRE
 	}
 
 	Material::Material(const std::string& name, 
-		const std::vector<TexturePtr>& textures, 
+		const std::vector<texture_ptr>& textures, 
 		const BlendMode& blend, 
 		bool fog, 
 		bool lighting, 
@@ -53,7 +53,7 @@ namespace KRE
 	{
 	}
 
-	void Material::Init(const variant& node)
+	void Material::init(const variant& node)
 	{
 		name_ = node["name"].as_string();
 		blend_.Set(BlendMode::BlendModeConstants::BM_SRC_ALPHA, BlendMode::BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA);
@@ -71,10 +71,10 @@ namespace KRE
 		}
 		if(pass.has_key("texture_unit")) {
 			if(pass["texture_unit"].is_map()) {
-				tex_.emplace_back(CreateTexture(pass["texture_unit"]));
+				tex_.emplace_back(create_texture(pass["texture_unit"]));
 			} else if(pass["texture_unit"].is_list()) {
 				for(size_t n = 0; n != pass["texture_unit"].num_elements(); ++n) {
-					tex_.emplace_back(CreateTexture(pass["texture_unit"][n]));
+					tex_.emplace_back(create_texture(pass["texture_unit"][n]));
 				}
 			} else {
 				ASSERT_LOG(false, "'texture_unit' attribute must be map or list ");
@@ -89,7 +89,7 @@ namespace KRE
 	{
 	}
 
-	void Material::SetTexture(const TexturePtr& tex)
+	void Material::Settexture(const texture_ptr& tex)
 	{
 		tex_.emplace_back(tex);
 	}
@@ -104,12 +104,12 @@ namespace KRE
 		use_fog_ = en;
 	}
 
-	void Material::EnableDepthWrite(bool en)
+	void Material::EnabledepthWrite(bool en)
 	{
 		do_depth_write_ = en;
 	}
 
-	void Material::EnableDepthCheck(bool en)
+	void Material::EnabledepthCheck(bool en)
 	{
 		do_depth_check_ = en;
 	}
@@ -135,10 +135,10 @@ namespace KRE
 		HandleUnapply();
 	}
 
-	const rectf Material::GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it)
+	const rectf Material::GetNormalisedtextureCoords(const std::vector<texture_ptr>::const_iterator& it)
 	{
-		float w = (*it)->Width();
-		float h = (*it)->Height();
+		float w = (*it)->width();
+		float h = (*it)->height();
 		if(draw_rect_.x() == 0.0f && draw_rect_.y() == 0.0f && draw_rect_.x2() == 0.0f && draw_rect_.y2() == 0.0f) {
 			return rectf(0.0f, 0.0f, 1.0f, 1.0f);
 		}

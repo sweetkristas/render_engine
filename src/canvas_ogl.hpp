@@ -33,8 +33,8 @@ namespace KRE
 		canvas_ogl();
 		virtual ~canvas_ogl();
 
-		void blit_texture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color) override;
-		void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) override;
+		void blit_texture(const texture_ptr& tex, const rect& src, float rotation, const rect& dst, const color& color) override;
+		void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const color& color) override;
 
 		static canvas_ptr get_instance();
 	private:

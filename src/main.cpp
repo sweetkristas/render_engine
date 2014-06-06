@@ -5,7 +5,7 @@
 
 #include <glm/gtc/type_precision.hpp>
 
-#include "AttributeSet.hpp"
+#include "attribute_set.hpp"
 #include "json.hpp"
 #include "logger.hpp"
 #include "profile_timer.hpp"
@@ -15,9 +15,9 @@
 #include "LightObject.hpp"
 #include "particle_system.hpp"
 #include "renderable.hpp"
-#include "RenderManager.hpp"
-#include "RenderQueue.hpp"
-#include "RenderTarget.hpp"
+#include "renderManager.hpp"
+#include "renderQueue.hpp"
+#include "renderTarget.hpp"
 #include "scene_graph.hpp"
 #include "scene_node.hpp"
 #include "window_manager.hpp"
@@ -39,12 +39,12 @@ namespace
 		square_renderable() : KRE::scene_object("square") {
 			using namespace KRE;
 
-			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
-			auto pc = new Attribute<vertex_color>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
-			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
-			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
-			ab->AddAttribute(AttributeBasePtr(pc));
-			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
+			auto ab = display_device::create_attribute_set(false, false, false);
+			auto pc = new attribute<vertex_color>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
+			pc->set_attr_desc(attribute_desc(attribute_desc::Type::POSITION, 2, attribute_desc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
+			pc->set_attr_desc(attribute_desc(attribute_desc::Type::COLOR, 4, attribute_desc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
+			ab->add_attribute(attribute_base_ptr(pc));
+			ab->set_draw_mode(attribute_set::DrawMode::TRIANGLE_STRIP);
 			add_attribute_set(ab);
 
 			std::vector<vertex_color> vertices;
@@ -52,46 +52,46 @@ namespace
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			ab->SetCount(vertices.size());
-			pc->Update(&vertices);
+			ab->set_count(vertices.size());
+			pc->update(&vertices);
 
 			//std::vector<uint8_t> indices;
 			//indices.emplace_back(0);
 			//indices.emplace_back(1);
 			//indices.emplace_back(2);
 			//indices.emplace_back(3);
-			//ab->UpdateIndicies(indices);
+			//ab->update_indicies(indices);
 
-			//pc->Update(vertices, pc->begin()+5);
+			//pc->update(vertices, pc->begin()+5);
 
 			/*
 			// first parameter is a hint to wether the buffer should be hardware backed.
 			// second parameter is whether we are using indexed drawing.
 			// third parameter is wether this is instanced.
-			auto ab = DisplayDevice::CreateAttributeSet(false, true, false);
+			auto ab = display_device::create_attribute_set(false, true, false);
 			// If these were instanced then there is an extra parameter on the end, which defaults to 1.
 			// A 0 indictes that there is no advancement per instance
-			auto pos = ab->CreateAttribute();
-			pos->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false));
-			auto col = ab->CreateAttribute();
-			col->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true));
-			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLES);
-			AddAttributeSet(ab);
+			auto pos = ab->Createattribute();
+			pos->set_attr_desc(attribute_desc(attribute_desc::type::POSITION, 2, attribute_desc::VariableType::FLOAT, false));
+			auto col = ab->Createattribute();
+			col->set_attr_desc(attribute_desc(attribute_desc::type::COLOR, 4, attribute_desc::VariableType::UNSIGNED_BYTE, true));
+			ab->set_draw_mode(attribute_set::DrawMode::TRIANGLES);
+			add_attribute_set(ab);
 
 			std::vector<glm::vec2> vertices;
 			vertices.emplace_back(0.0f, 0.0f);
 			vertices.emplace_back(0.0f, 1.0f);
 			vertices.emplace_back(1.0f, 0.0f);
 			vertices.emplace_back(1.0f, 1.0f);
-			//ab->SetCount(vertices.size());
-			pos->Update(&vertices[0], 0, vertices.size() * sizeof(glm::vec2));
+			//ab->set_count(vertices.size());
+			pos->update(&vertices[0], 0, vertices.size() * sizeof(glm::vec2));
 
 			std::vector<glm::u8vec4> colors;
 			colors.emplace_back(255,0,0,255);
 			colors.emplace_back(0,255,0,255);
 			colors.emplace_back(0,0,255,255);
 			colors.emplace_back(255,0,0,255);			
-			col->Update(&colors[0], 0, colors.size() * sizeof(glm::u8vec4));			
+			col->update(&colors[0], 0, colors.size() * sizeof(glm::u8vec4));			
 
 			glm::u8vec4 x;
 
@@ -102,17 +102,17 @@ namespace
 			indices.emplace_back(2);
 			indices.emplace_back(1);
 			indices.emplace_back(3);
-			ab->UpdateIndicies(indices);
+			ab->update_indicies(indices);
 			*/
 
-			//SetColor(255,255,255);
+			//Setcolor(255,255,255);
 			set_order(0);
 		}
 		virtual ~square_renderable() {}
 	protected:
-		KRE::DisplayDeviceDef Attach(const KRE::DisplayDevicePtr& dd) {
-			KRE::DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
-			def.SetHint("shader", "attr_color_shader");
+		KRE::display_device_def attach(const KRE::display_device_ptr& dd) {
+			KRE::display_device_def def(get_attribute_set()/*, get_uniform_set()*/);
+			def.set_hint("shader", "attr_color_shader");
 			return def;
 		}
 	private:
@@ -122,15 +122,15 @@ namespace
 	typedef std::shared_ptr<square_renderable> square_renderable_ptr;
 }
 
-class SimpleTextureHolder : public KRE::blittable
+class simple_texture_holder : public KRE::blittable
 {
 public:
-	SimpleTextureHolder(const std::string& filename) {
+	simple_texture_holder(const std::string& filename) {
 		using namespace KRE;
 		set_color(1.0f, 1.0f, 1.0f, 1.0f);
-		auto tex = DisplayDevice::CreateTexture(filename, Texture::Type::TEXTURE_2D, 4);
-		tex->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
-		tex->SetAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		auto tex = display_device::create_texture(filename, texture::Type::TEXTURE_2D, 4);
+		tex->set_filtering(texture::filtering::LINEAR, texture::filtering::LINEAR, texture::filtering::POINT);
+		tex->set_address_modes(texture::address_mode::BORDER, texture::address_mode::BORDER);
 		set_texture(tex);
 	}
 private:
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 	scenecam->attach_frustum(std::make_shared<frustum>());
 	root->attach_camera(scenecam);
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
-	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
+	sunlight->SetAmbientcolor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
 	root->attach_light(0, sunlight);
 
 	square_renderable_ptr square(std::make_shared<square_renderable>());
@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
 	square->set_scale(2.0f,2.0f);
 	root->attach_object(square);
 
-	auto rman = std::make_shared<RenderManager>();
-	auto rq = std::make_shared<RenderQueue>("opaques");
+	auto rman = std::make_shared<renderManager>();
+	auto rq = std::make_shared<renderQueue>("opaques");
 	rman->AddQueue(0, rq);
 
 	auto cairo_canvas = vector::context::create_instance("cairo", 512, 512);
@@ -193,14 +193,14 @@ int main(int argc, char *argv[])
 	particle_cam->look_at(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 	psystem->attach_camera(particle_cam);
 	root->attach_node(psystem);
-	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
-	//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
+	//auto rt = display_device::render_target_instance(400, 300);
+	//rt->set_clear_color(0.0f,0.0f,0.0f,0.0f);
 	//rt->SetDrawRect(rect(400,300,400,300));
 	//rt->Create();
-	//psystem->AttachRenderTarget(rt);
+	//psystem->AttachrenderTarget(rt);
 	//root->AttachObject(rt);
 
-	auto tex = std::shared_ptr<blittable>(new SimpleTextureHolder("card-back.png"));
+	auto tex = std::shared_ptr<blittable>(new simple_texture_holder("card-back.png"));
 	tex->set_draw_rect(rectf(0.0f,0.0f,146.0f,260.0f));
 	tex->set_position(146.0f/2.0f, 600.0f-130.0f);
 	tex->set_order(10);
@@ -212,8 +212,8 @@ int main(int argc, char *argv[])
 	auto canvas = canvas::get_instance();
 	canvas->set_dimensions(800, 600);
 
-	auto canvas_texture = DisplayDevice::CreateTexture("widgets.png");
-	canvas_texture->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
+	auto canvas_texture = display_device::create_texture("widgets.png");
+	canvas_texture->set_filtering(texture::filtering::LINEAR, texture::filtering::LINEAR, texture::filtering::NONE);
 
 	SDL_Event e;
 	bool done = false;
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		main_wnd->clear(DisplayDevice::ClearFlags::DISPLAY_CLEAR_ALL);
+		main_wnd->clear(display_device::ClearFlags::DISPLAY_CLEAR_ALL);
 
 		// Called once a cycle before rendering.
 		scene->process(SDL_GetTicks() / 1000.0f);
@@ -243,14 +243,14 @@ int main(int argc, char *argv[])
 		}
 
 		scene->render_scene(rman);
-		rman->Render(main_wnd);
+		rman->render(main_wnd);
 
 		canvas->blit_texture(canvas_texture, 
 			rect(3,4,56,22), 
 			0.0f, 
 			//rect(800-56, 0, 56, 22), 
 			rect(0,0,112,44),
-			Color(1.0f,1.0f,1.0f,0.5f));
+			color(1.0f,1.0f,1.0f,0.5f));
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

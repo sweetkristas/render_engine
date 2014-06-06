@@ -44,10 +44,10 @@ namespace KRE
 			MANUAL,
 		};
 		blittable();
-		explicit blittable(const TexturePtr& tex);
+		explicit blittable(const texture_ptr& tex);
 		explicit blittable(const MaterialPtr& mat);
 		virtual ~blittable();
-		void set_texture(const TexturePtr& tex);
+		void set_texture(const texture_ptr& tex);
 
 		template<typename T>
 		void set_draw_rect(const geometry::rect_t<T>& r) {
@@ -64,10 +64,10 @@ namespace KRE
 			centre_ = Centre::MANUAL;
 		}
 
-		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+		virtual display_device_def attach(const display_device_ptr& dd) override;
 	private:
 		void init();
-		std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
+		std::shared_ptr<attribute<vertex_texcoord>> attribs_;
 		rectf draw_rect_;
 		pointf centre_offset_;
 		Centre centre_;

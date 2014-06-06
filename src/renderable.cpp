@@ -24,7 +24,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "renderable.hpp"
 
 namespace KRE
@@ -106,7 +106,7 @@ namespace KRE
 		material_ = material;
 	}
 
-	void renderable::set_render_target(const RenderTargetPtr& rt)
+	void renderable::set_render_target(const render_target_ptr& rt)
 	{
 		render_target_ = rt;
 	}
@@ -114,27 +114,27 @@ namespace KRE
 	void renderable::set_color(float r, float g, float b, float a)
 	{
 		color_set_ = true;
-		color_ = Color(r, g, b, a);
+		color_ = color(r, g, b, a);
 	}
 
 	void renderable::set_color(int r, int g, int b, int a)
 	{
 		color_set_ = true;
-		color_ = Color(r, g, b, a);
+		color_ = color(r, g, b, a);
 	}
 
-	void renderable::set_color(const Color& color)
+	void renderable::set_color(const color& color)
 	{
 		color_set_ = true;
 		color_ = color;
 	}
 
-	void renderable::set_display_data(const DisplayDevicePtr& dd, const DisplayDeviceDef& def)
+	void renderable::set_display_data(const display_device_ptr& dd, const display_device_def& def)
 	{
-		display_data_ = dd->CreateDisplayDeviceData(def);
+		display_data_ = dd->create_display_device_data(def);
 	}
 
-	void renderable::add_attribute_set(const AttributeSetPtr& attrset)
+	void renderable::add_attribute_set(const attribute_set_ptr& attrset)
 	{
 		attributes_.emplace_back(attrset);
 	}

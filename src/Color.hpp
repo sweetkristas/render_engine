@@ -28,14 +28,14 @@
 
 namespace KRE
 {
-	class Color
+	class color
 	{
 	public:
-		Color();
-		~Color();
-		explicit Color(const double r, const double g, const double b, const double a=1.0);
-		explicit Color(const int r, const int g, const int b, const int a=255);
-		explicit Color(const variant& node);
+		color();
+		~color();
+		explicit color(const double r, const double g, const double b, const double a=1.0);
+		explicit color(const int r, const int g, const int b, const int a=255);
+		explicit color(const variant& node);
 
 		double r() const { return color_[0]; }
 		double g() const { return color_[1]; }

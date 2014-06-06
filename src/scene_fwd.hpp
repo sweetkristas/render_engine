@@ -27,7 +27,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "RenderFwd.hpp"
+#include "renderFwd.hpp"
 
 #include "glm/glm.hpp"
 
@@ -51,7 +51,7 @@ namespace KRE
 	{
 		camera_ptr camera;
 		LightPtrList lights;
-		RenderTargetPtr render_target;
+		render_target_ptr render_target;
 	};
 
 	class blittable;

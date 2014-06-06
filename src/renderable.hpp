@@ -25,9 +25,9 @@
 
 #include <glm/gtx/quaternion.hpp>
 
-#include "AttributeSet.hpp"
+#include "attribute_set.hpp"
 #include "Material.hpp"
-#include "RenderQueue.hpp"
+#include "renderQueue.hpp"
 #include "scene_fwd.hpp"
 #include "util.hpp"
 
@@ -57,8 +57,8 @@ namespace KRE
 
 		void set_color(float r, float g, float b, float a=1.0);
 		void set_color(int r, int g, int b, int a=255);
-		void set_color(const Color& color);
-		const Color& get_color() const { return color_; }
+		void set_color(const color& color);
+		const color& get_color() const { return color_; }
 		bool is_color_set() const { return color_set_; }
 
 		size_t order() const { return order_; }
@@ -73,15 +73,15 @@ namespace KRE
 		const MaterialPtr& material() const { return material_; }
 		void set_material(const MaterialPtr& material);
 
-		const RenderTargetPtr& get_render_target() const { return render_target_; }
-		void set_render_target(const RenderTargetPtr& rt);
+		const render_target_ptr& get_render_target() const { return render_target_; }
+		void set_render_target(const render_target_ptr& rt);
 
-		void set_display_data(const DisplayDevicePtr& dd, const DisplayDeviceDef& def);
-		const DisplayDeviceDataPtr& get_display_data() const { return display_data_; }
+		void set_display_data(const display_device_ptr& dd, const display_device_def& def);
+		const display_device_data_ptr& get_display_data() const { return display_data_; }
 
-		void add_attribute_set(const AttributeSetPtr& attrset);
+		void add_attribute_set(const attribute_set_ptr& attrset);
 		//void add_uniform_set(const UniformSetPtr& uniset);
-		const std::vector<AttributeSetPtr>& get_attribute_set() const { return attributes_; }
+		const std::vector<attribute_set_ptr>& get_attribute_set() const { return attributes_; }
 		//const std::vector<UniformSetPtr>& get_uniform_set() const { return uniforms_; }
 
 		virtual void pre_render() {}
@@ -101,13 +101,13 @@ namespace KRE
 		camera_ptr camera_;
 		LightPtrList lights_;
 		MaterialPtr material_;
-		RenderTargetPtr render_target_;
-		Color color_;
+		render_target_ptr render_target_;
+		color color_;
 		bool color_set_;
 
-		std::vector<AttributeSetPtr> attributes_;
+		std::vector<attribute_set_ptr> attributes_;
 		//std::vector<UniformSetPtr> uniforms_;
 
-		DisplayDeviceDataPtr display_data_;
+		display_device_data_ptr display_data_;
 	};
 }

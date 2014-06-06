@@ -30,7 +30,7 @@
 #include <glm/gtc/type_precision.hpp>
 
 #include "asserts.hpp"
-#include "AttributeSet.hpp"
+#include "attribute_set.hpp"
 #include "Material.hpp"
 #include "particle_system_fwd.hpp"
 #include "scene_node.hpp"
@@ -135,11 +135,11 @@ namespace KRE
 			void process(double t);
 			void pre_render() override;
 		protected:
-			DisplayDeviceDef Attach(const DisplayDevicePtr& dd);
+			display_device_def attach(const display_device_ptr& dd);
 		private:
 			void init();
 
-			std::shared_ptr<Attribute<vertex_texture_color>> arv_;
+			std::shared_ptr<attribute<vertex_texture_color>> arv_;
 
 			float default_particle_width_;
 			float default_particle_height_;
@@ -232,7 +232,10 @@ namespace KRE
 			void process(double current_time) override;
 			void node_attached() override;
 		private:
-			DISALLOW_COPY_ASSIGN_AND_DEFAULT(particle_system_container);
+			//DISALLOW_COPY_ASSIGN_AND_DEFAULT(particle_system_container);
+			particle_system_container();
+			particle_system_container(const particle_system_container&);
+			void operator=(const particle_system_container&);
 
 			std::vector<particle_system_ptr> active_particle_systems_;
 

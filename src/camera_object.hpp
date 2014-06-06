@@ -84,7 +84,7 @@ namespace KRE
 
 		//variant write();
 
-		virtual DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
+		virtual display_device_def attach(const display_device_ptr& dd) override;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(camera);
 

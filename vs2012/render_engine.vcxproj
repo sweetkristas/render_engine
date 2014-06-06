@@ -11,18 +11,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\AttributeSet.cpp" />
-    <ClCompile Include="..\src\AttributeSetOGL.cpp" />
+    <ClCompile Include="..\src\attribute_set.cpp" />
+    <ClCompile Include="..\src\attribute_set_ogl.cpp" />
     <ClCompile Include="..\src\blittable.cpp" />
     <ClCompile Include="..\src\camera_object.cpp" />
     <ClCompile Include="..\src\canvas.cpp" />
     <ClCompile Include="..\src\canvas_ogl.cpp" />
-    <ClCompile Include="..\src\Color.cpp" />
-    <ClCompile Include="..\src\DisplayDevice.cpp" />
-    <ClCompile Include="..\src\DisplayDeviceOpenGL.cpp" />
+    <ClCompile Include="..\src\color.cpp" />
+    <ClCompile Include="..\src\display_device.cpp" />
+    <ClCompile Include="..\src\display_device_ogl.cpp" />
     <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
     <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
     <ClCompile Include="..\src\FboOpenGL.cpp" />
+    <ClCompile Include="..\src\particle_system_emitters.cpp" />
     <ClCompile Include="..\src\RenderTarget.cpp" />
     <ClCompile Include="..\src\filesystem.cpp" />
     <ClCompile Include="..\src\frustum.cpp" />
@@ -34,7 +35,6 @@
     <ClCompile Include="..\src\MaterialOpenGL.cpp" />
     <ClCompile Include="..\src\particle_system.cpp" />
     <ClCompile Include="..\src\particle_system_affectors.cpp" />
-    <ClCompile Include="..\src\prticle_system_emitters.cpp" />
     <ClCompile Include="..\src\particle_system_observers.cpp" />
     <ClCompile Include="..\src\particle_system_parameters.cpp" />
     <ClCompile Include="..\src\renderable.cpp" />
@@ -44,11 +44,11 @@
     <ClCompile Include="..\src\scene_node.cpp" />
     <ClCompile Include="..\src\scene_object.cpp" />
     <ClCompile Include="..\src\SceneParameters.cpp" />
-    <ClCompile Include="..\src\ShadersOpenGL.cpp" />
+    <ClCompile Include="..\src\shaders_ogl.cpp" />
     <ClCompile Include="..\src\surface.cpp" />
     <ClCompile Include="..\src\surface_sdl.cpp" />
-    <ClCompile Include="..\src\Texture.cpp" />
-    <ClCompile Include="..\src\TextureOpenGL.cpp" />
+    <ClCompile Include="..\src\texture.cpp" />
+    <ClCompile Include="..\src\texture_ogl.cpp" />
     <ClCompile Include="..\src\TextureSDL.cpp" />
     <ClCompile Include="..\src\variant.cpp" />
     <ClCompile Include="..\src\vector_graphics.cpp" />
@@ -60,16 +60,16 @@
   <ItemGroup>
     <ClInclude Include="..\include\treetree\tree.hpp" />
     <ClInclude Include="..\src\asserts.hpp" />
-    <ClInclude Include="..\src\AttributeSet.hpp" />
-    <ClInclude Include="..\src\AttributeSetOpenGL.hpp" />
+    <ClInclude Include="..\src\attribute_set.hpp" />
+    <ClInclude Include="..\src\attribute_set_ogl.hpp" />
     <ClInclude Include="..\src\blittable.hpp" />
     <ClInclude Include="..\src\camera_object.hpp" />
     <ClInclude Include="..\src\canvas.hpp" />
     <ClInclude Include="..\src\canvas_ogl.hpp" />
-    <ClInclude Include="..\src\Color.hpp" />
-    <ClInclude Include="..\src\DisplayDevice.hpp" />
-    <ClInclude Include="..\src\DisplayDeviceFwd.hpp" />
-    <ClInclude Include="..\src\DisplayDeviceOpenGL.hpp" />
+    <ClInclude Include="..\src\color.hpp" />
+    <ClInclude Include="..\src\display_device.hpp" />
+    <ClInclude Include="..\src\display_device_fwd.hpp" />
+    <ClInclude Include="..\src\display_device_ogl.hpp" />
     <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
     <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
     <ClInclude Include="..\src\FboOpenGL.hpp" />
@@ -100,12 +100,12 @@
     <ClInclude Include="..\src\scene_object.hpp" />
     <ClInclude Include="..\src\SceneParameters.hpp" />
     <ClInclude Include="..\src\SDLWrapper.hpp" />
-    <ClInclude Include="..\src\ShadersOpenGL.hpp" />
+    <ClInclude Include="..\src\shaders_ogl.hpp" />
     <ClInclude Include="..\src\spline.hpp" />
     <ClInclude Include="..\src\surface.hpp" />
     <ClInclude Include="..\src\surface_sdl.hpp" />
-    <ClInclude Include="..\src\Texture.hpp" />
-    <ClInclude Include="..\src\TextureOpenGL.hpp" />
+    <ClInclude Include="..\src\texture.hpp" />
+    <ClInclude Include="..\src\texture_ogl.hpp" />
     <ClInclude Include="..\src\TextureSDL.hpp" />
     <ClInclude Include="..\src\util.hpp" />
     <ClInclude Include="..\src\variant.hpp" />
@@ -120,7 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\cairo\external\x86\lib\cairo.lib" />
-    <Library Include="..\..\glew-1.9.0\lib\glew32.lib" />
+    <Library Include="..\..\glew\lib\glew32.lib" />
     <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
     <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
     <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
@@ -167,7 +167,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\cairo\external\x86\include;C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\cairo\external\x86\include;C:\Projects\glew\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

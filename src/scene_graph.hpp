@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "RenderFwd.hpp"
+#include "renderFwd.hpp"
 #include "scene_fwd.hpp"
 #include "treetree/tree.hpp"
 #include "variant.hpp"
@@ -43,8 +43,8 @@ namespace KRE
 		scene_node_ptr create_node(const std::string& node_type=std::string(), const variant& node=variant());
 		static void register_object_type(const std::string& type, ObjectTypeFunction fn);
 		scene_node_ptr root_node();
-		void render_scene(const RenderManagerPtr& renderer);
-		void render_scene_helper(const RenderManagerPtr& renderer, the::tree<scene_node_ptr>::pre_iterator& it, scene_node_params* snp);
+		void render_scene(const renderManagerPtr& renderer);
+		void render_scene_helper(const renderManagerPtr& renderer, the::tree<scene_node_ptr>::pre_iterator& it, scene_node_params* snp);
 	
 		void process(double);
 

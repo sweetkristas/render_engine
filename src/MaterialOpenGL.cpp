@@ -23,7 +23,7 @@
 
 #include "asserts.hpp"
 #include "MaterialOpenGL.hpp"
-#include "TextureOpenGL.hpp"
+#include "texture_ogl.hpp"
 
 namespace KRE
 {
@@ -54,11 +54,11 @@ namespace KRE
 
 	OpenGLMaterial::OpenGLMaterial(const variant& node) 
 	{
-		Init(node);
+		init(node);
 	}
 
 	OpenGLMaterial::OpenGLMaterial(const std::string& name, 
-		const std::vector<TexturePtr>& textures, 
+		const std::vector<texture_ptr>& textures, 
 		const BlendMode& blend, 
 		bool fog, 
 		bool lighting, 
@@ -74,13 +74,13 @@ namespace KRE
 
 	void OpenGLMaterial::HandleApply() 
 	{
-		auto textures = GetTexture();
+		auto textures = Gettexture();
 		auto n = textures.size()-1;
 		for(auto it = textures.rbegin(); it != textures.rend(); ++it) {
 			if(n > 0) {
 				glActiveTexture(GL_TEXTURE0 + n);
 			}
-			(*it)->Bind();
+			(*it)->bind();
 		}
 
 		auto& bm = get_blend_mode();
@@ -89,10 +89,10 @@ namespace KRE
 			glBlendFunc(convert_blend_mode(bm.Src()), convert_blend_mode(bm.Dst()));
 		}
 
-		if(DoDepthCheck()) {
+		if(DodepthCheck()) {
 			glEnable(GL_DEPTH_TEST);
 		} else {
-			if(DoDepthWrite()) {
+			if(DodepthWrite()) {
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_ALWAYS);
 			}
@@ -105,9 +105,9 @@ namespace KRE
 
 	void OpenGLMaterial::HandleUnapply() 
 	{
-		if(DoDepthCheck() || DoDepthWrite()) {
+		if(DodepthCheck() || DodepthWrite()) {
 			glDisable(GL_DEPTH_TEST);
-			if(DoDepthWrite()) {
+			if(DodepthWrite()) {
 				glDepthFunc(GL_LESS);
 			}
 		}
@@ -119,11 +119,11 @@ namespace KRE
 		}
 	}
 
-	TexturePtr OpenGLMaterial::CreateTexture(const variant& node)
+	texture_ptr OpenGLMaterial::create_texture(const variant& node)
 	{
 		ASSERT_LOG(node.has_key("image") || node.has_key("texture"), "Must have either 'image' or 'texture' attribute.");
 		const std::string image_name = node.has_key("image") ? node["image"].as_string() : node["texture"].as_string();
 		auto surface = surface::create(image_name);
-		return TexturePtr(new OpenGLTexture(surface, node));
+		return texture_ptr(new OpenGLtexture(surface, node));
 	}
 }

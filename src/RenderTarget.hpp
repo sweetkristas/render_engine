@@ -29,40 +29,40 @@
 
 namespace KRE
 {
-	class RenderTarget : public blittable
+	class renderTarget : public blittable
 	{
 	public:
-		explicit RenderTarget(unsigned width, unsigned height, 
+		explicit renderTarget(unsigned width, unsigned height, 
 			unsigned color_plane_count=1, 
 			bool depth=false, 
 			bool stencil=false, 
 			bool use_multi_sampling=false, 
 			unsigned multi_samples=0);
-		explicit RenderTarget(const variant& node);
-		virtual ~RenderTarget();
+		explicit renderTarget(const variant& node);
+		virtual ~renderTarget();
 
 		void Create();
 		void Apply();
 		void Unapply();
-		void Clear();
+		void clear();
 
-		unsigned Width() const { return width_; }
-		unsigned Height() const { return height_; }
-		unsigned ColorPlanes() const { return color_attachments_; }
-		bool DepthPlane() const { return depth_attachment_; }
+		unsigned width() const { return width_; }
+		unsigned height() const { return height_; }
+		unsigned colorPlanes() const { return color_attachments_; }
+		bool depthPlane() const { return depth_attachment_; }
 		bool StencilPlane() const { return stencil_attachment_; }
 		bool UsesMultiSampling() const { return multi_sampling_; }
 		unsigned MultiSamples() const { return multi_samples_; }
 
-		void SetClearColor(int r, int g, int b, int a=255);
-		void SetClearColor(float r, float g, float b, float a=1.0f);
-		void SetClearColor(const Color& color);
-		const Color& GetClearColor() const { return clear_color_; }
+		void set_clear_color(int r, int g, int b, int a=255);
+		void set_clear_color(float r, float g, float b, float a=1.0f);
+		void set_clear_color(const color& color);
+		const color& Getclearcolor() const { return clear_color_; }
 	private:
 		virtual void HandleCreate() = 0;
 		virtual void HandleApply() = 0;
 		virtual void HandleUnapply() = 0;
-		virtual void HandleClear() = 0;
+		virtual void Handleclear() = 0;
 
 		unsigned width_;
 		unsigned height_;
@@ -72,11 +72,11 @@ namespace KRE
 		bool multi_sampling_;
 		unsigned multi_samples_;
 
-		Color clear_color_;
+		color clear_color_;
 
-		RenderTarget();
-		RenderTarget(const RenderTarget&);
+		renderTarget();
+		renderTarget(const renderTarget&);
 	};
 
-	typedef std::shared_ptr<RenderTarget> RenderTargetPtr;
+	typedef std::shared_ptr<renderTarget> render_target_ptr;
 }

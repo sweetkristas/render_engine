@@ -25,8 +25,8 @@
 
 #include <string>
 
-#include "Color.hpp"
-#include "DisplayDevice.hpp"
+#include "color.hpp"
+#include "display_device.hpp"
 #include "Material.hpp"
 #include "renderable.hpp"
 #include "window_manager_fwd.hpp"
@@ -101,11 +101,11 @@ namespace KRE
 
 		void set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a=255);
 		void set_clear_color(float r, float g, float b, float a=1.0f);
-		void set_clear_color(const Color& color);
+		void set_clear_color(const color& color);
 		
-		Color clear_color() const { return clear_color_; }
+		color clear_color() const { return clear_color_; }
 
-		virtual void clear(DisplayDevice::ClearFlags f) = 0;
+		virtual void clear(display_device::ClearFlags f) = 0;
 
 		static window_manager_ptr factory(const std::string& title, const std::string& wnd_hint="", const std::string& rend_hint="");
 	protected:
@@ -113,9 +113,9 @@ namespace KRE
 		size_t height_;
 		size_t logical_width_;
 		size_t logical_height_;
-		Color clear_color_;
+		color clear_color_;
 
-		DisplayDevicePtr display_;
+		display_device_ptr display_;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(window_manager);
 

@@ -31,12 +31,12 @@ namespace KRE
 	class renderable;
 	typedef std::shared_ptr<renderable> renderable_ptr;
 
-	class RenderQueue;
-	typedef std::shared_ptr<RenderQueue> RenderQueuePtr;
+	class renderQueue;
+	typedef std::shared_ptr<renderQueue> renderQueuePtr;
 
-	class RenderManager;
-	typedef std::shared_ptr<RenderManager> RenderManagerPtr;
+	class renderManager;
+	typedef std::shared_ptr<renderManager> renderManagerPtr;
     
-    class RenderTarget;
-    typedef std::shared_ptr<RenderTarget> RenderTargetPtr;
+    class renderTarget;
+    typedef std::shared_ptr<renderTarget> render_target_ptr;
 }

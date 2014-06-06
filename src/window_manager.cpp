@@ -25,7 +25,7 @@
 #include <sstream>
 
 #include "asserts.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "logger.hpp"
 #include "surface_sdl.hpp"
 #include "SDL.h"
@@ -49,9 +49,9 @@ namespace KRE
 			return ++v;
 		}
 
-		DisplayDevicePtr& current_display_device()
+		display_device_ptr& current_display_device()
 		{
-			static DisplayDevicePtr res;
+			static display_device_ptr res;
 			return res;
 		}
 	}
@@ -67,7 +67,7 @@ namespace KRE
 			if(renderer_hint_.empty()) {
 				renderer_hint_ = "opengl";
 			}
-			current_display_device() = display_ = DisplayDevice::Factory(renderer_hint_);
+			current_display_device() = display_ = display_device::factory(renderer_hint_);
 		}
 		~sdl_window_manager() {
 			destroy_window();
@@ -79,7 +79,7 @@ namespace KRE
 
 			Uint32 wnd_flags = 0;
 
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			if(display_->id() == display_device::display_device_id::DISPLAY_DEVICE_OPENGL) {
 				// We need to do extra SDL set-up for an OpenGL context.
 				// Since these parameter's need to be set-up before context
 				// creation.
@@ -132,7 +132,7 @@ namespace KRE
 					break;
 			}
 			window_.reset(SDL_CreateWindow(title().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
-				if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+				if(display_->id() != display_device::display_device_id::DISPLAY_DEVICE_SDL) {
 					SDL_DestroyRenderer(renderer_);
 				}
 				display_.reset();
@@ -143,7 +143,7 @@ namespace KRE
 				SDL_DestroyWindow(wnd);
 			});
 
-			if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+			if(display_->id() != display_device::display_device_id::DISPLAY_DEVICE_SDL) {
 				Uint32 rnd_flags = SDL_RENDERER_ACCELERATED;
 				if(vsync()) {
 					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -153,15 +153,15 @@ namespace KRE
 			}
 
 			ASSERT_LOG(window_ != NULL, "Failed to create window: " << SDL_GetError());
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			if(display_->id() == display_device::display_device_id::DISPLAY_DEVICE_OPENGL) {
 				context_ = SDL_GL_CreateContext(window_.get());	
 				ASSERT_LOG(context_ != NULL, "Failed to GL Context: " << SDL_GetError());
 			}
 
-			display_->SetClearColor(clear_color_);
-			display_->Init(width_, height_);
-			display_->PrintDeviceInfo();
-			display_->Clear(DisplayDevice::DISPLAY_CLEAR_ALL);
+			display_->set_clear_color(clear_color_);
+			display_->init(width_, height_);
+			display_->print_device_info();
+			display_->clear(display_device::DISPLAY_CLEAR_ALL);
 			swap();
 		}
 
@@ -169,19 +169,19 @@ namespace KRE
 			window_.reset();
 		}
 
-		void clear(DisplayDevice::ClearFlags f) override {
-			display_->Clear(DisplayDevice::DISPLAY_CLEAR_ALL);
+		void clear(display_device::ClearFlags f) override {
+			display_->clear(display_device::DISPLAY_CLEAR_ALL);
 		}
 
 		void swap() override {
 			// This is a little bit hacky -- ideally the display device should swap buffers.
 			// But SDL provides a device independent way of doing it which is really nice.
 			// So we use that.
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			if(display_->id() == display_device::display_device_id::DISPLAY_DEVICE_OPENGL) {
 				SDL_GL_SwapWindow(window_.get());
 			} else {
 				// default to delegating to the display device.
-				display_->Swap();
+				display_->swap();
 			}
 		}
 
@@ -241,7 +241,7 @@ namespace KRE
 
 		virtual void render(const renderable_ptr& r) override {
 			ASSERT_LOG(display_ != NULL, "No display to render to.");
-			display_->Render(r);
+			display_->render(r);
 		}
 	protected:
 	private:
@@ -249,7 +249,7 @@ namespace KRE
 
 		void handle_set_clear_color() override {
 			if(display_ != NULL) {
-				display_->SetClearColor(clear_color_);
+				display_->set_clear_color(clear_color_);
 			}
 		}
 		void change_fullscreen_mode() override {
@@ -330,13 +330,13 @@ namespace KRE
 
 	void window_manager::set_clear_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	{
-		clear_color_ = Color(r,g,b,a);
+		clear_color_ = color(r,g,b,a);
 		handle_set_clear_color();
 	}
 
 	void window_manager::set_clear_color(float r, float g, float b, float a)
 	{
-		clear_color_ = Color(r,g,b,a);
+		clear_color_ = color(r,g,b,a);
 		handle_set_clear_color();
 	}
 

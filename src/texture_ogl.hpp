@@ -25,35 +25,35 @@
 
 #include <GL/glew.h>
 
-#include "Texture.hpp"
+#include "texture.hpp"
 
 namespace KRE
 {
-	class OpenGLTexture : public Texture
+	class OpenGLtexture : public texture
 	{
 	public:
-		OpenGLTexture(const surface_ptr& surface, const variant& node);
-		OpenGLTexture(const surface_ptr& surface, 
+		OpenGLtexture(const surface_ptr& surface, const variant& node);
+		OpenGLtexture(const surface_ptr& surface, 
 			Type type=Type::TEXTURE_2D, 
 			int mipmap_levels=0);
-		OpenGLTexture(unsigned width, 
+		OpenGLtexture(unsigned width, 
 			unsigned height, 			
 			PixelFormat fmt, 
-			Texture::Type type=Type::TEXTURE_2D,
+			Type type=Type::TEXTURE_2D,
 			unsigned depth=0);
-		virtual ~OpenGLTexture();
+		virtual ~OpenGLtexture();
 
-		void Bind() override;
+		void bind() override;
 
-		void Init() override;
-		unsigned ID() override;
+		void init() override;
+		unsigned id() override;
 
-		void Update(int x, unsigned width, void* pixels) override;
-		void Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) override;
-		void Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
+		void update(int x, unsigned width, void* pixels) override;
+		void update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels) override;
+		void update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
 	private:
-		void CreateTexture(const PixelFormat& fmt);
-		void Rebuild() override;
+		void create_texture(const PixelFormat& fmt);
+		void rebuild() override;
 
 		// For YUV family textures we need two more texture id's
 		// since we hold them in seperate textures, for everything

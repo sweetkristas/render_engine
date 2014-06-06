@@ -27,6 +27,6 @@ namespace KRE
 {
 	namespace
 	{
-		//DisplayDeviceRegistrar<DisplayDeviceOpenGLFixed> ogl_register("opengl-fixed");
+		//display_device_registrar<display_device_oglFixed> ogl_register("opengl-fixed");
 	}
 }

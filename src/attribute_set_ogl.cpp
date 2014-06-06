@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#include "AttributeSetOpenGL.hpp"
+#include "attribute_set_ogl.hpp"
 
 namespace KRE
 {
@@ -58,21 +58,21 @@ namespace KRE
 	}
 
 
-	HardwareAttributeOGL::HardwareAttributeOGL(AttributeBase* parent)
-		: HardwareAttribute(parent), 
+	hardware_attribute_ogl::hardware_attribute_ogl(attribute_base* parent)
+		: hardware_attribute(parent), 
 		buffer_id_(-1),
-		access_pattern_(convert_access_type_and_frequency(parent->AccessFrequency(), parent->AccessType())),
+		access_pattern_(convert_access_type_and_frequency(parent->access_frequency(), parent->access_type())),
 		size_(0)
 	{
 		glGenBuffers(1, &buffer_id_);
 	}
 
-	HardwareAttributeOGL::~HardwareAttributeOGL()
+	hardware_attribute_ogl::~hardware_attribute_ogl()
 	{
 		glDeleteBuffers(1, &buffer_id_);
 	}
 
-	void HardwareAttributeOGL::Update(const void* value, ptrdiff_t offset, size_t size)
+	void hardware_attribute_ogl::update(const void* value, ptrdiff_t offset, size_t size)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_id_);
 		if(offset == 0) {
@@ -95,46 +95,46 @@ namespace KRE
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void HardwareAttributeOGL::Bind()
+	void hardware_attribute_ogl::bind()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_id_);
 	}
 
-	void HardwareAttributeOGL::Unbind()
+	void hardware_attribute_ogl::unbind()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 
-	AttributeSetOGL::AttributeSetOGL(bool indexed, bool instanced)
-		: AttributeSet(indexed, instanced)
+	attribute_set_ogl::attribute_set_ogl(bool indexed, bool instanced)
+		: attribute_set(indexed, instanced)
 	{
 		if(indexed) {
 			glGenBuffers(1, &index_buffer_id_);
 		}
 	}
 
-	AttributeSetOGL::~AttributeSetOGL()
+	attribute_set_ogl::~attribute_set_ogl()
 	{
-		if(IsIndexed()) {
+		if(is_indexed()) {
 			glDeleteBuffers(1, &index_buffer_id_);
 		}
 	}
 
-	void AttributeSetOGL::BindIndex()
+	void attribute_set_ogl::bind_index()
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_id_);
 	}
 
-	void AttributeSetOGL::UnbindIndex()
+	void attribute_set_ogl::unbind_index()
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	void AttributeSetOGL::HandleIndexUpdate()
+	void attribute_set_ogl::handle_index_update()
 	{
-		BindIndex();
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, GetTotalArraySize(), GetIndexData(), GL_STATIC_DRAW);
-		UnbindIndex();
+		bind_index();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, get_total_array_size(), get_index_data(), GL_STATIC_DRAW);
+		unbind_index();
 	}
 }

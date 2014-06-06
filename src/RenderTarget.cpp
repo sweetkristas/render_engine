@@ -22,11 +22,11 @@
 */
 
 #include "asserts.hpp"
-#include "RenderTarget.hpp"
+#include "renderTarget.hpp"
 
 namespace KRE
 {
-	RenderTarget::RenderTarget(unsigned width, unsigned height, 
+	renderTarget::renderTarget(unsigned width, unsigned height, 
 		unsigned color_plane_count, 
 		bool depth, 
 		bool stencil, 
@@ -43,7 +43,7 @@ namespace KRE
 	{
 	}
 
-	RenderTarget::RenderTarget(const variant& node)
+	renderTarget::renderTarget(const variant& node)
 		: width_(0),
 		height_(0),
 		color_attachments_(1),
@@ -53,8 +53,8 @@ namespace KRE
 		multi_samples_(0),
 		clear_color_(0.0f, 0.0f, 0.0f, 1.0f)
 	{
-		ASSERT_LOG(node.has_key("width"), "Render target must have a 'width' attribute.");
-		ASSERT_LOG(node.has_key("height"), "Render target must have a 'height' attribute.");
+		ASSERT_LOG(node.has_key("width"), "render target must have a 'width' attribute.");
+		ASSERT_LOG(node.has_key("height"), "render target must have a 'height' attribute.");
 		width_ = node["width"].as_int();
 		height_ = node["height"].as_int();
 		if(node.has_key("color_planes")) {
@@ -74,41 +74,41 @@ namespace KRE
 		}
 	}
 
-	RenderTarget::~RenderTarget()
+	renderTarget::~renderTarget()
 	{
 	}
 
-	void RenderTarget::Create()
+	void renderTarget::Create()
 	{
 		HandleCreate();
 	}
 	
-	void RenderTarget::Apply()
+	void renderTarget::Apply()
 	{
 		HandleApply();
 	}
 
-	void RenderTarget::Unapply()
+	void renderTarget::Unapply()
 	{
 		HandleUnapply();
 	}
 
-	void RenderTarget::Clear()
+	void renderTarget::clear()
 	{
-		HandleClear();
+		Handleclear();
 	}
 
-	void RenderTarget::SetClearColor(int r, int g, int b, int a)
+	void renderTarget::set_clear_color(int r, int g, int b, int a)
 	{
-		clear_color_ = Color(r,g,b,a);
+		clear_color_ = color(r,g,b,a);
 	}
 
-	void RenderTarget::SetClearColor(float r, float g, float b, float a)
+	void renderTarget::set_clear_color(float r, float g, float b, float a)
 	{
-		clear_color_ = Color(r,g,b,a);
+		clear_color_ = color(r,g,b,a);
 	}
 
-	void RenderTarget::SetClearColor(const Color& color)
+	void renderTarget::set_clear_color(const color& color)
 	{
 		clear_color_ = color;
 	}

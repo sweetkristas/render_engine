@@ -25,19 +25,19 @@
 
 #include <GL/glew.h>
 
-#include "AttributeSet.hpp"
+#include "attribute_set.hpp"
 
 namespace KRE
 {
-	class HardwareAttributeOGL : public HardwareAttribute
+	class hardware_attribute_ogl : public hardware_attribute
 	{
 	public:
-		HardwareAttributeOGL(AttributeBase* parent);
-		virtual ~HardwareAttributeOGL();
-		void Update(const void* value, ptrdiff_t offset, size_t size) override;
-		void Bind() override;
-		void Unbind() override;
-		intptr_t Value() override { return 0; }
+		hardware_attribute_ogl(attribute_base* parent);
+		virtual ~hardware_attribute_ogl();
+		void update(const void* value, ptrdiff_t offset, size_t size) override;
+		void bind() override;
+		void unbind() override;
+		intptr_t value() override { return 0; }
 	private:
 		GLuint buffer_id_;
 		GLenum access_pattern_;
@@ -45,7 +45,7 @@ namespace KRE
 	};
 
 
-	class AttributeSetOGL : public AttributeSet
+	class attribute_set_ogl : public attribute_set
 	{
 	public:
 		enum class DrawMode {
@@ -61,16 +61,20 @@ namespace KRE
 			POLYGON,		
 		};
 	
-		explicit AttributeSetOGL(bool indexed, bool instanced);
-		virtual ~AttributeSetOGL();	
-		const void* GetIndexArray() const override { return NULL; }
-		void BindIndex() override;
-		void UnbindIndex() override;
-		bool IsHardwareBacked() const override { return true; }
+		explicit attribute_set_ogl(bool indexed, bool instanced);
+		virtual ~attribute_set_ogl();	
+		const void* get_index_array() const override { return NULL; }
+		void bind_index() override;
+		void unbind_index() override;
+		bool is_hardware_backed() const override { return true; }
 	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(AttributeSetOGL);
-		void HandleIndexUpdate() override;
+		//DISALLOW_COPY_ASSIGN_AND_DEFAULT(attribute_set_ogl);
+		attribute_set_ogl();
+		attribute_set_ogl(const attribute_set_ogl&);
+		void operator=(const attribute_set_ogl&);
+
+		void handle_index_update() override;
 		GLuint index_buffer_id_;
 	};
-	typedef std::shared_ptr<AttributeSet> AttributeSetPtr;
+	typedef std::shared_ptr<attribute_set> attribute_set_ptr;
 }

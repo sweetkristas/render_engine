@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "LightObject.hpp"
 
 namespace KRE
@@ -59,9 +59,9 @@ namespace KRE
 	{
 	}
 
-	DisplayDeviceDef Light::Attach(const DisplayDevicePtr& dd)
+	display_device_def Light::attach(const display_device_ptr& dd)
 	{
-		DisplayDeviceDef def(get_attribute_set());
+		display_device_def def(get_attribute_set());
 		// XXX
 		return def;
 	}
@@ -76,17 +76,17 @@ namespace KRE
 		position_ = position;
 	}
 
-	void Light::SetAmbientColor(const glm::vec4& color)
+	void Light::SetAmbientcolor(const glm::vec4& color)
 	{
 		ambient_color_ = color;
 	}
 
-	void Light::SetDiffuseColor(const glm::vec4& color)
+	void Light::SetDiffusecolor(const glm::vec4& color)
 	{
 		diffuse_color_ = color;
 	}
 
-	void Light::SetSpecularColor(const glm::vec4& color)
+	void Light::SetSpecularcolor(const glm::vec4& color)
 	{
 		specular_color_ = color;
 	}

@@ -33,10 +33,10 @@ namespace KRE
 {
 	namespace 
 	{
-		typedef std::map<std::string, ObjectTypeFunction> scene_objectFactoryLookupTable;
-		scene_objectFactoryLookupTable& get_object_factory()
+		typedef std::map<std::string, ObjectTypeFunction> scene_objectfactoryLookupTable;
+		scene_objectfactoryLookupTable& get_object_factory()
 		{
-			static scene_objectFactoryLookupTable res;
+			static scene_objectfactoryLookupTable res;
 			return res;
 		}
 
@@ -123,7 +123,7 @@ namespace KRE
 		get_object_factory()[type] = fn;
 	}
 
-	void scene_graph::render_scene_helper(const RenderManagerPtr& renderer, 
+	void scene_graph::render_scene_helper(const renderManagerPtr& renderer, 
 		the::tree<scene_node_ptr>::pre_iterator& it, 
 		scene_node_params* snp)
 	{
@@ -135,10 +135,10 @@ namespace KRE
 		render_scene_helper(renderer, ++it, snp);
 	}
 
-	void scene_graph::render_scene(const RenderManagerPtr& renderer)
+	void scene_graph::render_scene(const renderManagerPtr& renderer)
 	{
 		the::tree<scene_node_ptr>::pre_iterator it = graph_.begin();
-		//LOG_DEBUG("RenderScene: " << (*it)->NodeName());
+		//LOG_DEBUG("renderScene: " << (*it)->Nodename());
 		scene_node_params snp;
 		render_scene_helper(renderer, it, &snp);
 	}

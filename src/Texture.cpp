@@ -23,26 +23,26 @@
 
 #include <set>
 #include "asserts.hpp"
-#include "DisplayDevice.hpp"
-#include "Texture.hpp"
+#include "display_device.hpp"
+#include "texture.hpp"
 
 namespace KRE
 {
 	namespace 
 	{
-		typedef std::set<Texture*> TextureRegistryType;
-		TextureRegistryType& texture_registry()
+		typedef std::set<texture*> textureRegistryType;
+		textureRegistryType& texture_registry()
 		{
-			static TextureRegistryType res;
+			static textureRegistryType res;
 			return res;
 		}
 
-		void add_to_texture_registry(Texture* tex) 
+		void add_to_texture_registry(texture* tex) 
 		{
 			texture_registry().insert(tex);
 		}
 
-		void remove_from_texture_registery(Texture* tex)
+		void remove_from_texture_registery(texture* tex)
 		{
 			auto it = texture_registry().find(tex);
 			ASSERT_LOG(it != texture_registry().end(), "tried to erase texture from registry that doesn't exist");
@@ -50,7 +50,7 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const surface_ptr& surface, const variant& node)
+	texture::texture(const surface_ptr& surface, const variant& node)
 		: type_(Type::TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
@@ -62,7 +62,7 @@ namespace KRE
 		height_(0),
 		depth_(0)
 	{
-		InternalInit();
+		internal_init();
 		if(node.has_key("type")) {
 			const std::string& type = node["type"].as_string();
 			if(type == "1d") {
@@ -93,21 +93,21 @@ namespace KRE
 			if(node["filtering"].is_string()) {
 				const std::string& filtering = node["filtering"].as_string();
 				if(filtering == "none") {
-					filtering_[0] = Filtering::POINT;
-					filtering_[1] = Filtering::POINT;
-					filtering_[2] = Filtering::NONE;
+					filtering_[0] = filtering::POINT;
+					filtering_[1] = filtering::POINT;
+					filtering_[2] = filtering::NONE;
 				} else if(filtering == "bilinear") {
-					filtering_[0] = Filtering::LINEAR;
-					filtering_[1] = Filtering::LINEAR;
-					filtering_[2] = Filtering::POINT;
+					filtering_[0] = filtering::LINEAR;
+					filtering_[1] = filtering::LINEAR;
+					filtering_[2] = filtering::POINT;
 				} else if(filtering == "trilinear") {
-					filtering_[0] = Filtering::LINEAR;
-					filtering_[1] = Filtering::LINEAR;
-					filtering_[2] = Filtering::LINEAR;
+					filtering_[0] = filtering::LINEAR;
+					filtering_[1] = filtering::LINEAR;
+					filtering_[2] = filtering::LINEAR;
 				} else if(filtering == "anisotropic") {
-					filtering_[0] = Filtering::ANISOTROPIC;
-					filtering_[1] = Filtering::ANISOTROPIC;
-					filtering_[2] = Filtering::LINEAR;
+					filtering_[0] = filtering::ANISOTROPIC;
+					filtering_[1] = filtering::ANISOTROPIC;
+					filtering_[2] = filtering::LINEAR;
 				} else {
 					ASSERT_LOG(false, "'filtering' must be either 'none','bilinear','trilinear' or 'anisotropic'. Found: " << filtering);
 				}
@@ -118,15 +118,15 @@ namespace KRE
 					ASSERT_LOG(node["filtering"][n].is_string(), "Element " << n << " of filtering is not a string: " << node["filtering"][0].type_as_string());
 					const std::string& f = node["filtering"][n].as_string();
 					if(f == "none") {
-						filtering_[n] = Filtering::NONE;
+						filtering_[n] = filtering::NONE;
 					} else if(f == "point") {
-						filtering_[n] = Filtering::POINT;
+						filtering_[n] = filtering::POINT;
 					} else if(f == "linear") {
-						filtering_[n] = Filtering::LINEAR;
+						filtering_[n] = filtering::LINEAR;
 					} else if(f == "anisotropic") {
-						filtering_[n] = Filtering::ANISOTROPIC;
+						filtering_[n] = filtering::ANISOTROPIC;
 					} else {
-						ASSERT_LOG(false, "Filtering element(" << n << ") invalid: " << f);
+						ASSERT_LOG(false, "filtering element(" << n << ") invalid: " << f);
 					}
 				}
 			} else {
@@ -142,26 +142,26 @@ namespace KRE
 					ASSERT_LOG(node["address_mode"][n].is_string(), "Element " << n << " of 'address_mode' attribute is not a string: " << node["address_mode"][0].type_as_string());
 					const std::string& am = node["address_mode"][n].as_string();
 					if(am == "wrap") {
-						address_mode_[n] = AddressMode::WRAP;
+						address_mode_[n] = address_mode::WRAP;
 					} else if(am == "clamp") {
-						address_mode_[n] = AddressMode::CLAMP;
+						address_mode_[n] = address_mode::CLAMP;
 					} else if(am == "mirror") {
-						address_mode_[n] = AddressMode::MIRROR;
+						address_mode_[n] = address_mode::MIRROR;
 					} else if(am == "border") {
-						address_mode_[n] = AddressMode::BORDER;
+						address_mode_[n] = address_mode::BORDER;
 					} else {
 						ASSERT_LOG(false, "address_mode element(" << n << ") invalid: " << am);
 					}
 				}
 				for(; n < 3; ++n) {
-					address_mode_[n] = AddressMode::WRAP;
+					address_mode_[n] = address_mode::WRAP;
 				}
 			} else {
 				ASSERT_LOG(false, "'filtering' must be a list of strings. Found: " << node["filtering"].type_as_string());
 			}
 		}
 		if(node.has_key("border_color")) {
-			border_color_ = Color(node["border_color"]);
+			border_color_ = color(node["border_color"]);
 		}
 		if(node.has_key("rect")) {
 			ASSERT_LOG(node["rect"].is_list(), "'rect' attribute must be a list of numbers.");
@@ -169,7 +169,7 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const surface_ptr& surface, Type type, int mipmap_levels)
+	texture::texture(const surface_ptr& surface, Type type, int mipmap_levels)
 		: type_(type), 
 		mipmaps_(mipmap_levels), 
 		max_anisotropy_(1),
@@ -181,10 +181,10 @@ namespace KRE
 		height_(0),
 		depth_(0)
 	{
-		InternalInit();
+		internal_init();
 	}
 
-	Texture::Texture(unsigned width, 
+	texture::texture(unsigned width, 
 		unsigned height, 
 		unsigned depth,
 		PixelFormat fmt, 
@@ -199,29 +199,29 @@ namespace KRE
 		height_(height),
 		depth_(depth)
 	{
-		InternalInit();
+		internal_init();
 	}
 	
-	Texture::~Texture()
+	texture::~texture()
 	{
 		remove_from_texture_registery(this);
 	}
 
-	void Texture::InternalInit()
+	void texture::internal_init()
 	{
 		add_to_texture_registry(this);
 
 		for(auto& am : address_mode_) {
-			am = AddressMode::CLAMP;
+			am = address_mode::CLAMP;
 		}
-		filtering_[0] = Filtering::POINT;
-		filtering_[1] = Filtering::POINT;
-		filtering_[2] = Filtering::NONE;
+		filtering_[0] = filtering::POINT;
+		filtering_[1] = filtering::POINT;
+		filtering_[2] = filtering::NONE;
 
 		// XXX For reasons (i.e. some video cards are problematic either hardware/drivers)
 		// we are forced to use power-of-two textures anyway if we want mip-mapping and
 		// address modes other than CLAMP.
-		if(!DisplayDevice::CheckForFeature(DisplayDeviceCapabilties::NPOT_TEXTURES)) {
+		if(!display_device::check_for_feature(display_device_capabilties::NPOT_TEXTURES)) {
 			width_ = next_power_of_2(surface_width_);
 			height_ = next_power_of_2(surface_height_);
 			depth_ = 0;
@@ -232,48 +232,48 @@ namespace KRE
 		}
 	}
 
-	void Texture::SetAddressModes(AddressMode u, AddressMode v, AddressMode w, const Color& bc)
+	void texture::set_address_modes(address_mode u, address_mode v, address_mode w, const color& bc)
 	{
 		address_mode_[0] = u;
 		address_mode_[1] = v;
 		address_mode_[2] = w;
 		border_color_ = bc;
-		Init();
+		init();
 	}
 
-	void Texture::SetAddressModes(const AddressMode uvw[3], const Color& bc)
+	void texture::set_address_modes(const address_mode uvw[3], const color& bc)
 	{
 		for(int n = 0; n < 3; ++n) {
 			address_mode_[n] = uvw[n];
 		}
 		border_color_ = bc;
-		Init();
+		init();
 	}
 
-	void Texture::SetFiltering(Filtering min, Filtering max, Filtering mip)
+	void texture::set_filtering(filtering min, filtering max, filtering mip)
 	{
 		filtering_[0] = min;
 		filtering_[1] = max;
 		filtering_[2] = mip;
-		Init();
+		init();
 	}
 
-	void Texture::SetFiltering(const Filtering f[3])
+	void texture::set_filtering(const filtering f[3])
 	{
 		for(int n = 0; n < 3; ++n) {
 			filtering_[n] = f[n];
 		}
-		Init();
+		init();
 	}
 
-	void Texture::RebuildAll()
+	void texture::rebuild_all()
 	{
 		for(auto tex : texture_registry()) {
-			tex->Rebuild();
+			tex->rebuild();
 		}
 	}
 
-	void Texture::SetTextureDimensions(unsigned w, unsigned h, unsigned d)
+	void texture::set_texture_dimensions(unsigned w, unsigned h, unsigned d)
 	{
 		width_ = w;
 		height_ = h;

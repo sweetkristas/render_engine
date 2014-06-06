@@ -26,7 +26,7 @@
 #include <cstddef>
 
 #include "asserts.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "FboOpenGL.hpp"
 
 namespace KRE
@@ -37,7 +37,7 @@ namespace KRE
 		bool stencil, 
 		bool use_multi_sampling, 
 		unsigned multi_samples)
-		: RenderTarget(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples),
+		: renderTarget(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples),
 		uses_ext_(false),
 		depth_stencil_buffer_id_(0),
 		tex_width_(0),
@@ -46,7 +46,7 @@ namespace KRE
 	}
 
 	FboOpenGL::FboOpenGL(const variant& node)
-		: RenderTarget(node),
+		: renderTarget(node),
 		uses_ext_(false),
 		depth_stencil_buffer_id_(0),
 		tex_width_(0),
@@ -63,8 +63,8 @@ namespace KRE
 		GLenum ds_attachment;
 		GetDSInfo(ds_attachment, depth_stencil_internal_format);
 
-		tex_width_ = next_power_of_2(Width());
-		tex_height_ = next_power_of_2(Height());
+		tex_width_ = next_power_of_2(width());
+		tex_height_ = next_power_of_2(height());
 
 		// check for fbo support
 		if(GLEW_ARB_framebuffer_object) {
@@ -72,29 +72,29 @@ namespace KRE
 			if(UsesMultiSampling()) {
 				ASSERT_LOG(false, "skipped creation of multi-sample render buffers with multiple color planes, for now, as it was hurting my head to think about.");
 				/*int render_buffer_count = 1;
-				if(DepthPlane() || StencilPlane()) {
+				if(depthPlane() || StencilPlane()) {
 					render_buffer_count = 2;
 				}
 				render_buffer_id_ = std::shared_ptr<std::vector<GLuint>>(new std::vector<GLuint>, [render_buffer_count](std::vector<GLuint>* id){
-					glBindRenderbuffer(GL_RENDERBUFFER, 0); 
-					glDeleteRenderbuffers(render_buffer_count, &(*id)[0]); 
+					glBindRenderBuffer(GL_RENDERBUFFER, 0); 
+					glDeleteRenderBuffers(render_buffer_count, &(*id)[0]); 
 					delete[] id;
 				});
 				render_buffer_id_->resize(render_buffer_count);
-				glGenRenderbuffers(render_buffer_count, &(*render_buffer_id_)[0]);
-				glBindRenderbuffer(GL_RENDERBUFFER, (*render_buffer_id_)[0]);
-				glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSamples(), GL_RGBA8, Width(), Height());
+				glGenRenderBuffers(render_buffer_count, &(*render_buffer_id_)[0]);
+				glBindRenderBuffer(GL_RENDERBUFFER, (*render_buffer_id_)[0]);
+				glRenderBufferStorageMultisample(GL_RENDERBUFFER, MultiSamples(), GL_RGBA8, width(), height());
 				if(render_buffer_count > 1) {
-					glBindRenderbuffer(GL_RENDERBUFFER, (*render_buffer_id_)[1]);
-					glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSamples(), depth_stencil_internal_format, Width(), Height());
+					glBindRenderBuffer(GL_RENDERBUFFER, (*render_buffer_id_)[1]);
+					glRenderBufferStorageMultisample(GL_RENDERBUFFER, MultiSamples(), depth_stencil_internal_format, width(), height());
 				}
-				glBindRenderbuffer(GL_RENDERBUFFER, 0);
+				glBindRenderBuffer(GL_RENDERBUFFER, 0);
 
 				// Create Other FBO
 				final_texture_id_ = boost::shared_array<GLuint>(new GLuint[2], [](GLuint* id){glDeleteTextures(2,id); delete[] id;});
-				glGenTextures(2, &final_texture_id_[0]);
+				glGentextures(2, &final_texture_id_[0]);
 				glBindTexture(GL_TEXTURE_2D, final_texture_id_[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width(), Height(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, NULL);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width(), height(), 0, GL_RGBA8, GL_UNSIGNED_BYTE, NULL);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -106,7 +106,7 @@ namespace KRE
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, Width(), Height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL );
+				glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width(), height(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL );
 				glBindTexture(GL_TEXTURE_2D, 0);
 
 				sample_framebuffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id) {
@@ -135,7 +135,7 @@ namespace KRE
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
 
 			} else {
-				if(DepthPlane() || StencilPlane()) {
+				if(depthPlane() || StencilPlane()) {
 					depth_stencil_buffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id){ 
 						glBindRenderbuffer(GL_RENDERBUFFER, 0); 
 						glDeleteRenderbuffers(1, id); 
@@ -147,16 +147,16 @@ namespace KRE
 					glBindRenderbuffer(GL_RENDERBUFFER, 0);
 				}
 
-				// Use CreateMaterial.
-				auto dd = DisplayDevice::GetCurrent();
-				std::vector<TexturePtr> textures;
-				unsigned color_planes = ColorPlanes();
+				// Use create_material.
+				auto dd = display_device::get_current();
+				std::vector<texture_ptr> textures;
+				unsigned color_planes = colorPlanes();
 				textures.reserve(color_planes);
 				for(unsigned n = 0; n != color_planes; ++n) {
-					textures.emplace_back(dd->CreateTexture(tex_width_, tex_height_, PixelFormat::PIXELFORMAT_BGRA8888));
+					textures.emplace_back(dd->create_texture(tex_width_, tex_height_, PixelFormat::PIXELFORMAT_BGRA8888));
 				}
-				auto mat = dd->CreateMaterial("fbo_mat", textures);
-				mat->SetCoords(rect(0, 0, Width(), Height()));
+				auto mat = dd->create_material("fbo_mat", textures);
+				mat->SetCoords(rect(0, 0, width(), height()));
 				set_material(mat);
 
 				framebuffer_id_ = std::shared_ptr<GLuint>(new GLuint, [](GLuint* id) {
@@ -168,7 +168,7 @@ namespace KRE
 				// attach the texture to FBO color attachment point
 				unsigned n = 0;
 				for(auto t : textures) {
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+n, GL_TEXTURE_2D, t->ID(), 0);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+n, GL_TEXTURE_2D, t->id(), 0);
 					++n;
 				}
 				if(depth_stencil_buffer_id_) {
@@ -180,7 +180,7 @@ namespace KRE
 			}
 		} else if(GLEW_EXT_framebuffer_object) {
 			ASSERT_LOG(!(UsesMultiSampling() && !GLEW_EXT_framebuffer_multisample), "Multi-sample texture requested but hardware doesn't support multi-sampling.");
-			ASSERT_LOG(!(DepthPlane() || StencilPlane() && !GLEW_EXT_packed_depth_stencil), "Depth or Stencil plane required but hardware doesn't support it.");
+			ASSERT_LOG(!(depthPlane() || StencilPlane() && !GLEW_EXT_packed_depth_stencil), "depth or Stencil plane required but hardware doesn't support it.");
 			uses_ext_ = true;
 			// XXX wip
 		}
@@ -193,11 +193,11 @@ namespace KRE
 	{
 	}
 
-	DisplayDeviceDef FboOpenGL::Attach(const DisplayDevicePtr& dd)
+	display_device_def FboOpenGL::attach(const display_device_ptr& dd)
 	{
-		DisplayDeviceDef def(get_attribute_set());
+		display_device_def def(get_attribute_set());
 		if(!shader_hint_.empty()) {
-			def.SetHint("shader", shader_hint_);
+			def.set_hint("shader", shader_hint_);
 		}
 		return def;
 	}
@@ -211,7 +211,7 @@ namespace KRE
 			// blit from multisample FBO to final FBO
 			//glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_id_[1]);
 			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_id_[0]);
-			//glBlitFramebuffer(0, 0, Width(), Height(), 0, 0, Width(), Height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_LINEAR);
+			//glBlitFramebuffer(0, 0, width(), height(), 0, 0, width(), height(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_LINEAR);
 			//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
@@ -225,7 +225,7 @@ namespace KRE
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
 
 		glGetIntegerv(GL_VIEWPORT, viewport_);
-		glViewport(0, 0, Width(), Height());
+		glViewport(0, 0, width(), height());
 	}
 
 	void FboOpenGL::HandleUnapply()
@@ -234,11 +234,11 @@ namespace KRE
 		glViewport(viewport_[0], viewport_[1], viewport_[2], viewport_[3]);
 	}
 
-	void FboOpenGL::HandleClear()
+	void FboOpenGL::Handleclear()
 	{
 		ASSERT_LOG(framebuffer_id_ != NULL, "Framebuffer object hasn't been created.");
 		glBindFramebuffer(GL_FRAMEBUFFER, *framebuffer_id_);
-		auto& color = GetClearColor();
+		auto& color = Getclearcolor();
 		glClearColor(color.r(), color.g(), color.b(), color.a());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -246,8 +246,8 @@ namespace KRE
 
 	void FboOpenGL::GetDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format)
 	{
-		if(DepthPlane() || StencilPlane()) {
-			if(DepthPlane()) {
+		if(depthPlane() || StencilPlane()) {
+			if(depthPlane()) {
 				if(StencilPlane()) {
 					depth_stencil_internal_format = GL_DEPTH24_STENCIL8;
 					ds_attachment = GL_DEPTH_STENCIL_ATTACHMENT;

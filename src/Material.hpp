@@ -24,7 +24,7 @@
 #pragma once
 
 #include "geometry.hpp"
-#include "Texture.hpp"
+#include "texture.hpp"
 #include "variant.hpp"
 
 namespace KRE
@@ -80,26 +80,26 @@ namespace KRE
 	{
 	public:
 		Material();
-		Material(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
+		Material(const std::string& name, const std::vector<texture_ptr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
 		virtual ~Material();
 
-		const std::vector<TexturePtr>& GetTexture() const { return tex_; }
-		const std::string& Name() const { return name_; }
+		const std::vector<texture_ptr>& Gettexture() const { return tex_; }
+		const std::string& name() const { return name_; }
 		bool UseFog() const { return use_fog_; }
 		bool UseLighting() const { return use_lighting_; }
-		bool DoDepthWrite() const { return do_depth_write_; }
-		bool DoDepthCheck() const { return do_depth_check_; }
+		bool DodepthWrite() const { return do_depth_write_; }
+		bool DodepthCheck() const { return do_depth_check_; }
 		const BlendMode& get_blend_mode() const { return blend_; }
 
-		void SetTexture(const TexturePtr& tex);
+		void Settexture(const texture_ptr& tex);
 		void EnableLighting(bool en=true);
 		void EnableFog(bool en=true);
-		void EnableDepthWrite(bool en=true);
-		void EnableDepthCheck(bool en=true);
+		void EnabledepthWrite(bool en=true);
+		void EnabledepthCheck(bool en=true);
 		void set_blend_mode(const BlendMode& bm);
 		void set_blend_mode(BlendMode::BlendModeConstants src, BlendMode::BlendModeConstants dst);
 
-		const rectf GetNormalisedTextureCoords(const std::vector<TexturePtr>::const_iterator& it);
+		const rectf GetNormalisedtextureCoords(const std::vector<texture_ptr>::const_iterator& it);
 
 		template<typename T> void SetCoords(const geometry::rect_t<T>& r) {
 			draw_rect_ = r.template as_type<float>();
@@ -112,14 +112,14 @@ namespace KRE
 		bool Apply();
 		void Unapply();
 	protected:
-		void Init(const variant& node);
+		void init(const variant& node);
 	private:
-		virtual TexturePtr CreateTexture(const variant& node) = 0;
+		virtual texture_ptr create_texture(const variant& node) = 0;
 		virtual void HandleApply() = 0;
 		virtual void HandleUnapply() = 0;
 
 		std::string name_;
-		std::vector<TexturePtr> tex_;
+		std::vector<texture_ptr> tex_;
 		bool use_lighting_;
 		bool use_fog_;
 		bool do_depth_write_;

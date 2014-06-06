@@ -23,108 +23,108 @@
 
 #include "asserts.hpp"
 #include "logger.hpp"
-#include "TextureOpenGL.hpp"
+#include "texture_ogl.hpp"
 
 namespace KRE
 {
 	namespace
 	{
-		GLenum GetGLAddressMode(Texture::AddressMode am)
+		GLenum get_gl_address_mode(texture::address_mode am)
 		{
 			switch(am) {
-				case Texture::AddressMode::WRAP:	return GL_REPEAT;
-				case Texture::AddressMode::CLAMP:	return GL_CLAMP_TO_EDGE;
-				case Texture::AddressMode::MIRROR:	return GL_MIRRORED_REPEAT;
-				case Texture::AddressMode::BORDER:	return GL_CLAMP_TO_BORDER;
+				case texture::address_mode::WRAP:	return GL_REPEAT;
+				case texture::address_mode::CLAMP:	return GL_CLAMP_TO_EDGE;
+				case texture::address_mode::MIRROR:	return GL_MIRRORED_REPEAT;
+				case texture::address_mode::BORDER:	return GL_CLAMP_TO_BORDER;
 			}
 			return GL_CLAMP_TO_EDGE;
 		}
 
-		GLenum GetGLTextureType(Texture::Type tt) 
+		GLenum get_gl_texture_type(texture::Type tt) 
 		{
 			switch(tt) {
-				case Texture::Type::TEXTURE_1D:		return GL_TEXTURE_1D;
-				case Texture::Type::TEXTURE_2D:		return GL_TEXTURE_2D;
-				case Texture::Type::TEXTURE_3D:		return GL_TEXTURE_3D;
-				case Texture::Type::TEXTURE_CUBIC:	return GL_TEXTURE_CUBE_MAP;
+				case texture::Type::TEXTURE_1D:		return GL_TEXTURE_1D;
+				case texture::Type::TEXTURE_2D:		return GL_TEXTURE_2D;
+				case texture::Type::TEXTURE_3D:		return GL_TEXTURE_3D;
+				case texture::Type::TEXTURE_CUBIC:	return GL_TEXTURE_CUBE_MAP;
 			}
 			return GL_TEXTURE_2D;
 		}
 	}
 
-	OpenGLTexture::OpenGLTexture(const surface_ptr& surface, const variant& node)
-		: Texture(surface, node),
+	OpenGLtexture::OpenGLtexture(const surface_ptr& surface, const variant& node)
+		: texture(surface, node),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
 		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
-		CreateTexture(Getsurface()->get_pixel_format()->get_format());
-		Init();
+		create_texture(get_surface()->get_pixel_format()->get_format());
+		init();
 	}
 
-	OpenGLTexture::OpenGLTexture(const surface_ptr& surface, Type type,  int mipmap_levels)
-		: Texture(surface, type, mipmap_levels), 
+	OpenGLtexture::OpenGLtexture(const surface_ptr& surface, Type type,  int mipmap_levels)
+		: texture(surface, type, mipmap_levels), 
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
 		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
-		CreateTexture(Getsurface()->get_pixel_format()->get_format());
-		Init();
+		create_texture(get_surface()->get_pixel_format()->get_format());
+		init();
 	}
 
-	OpenGLTexture::OpenGLTexture(unsigned width, 
+	OpenGLtexture::OpenGLtexture(unsigned width, 
 		unsigned height, 
 		PixelFormat fmt, 
 		Type type, 
 		unsigned depth)
-		: Texture(width, height, depth, fmt, type),
+		: texture(width, height, depth, fmt, type),
 		format_(GL_RGBA),
 		internal_format_(GL_RGBA),
 		type_(GL_UNSIGNED_BYTE),
 		pixel_format_(PixelFormat::PIXELFORMAT_UNKNOWN),
 		is_yuv_planar_(false)
 	{
-		SetTextureDimensions(width, height, depth);
-		CreateTexture(fmt);
-		Init();
+		set_texture_dimensions(width, height, depth);
+		create_texture(fmt);
+		init();
 	}
 
-	OpenGLTexture::~OpenGLTexture()
+	OpenGLtexture::~OpenGLtexture()
 	{
 		glDeleteTextures(is_yuv_planar_ ? 3 : 1, &texture_id_[0]);
 	}
 
-	void OpenGLTexture::Update(int x, unsigned width, void* pixels)
+	void OpenGLtexture::update(int x, unsigned width, void* pixels)
 	{
-		ASSERT_LOG(is_yuv_planar_ == false, "1D Texture Update function called on YUV planar format.");
-		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
-		ASSERT_LOG(GetType() == Type::TEXTURE_1D, "Tried to do 1D texture update on non-1D texture");
-		glTexSubImage1D(GetGLTextureType(GetType()), 0, x, width, format_, type_, pixels);
+		ASSERT_LOG(is_yuv_planar_ == false, "1D texture update function called on YUV planar format.");
+		glBindTexture(get_gl_texture_type(get_type()), texture_id_[0]);
+		ASSERT_LOG(get_type() == Type::TEXTURE_1D, "Tried to do 1D texture update on non-1D texture");
+		glTexSubImage1D(get_gl_texture_type(get_type()), 0, x, width, format_, type_, pixels);
 	}
 
 	// Add a 2D update function which has single stride, but doesn't support planar YUV.
 
 	// Stride is the width of the image surface *in pixels*
-	void OpenGLTexture::Update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels)
+	void OpenGLtexture::update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, void* pixels)
 	{
 		int num_textures = is_yuv_planar_ ? 2 : 0;
 		for(int n = num_textures; n >= 0; --n) {
-			glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
+			glBindTexture(get_gl_texture_type(get_type()), texture_id_[n]);
 			if(stride.size() > size_t(n)) {
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, stride[n]);
 			}
-			switch(GetType()) {
+			switch(get_type()) {
 				case Type::TEXTURE_1D:
 					LOG_WARN("Running 2D texture update on 1D texture.");
-					ASSERT_LOG(is_yuv_planar_ == false, "Update of 1D Texture in YUV planar mode.");
-					glTexSubImage1D(GetGLTextureType(GetType()), 0, x, width, format_, type_, pixels);
+					ASSERT_LOG(is_yuv_planar_ == false, "update of 1D texture in YUV planar mode.");
+					glTexSubImage1D(get_gl_texture_type(get_type()), 0, x, width, format_, type_, pixels);
 					break;
 				case Type::TEXTURE_2D:
-					glTexSubImage2D(GetGLTextureType(GetType()), 0, x, y, n>0?width/2:width, n>0?height/2:height, format_, type_, pixels);
+					glTexSubImage2D(get_gl_texture_type(get_type()), 0, x, y, n>0?width/2:width, n>0?height/2:height, format_, type_, pixels);
 					break;
 				case Type::TEXTURE_3D:
 					ASSERT_LOG(false, "Tried to do 2D texture update on 3D texture");
@@ -132,8 +132,8 @@ namespace KRE
 					ASSERT_LOG(false, "No support for updating cubic textures yet.");
 			}
 		
-			if(GetMipMapLevels() > 0 && GetType() > Type::TEXTURE_1D) {
-				glGenerateMipmap(GetGLTextureType(GetType()));
+			if(get_mipmap_levels() > 0 && get_type() > Type::TEXTURE_1D) {
+				glGenerateMipmap(get_gl_texture_type(get_type()));
 			}
 		}
 		if(!stride.empty()) {
@@ -141,30 +141,30 @@ namespace KRE
 		}
 	}
 
-	void OpenGLTexture::Update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels)
+	void OpenGLtexture::update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels)
 	{
-		ASSERT_LOG(is_yuv_planar_ == false, "3D Texture Update function called on YUV planar format.");
-		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
-		switch(GetType()) {
+		ASSERT_LOG(is_yuv_planar_ == false, "3D texture update function called on YUV planar format.");
+		glBindTexture(get_gl_texture_type(get_type()), texture_id_[0]);
+		switch(get_type()) {
 			case Type::TEXTURE_1D:
 				LOG_WARN("Running 2D texture update on 1D texture. You may get unexpected results.");
-				glTexSubImage1D(GetGLTextureType(GetType()), 0, x, width, format_, type_, pixels);
+				glTexSubImage1D(get_gl_texture_type(get_type()), 0, x, width, format_, type_, pixels);
 				break;
 			case Type::TEXTURE_2D:
 				LOG_WARN("Running 3D texture update on 2D texture. You may get unexpected results.");
-				glTexSubImage2D(GetGLTextureType(GetType()), 0, x, y, width, height, format_, type_, pixels);
+				glTexSubImage2D(get_gl_texture_type(get_type()), 0, x, y, width, height, format_, type_, pixels);
 				break;
 			case Type::TEXTURE_3D:
-				glTexSubImage3D(GetGLTextureType(GetType()), 0, x, y, z, width, height, depth, format_, type_, pixels);
+				glTexSubImage3D(get_gl_texture_type(get_type()), 0, x, y, z, width, height, depth, format_, type_, pixels);
 			case Type::TEXTURE_CUBIC:
 				ASSERT_LOG(false, "No support for updating cubic textures yet.");
 		}
-		if(GetMipMapLevels() > 0 && GetType() > Type::TEXTURE_1D) {
-			glGenerateMipmap(GetGLTextureType(GetType()));
+		if(get_mipmap_levels() > 0 && get_type() > Type::TEXTURE_1D) {
+			glGenerateMipmap(get_gl_texture_type(get_type()));
 		}
 	}
 
-	void OpenGLTexture::CreateTexture(const PixelFormat& fmt)
+	void OpenGLtexture::create_texture(const PixelFormat& fmt)
 	{
 		// Set the pixel format being used.
 		pixel_format_ = fmt;
@@ -316,7 +316,7 @@ namespace KRE
 				internal_format_ = GL_LUMINANCE;
 				type_ = GL_UNSIGNED_BYTE;
 				is_yuv_planar_ = true;
-				ASSERT_LOG(GetType() == Type::TEXTURE_2D, "YUV style pixel format only supported for 2D textures.");
+				ASSERT_LOG(get_type() == Type::TEXTURE_2D, "YUV style pixel format only supported for 2D textures.");
 				break;
 			case PixelFormat::PIXELFORMAT_YUY2:
 			case PixelFormat::PIXELFORMAT_UYVY:
@@ -330,22 +330,22 @@ namespace KRE
 		int num_textures = is_yuv_planar_ ? 3 : 1;
 		glGenTextures(num_textures, &texture_id_[0]);
 		for(int n = 0; n != num_textures; ++n) {
-			glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
+			glBindTexture(get_gl_texture_type(get_type()), texture_id_[n]);
 
-			unsigned w = n>0 ? Width()/2 : Width();
-			unsigned h = n>0 ? Height()/2 : Height();
-			unsigned d = n>0 ? Depth()/2 : Depth();
+			unsigned w = n>0 ? width()/2 : width();
+			unsigned h = n>0 ? height()/2 : height();
+			unsigned d = n>0 ? depth()/2 : depth();
 
-			const void* pixels = Getsurface() ? Getsurface()->pixels() : 0;
-			switch(GetType()) {
+			const void* pixels = get_surface() ? get_surface()->pixels() : 0;
+			switch(get_type()) {
 				case Type::TEXTURE_1D:
-					glTexImage1D(GetGLTextureType(GetType()), 0, internal_format_, w, 0, format_, type_, pixels);
+					glTexImage1D(get_gl_texture_type(get_type()), 0, internal_format_, w, 0, format_, type_, pixels);
 					break;
 				case Type::TEXTURE_2D:
-					glTexImage2D(GetGLTextureType(GetType()), 0, internal_format_, w, h, 0, format_, type_, pixels);
+					glTexImage2D(get_gl_texture_type(get_type()), 0, internal_format_, w, h, 0, format_, type_, pixels);
 					break;
 				case Type::TEXTURE_3D:
-					glTexImage3D(GetGLTextureType(GetType()), 0, internal_format_, w, h, d, 0, format_, type_, pixels);
+					glTexImage3D(get_gl_texture_type(get_type()), 0, internal_format_, w, h, d, 0, format_, type_, pixels);
 					break;
 				case Type::TEXTURE_CUBIC:
 					// If we are using a cubic texture 		
@@ -354,107 +354,107 @@ namespace KRE
 		}
 	}
 
-	void OpenGLTexture::Init()
+	void OpenGLtexture::init()
 	{
-		GLenum type = GetGLTextureType(GetType());
+		GLenum type = get_gl_texture_type(get_type());
 
 		unsigned num_textures = is_yuv_planar_ ? 3 : 1;
 		for(unsigned n = 0; n != num_textures; ++n) {
 			glBindTexture(type, texture_id_[n]);
 
-			glTexParameteri(type, GL_TEXTURE_WRAP_S, GetGLAddressMode(GetAddressModeU()));
-			if(GetAddressModeU() == AddressMode::BORDER) {
-				glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, GetBorderColor().AsFloatVector());
+			glTexParameteri(type, GL_TEXTURE_WRAP_S, get_gl_address_mode(get_address_mode_u()));
+			if(get_address_mode_u() == address_mode::BORDER) {
+				glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, get_border_color().AsFloatVector());
 			}
-			if(GetType() > Type::TEXTURE_1D) {
-				glTexParameteri(type, GL_TEXTURE_WRAP_T, GetGLAddressMode(GetAddressModeV()));
-				if(GetAddressModeV() == AddressMode::BORDER) {
-					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, GetBorderColor().AsFloatVector());
+			if(get_type() > Type::TEXTURE_1D) {
+				glTexParameteri(type, GL_TEXTURE_WRAP_T, get_gl_address_mode(get_address_mode_v()));
+				if(get_address_mode_v() == address_mode::BORDER) {
+					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, get_border_color().AsFloatVector());
 				}
 			}
-			if(GetType() > Type::TEXTURE_2D) {
-				glTexParameteri(type, GL_TEXTURE_WRAP_R, GetGLAddressMode(GetAddressModeW()));
-				if(GetAddressModeW() == AddressMode::BORDER) {
-					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, GetBorderColor().AsFloatVector());
+			if(get_type() > Type::TEXTURE_2D) {
+				glTexParameteri(type, GL_TEXTURE_WRAP_R, get_gl_address_mode(get_address_mode_w()));
+				if(get_address_mode_w() == address_mode::BORDER) {
+					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, get_border_color().AsFloatVector());
 				}
 			}
 
-			if(GetLodBias() > 1e-14 || GetLodBias() < -1e-14) {
-				glTexParameterf(type, GL_TEXTURE_LOD_BIAS, GetLodBias());
+			if(get_lod_bias() > 1e-14 || get_lod_bias() < -1e-14) {
+				glTexParameterf(type, GL_TEXTURE_LOD_BIAS, get_lod_bias());
 			}
-			if(GetMipMapLevels() > 0) {
+			if(get_mipmap_levels() > 0) {
 				glTexParameteri(type, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(type, GL_TEXTURE_MAX_LEVEL, GetMipMapLevels());
+				glTexParameteri(type, GL_TEXTURE_MAX_LEVEL, get_mipmap_levels());
 			}
 
-			if(GetMipMapLevels() > 0 && GetType() > Type::TEXTURE_1D) {
+			if(get_mipmap_levels() > 0 && get_type() > Type::TEXTURE_1D) {
 				// XXX for OGL >= 1.4 < 3 use: glTexParameteri(type, GL_GENERATE_MIPMAP, GL_TRUE)
 				// XXX for OGL < 1.4 manually generate them with glTexImage2D
 				// OGL >= 3 use glGenerateMipmap(type);
 				glGenerateMipmap(type);
 			}
 
-			ASSERT_LOG(GetFilteringMin() != Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
-			ASSERT_LOG(GetFilteringMax() != Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
-			ASSERT_LOG(GetFilteringMip() != Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
+			ASSERT_LOG(get_filtering_min() != filtering::NONE, "'none' is not a valid choice for the minifying filter.");
+			ASSERT_LOG(get_filtering_max() != filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
+			ASSERT_LOG(get_filtering_mip() != filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
 
-			if(GetFilteringMin() == Filtering::POINT) {
-				switch(GetFilteringMip()) {
-					case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST); break;
-					case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
-					case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
-					case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
+			if(get_filtering_min() == filtering::POINT) {
+				switch(get_filtering_mip()) {
+					case filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST); break;
+					case filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
+					case filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
+					case filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
 				}
-			} else if(GetFilteringMin() == Filtering::LINEAR || GetFilteringMin() == Filtering::ANISOTROPIC) {
-				switch(GetFilteringMip()) {
-					case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR); break;
-					case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); break;
-					case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
-					case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
+			} else if(get_filtering_min() == filtering::LINEAR || get_filtering_min() == filtering::ANISOTROPIC) {
+				switch(get_filtering_mip()) {
+					case filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR); break;
+					case filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); break;
+					case filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
+					case filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
 				}
 			}
 
-			if(GetFilteringMax() == Filtering::POINT) {
+			if(get_filtering_max() == filtering::POINT) {
 				glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			} else {
 				glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			}
 
-			if(GetFilteringMax() == Filtering::ANISOTROPIC || GetFilteringMin() == Filtering::ANISOTROPIC) {
+			if(get_filtering_max() == filtering::ANISOTROPIC || get_filtering_min() == filtering::ANISOTROPIC) {
 				if(GL_EXT_texture_filter_anisotropic) {
 					float largest_anisotropy;
 					glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_anisotropy);
-					glTexParameterf(type, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_anisotropy > GetMaxAnisotropy() ? GetMaxAnisotropy() : largest_anisotropy);
+					glTexParameterf(type, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_anisotropy > get_max_anisotropy() ? get_max_anisotropy() : largest_anisotropy);
 				}
 			}
 		}
 	}
 
-	void OpenGLTexture::Bind() 
+	void OpenGLtexture::bind() 
 	{ 
 		if(is_yuv_planar_) {
 			int num_textures = is_yuv_planar_ ? 2 : 0;
 			for(int n = num_textures; n > 0; --n) {
 				glActiveTexture(GL_TEXTURE0 + n); 			
-				glBindTexture(GetGLTextureType(GetType()), texture_id_[n]);
+				glBindTexture(get_gl_texture_type(get_type()), texture_id_[n]);
 			}
 			glActiveTexture(GL_TEXTURE0);
 		}
-		glBindTexture(GetGLTextureType(GetType()), texture_id_[0]);
+		glBindTexture(get_gl_texture_type(get_type()), texture_id_[0]);
 	}
 
-	unsigned OpenGLTexture::ID()
+	unsigned OpenGLtexture::id()
 	{
 		return texture_id_[0];
 	}
 
-	void OpenGLTexture::Rebuild()
+	void OpenGLtexture::rebuild()
 	{
 		// Delete the old id
 		glDeleteTextures(is_yuv_planar_ ? 3 : 1, &texture_id_[0]);
 
 		// Re-create the texture
-		CreateTexture(pixel_format_);
-		Init();
+		create_texture(pixel_format_);
+		init();
 	}
 }

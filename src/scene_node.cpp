@@ -23,9 +23,9 @@
 
 #include "asserts.hpp"
 #include "camera_object.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "LightObject.hpp"
-#include "RenderManager.hpp"
+#include "renderManager.hpp"
 #include "scene_graph.hpp"
 #include "scene_node.hpp"
 #include "scene_object.hpp"
@@ -51,10 +51,10 @@ namespace KRE
 	void scene_node::attach_object(const scene_object_ptr& obj)
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
-		auto dd = DisplayDevice::GetCurrent();
-		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
+		auto dd = display_device::get_current();
+		ASSERT_LOG(dd != NULL, "display_device was null.");
 		objects_.emplace_back(obj);
-		obj->set_display_data(dd, obj->Attach(dd));
+		obj->set_display_data(dd, obj->attach(dd));
 	}
 
 	void scene_node::attach_light(size_t ref, const LightPtr& obj)
@@ -64,28 +64,28 @@ namespace KRE
 			lights_.erase(it);
 		}
 		lights_.emplace(ref,obj);
-		auto dd = DisplayDevice::GetCurrent();
-		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
-		obj->set_display_data(dd, obj->Attach(dd));		
+		auto dd = display_device::get_current();
+		ASSERT_LOG(dd != NULL, "display_device was null.");
+		obj->set_display_data(dd, obj->attach(dd));		
 	}
 
 	void scene_node::attach_camera(const camera_ptr& obj)
 	{
 		camera_ = obj;
-		auto dd = DisplayDevice::GetCurrent();
-		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
-		obj->set_display_data(dd, obj->Attach(dd));		
+		auto dd = display_device::get_current();
+		ASSERT_LOG(dd != NULL, "display_device was null.");
+		obj->set_display_data(dd, obj->attach(dd));		
 	}
 
-	void scene_node::attach_render_target(const RenderTargetPtr& obj)
+	void scene_node::attach_render_target(const render_target_ptr& obj)
 	{
 		render_target_ = obj;
-		auto dd = DisplayDevice::GetCurrent();
-		ASSERT_LOG(dd != NULL, "DisplayDevice was null.");
-		obj->set_display_data(dd, obj->Attach(dd));		
+		auto dd = display_device::get_current();
+		ASSERT_LOG(dd != NULL, "display_device was null.");
+		obj->set_display_data(dd, obj->attach(dd));		
 	}
 
-	void scene_node::render_node(const RenderManagerPtr& renderer, scene_node_params* rp)
+	void scene_node::render_node(const renderManagerPtr& renderer, scene_node_params* rp)
 	{
 		if(camera_) {
 			rp->camera = camera_;
@@ -95,14 +95,14 @@ namespace KRE
 		}
 		if(render_target_) {
 			rp->render_target = render_target_;
-			render_target_->Clear();
+			render_target_->clear();
 		}
 		
 		for(auto o : objects_) {
 			o->set_camera(rp->camera);
 			o->set_lights(rp->lights);
 			o->set_render_target(rp->render_target);
-			renderer->AddRenderableToQueue(o->queue(), o->order(), o);
+			renderer->AddrenderableToQueue(o->queue(), o->order(), o);
 		}
 	}
 

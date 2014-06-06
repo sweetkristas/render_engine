@@ -27,7 +27,7 @@ namespace KRE
 {
 	namespace
 	{
-		//DisplayDeviceRegistrar<DisplayDeviceSDL> ogl_register("SDL");
+		//display_device_registrar<display_deviceSDL> ogl_register("SDL");
 	}
 }
 
@@ -39,14 +39,14 @@ namespace KRE
 				rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
 			}
 			if(renderer_hint_.size() > 4 && renderer_hint_.substr(0,4) == "sdl:") {
-				SDL_SetHint(SDL_HINT_RENDER_DRIVER, renderer_hint_.substr(5).c_str());
+				SDL_set_hint(SDL_HINT_RENDER_DRIVER, renderer_hint_.substr(5).c_str());
 			}
-			renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
+			renderer_ = SDL_Createrenderer(window_.get(), -1, rnd_flags);
 			ASSERT_LOG(renderer_ != NULL, "Failed to create renderer: " << SDL_GetError());
 
 	XXX in swap()
-		SDL_RenderPresent(renderer_);
+		SDL_renderPresent(renderer_);
 
-	XXX in ~DisplayDeviceSDL()
-		SDL_DestroyRenderer(renderer_);
+	XXX in ~display_deviceSDL()
+		SDL_Destroyrenderer(renderer_);
 */

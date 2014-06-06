@@ -38,21 +38,21 @@ namespace KRE
 		explicit Light(const std::string& name, const glm::vec3& position);
 		//explicit Light(const variant& node);
 		virtual ~Light();
-		DisplayDeviceDef Attach(const DisplayDevicePtr& dd) override;
+		display_device_def attach(const display_device_ptr& dd) override;
 		void SetType(LightType type);
 		void SetPosition(const glm::vec3& position);
-		void SetAmbientColor(const glm::vec4& color);
-		void SetDiffuseColor(const glm::vec4& color);
-		void SetSpecularColor(const glm::vec4& color);
+		void SetAmbientcolor(const glm::vec4& color);
+		void SetDiffusecolor(const glm::vec4& color);
+		void SetSpecularcolor(const glm::vec4& color);
 		void SetSpotDirection(const glm::vec3& direction);
 		void SetSpotExponent(float sexp);
 		void SetSpotCutoff(float cutoff);
 		void SetAttenuation(float constant, float linear, float quadratic);
 		LightType Type() const { return type_; }
 		const glm::vec3 Position() const { return position_; }
-		const glm::vec4 AmbientColor() const { return ambient_color_; }
-		const glm::vec4 DiffuseColor() const { return diffuse_color_; }
-		const glm::vec4 SpecularColor() const { return specular_color_; }
+		const glm::vec4 Ambientcolor() const { return ambient_color_; }
+		const glm::vec4 Diffusecolor() const { return diffuse_color_; }
+		const glm::vec4 Specularcolor() const { return specular_color_; }
 		const glm::vec3 SpotDirection() const { return spot_direction_; }
 		float SpotExponent() const { return spot_exponent_; }
 		float SpotCutoff() const { return spot_cutoff_; }

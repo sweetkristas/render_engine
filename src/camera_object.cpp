@@ -35,7 +35,7 @@
 
 #include "asserts.hpp"
 #include "camera_object.hpp"
-#include "DisplayDevice.hpp"
+#include "display_device.hpp"
 #include "window_manager.hpp"
 
 namespace KRE
@@ -128,7 +128,7 @@ namespace KRE
 			}
 		}
 		if(node.has_key("ortho_window")) {
-			ASSERT_LOG(node["ortho_window"].is_list() && node["ortho_window"].num_elements() == 4, "Attribute 'ortho_window' must be a 4 element list. left,right,top,bottom");
+			ASSERT_LOG(node["ortho_window"].is_list() && node["ortho_window"].num_elements() == 4, "attribute 'ortho_window' must be a 4 element list. left,right,top,bottom");
 			ortho_left_ = node["ortho_window"][0].as_int();
 			ortho_right_ = node["ortho_window"][1].as_int();
 			ortho_top_ = node["ortho_window"][2].as_int();
@@ -431,7 +431,7 @@ namespace KRE
 		v.push_back(variant(obj.ortho_bottom()));
 		return variant(&v);
 	DEFINE_SET_FIELD
-		ASSERT_LOG(value.is_list() && value.num_elements() == 4, "Attribute 'ortho_window' must be a 4 element list. left,right,top,bottom");
+		ASSERT_LOG(value.is_list() && value.num_elements() == 4, "attribute 'ortho_window' must be a 4 element list. left,right,top,bottom");
 		obj.set_ortho_window(value[0].as_int(), value[1].as_int(), value[2].as_int(), obj.ortho_bottom_ = value[3].as_int());
 
 	END_DEFINE_CALLABLE(Camera)
@@ -495,9 +495,9 @@ namespace KRE
 		}
 	}
 
-	DisplayDeviceDef camera::Attach(const DisplayDevicePtr& dd)
+	display_device_def camera::attach(const display_device_ptr& dd)
 	{
-		DisplayDeviceDef def(get_attribute_set()/*, GetUniformSet()*/);
+		display_device_def def(get_attribute_set()/*, get_uniform_set()*/);
 		// XXX
 		return def;
 	}

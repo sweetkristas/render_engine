@@ -28,7 +28,7 @@
     void operator=(const TypeName&)
 
 #define DISALLOW_COPY_ASSIGN_AND_DEFAULT(TypeName)  \
-    TypeName();                                     \
+    Typename();                                     \
     TypeName(const TypeName&);                      \
     void operator=(const TypeName&)
 

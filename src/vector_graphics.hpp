@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "Color.hpp"
+#include "color.hpp"
 #include "scene_object.hpp"
 #include "vector_graphics_fwd.hpp"
 #include "util.hpp"
@@ -113,7 +113,7 @@ namespace KRE
 
 			virtual void set_source_color(const double r, const double g, const double b, const double a=1.0) = 0;
 			virtual void set_source_color(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a=255) = 0;
-			virtual void set_source_color(const double r, const Color& color) = 0;
+			virtual void set_source_color(const double r, const color& color) = 0;
 			virtual void set_source(const pattern_ptr& p) = 0;
 			virtual pattern_ptr get_source() const = 0;
 

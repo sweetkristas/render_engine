@@ -25,26 +25,26 @@
 
 #include <map>
 
-#include "RenderFwd.hpp"
+#include "renderFwd.hpp"
 #include "window_manager_fwd.hpp"
 
 namespace KRE
 {
-	class RenderManager
+	class renderManager
 	{
 	public:
-		RenderManager();
-		~RenderManager();
+		renderManager();
+		~renderManager();
 
-		void AddQueue(int priority, RenderQueuePtr queue);
+		void AddQueue(int priority, renderQueuePtr queue);
 		void RemoveQueue(int priority);
 
-		void Render(const window_manager_ptr& wm) const;
-		void AddRenderableToQueue(size_t q, size_t order, const renderable_ptr& r);
+		void render(const window_manager_ptr& wm) const;
+		void AddrenderableToQueue(size_t q, size_t order, const renderable_ptr& r);
 	private:
-		typedef std::map<size_t,RenderQueuePtr> RenderQueueList;
-		RenderQueueList render_queues_;
+		typedef std::map<size_t,renderQueuePtr> renderQueueList;
+		renderQueueList render_queues_;
 
-		RenderManager(const RenderManager&);
+		renderManager(const renderManager&);
 	};
 }

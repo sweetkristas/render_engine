@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "Color.hpp"
+#include "color.hpp"
 #include "geometry.hpp"
 #include "Material.hpp"
 #include "util.hpp"
@@ -48,10 +48,10 @@ namespace KRE
 		unsigned height() const { return height_; }
 
 		// Blit's a texture from co-ordinates given in src to the screen co-ordinates dst
-		virtual void blit_texture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color) = 0;
+		virtual void blit_texture(const texture_ptr& tex, const rect& src, float rotation, const rect& dst, const color& color) = 0;
 
 		// Blit's a material from internal co-ordinates to destination screen co-ordinates.
-		virtual void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) = 0;
+		virtual void blit_texture(const MaterialPtr& mat, float rotation, const rect& dst, const color& color) = 0;
 
 		//void DrawVectorContext(const Vector::ContextPtr& context);
 		static canvas_ptr get_instance();

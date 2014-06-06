@@ -22,47 +22,47 @@
 */
 
 #include "asserts.hpp"
-#include "RenderQueue.hpp"
+#include "renderQueue.hpp"
 #include "window_manager.hpp"
 
 namespace KRE
 {
-	RenderQueue::RenderQueue(const std::string& name) 
+	renderQueue::renderQueue(const std::string& name) 
 		: name_(name)
 	{
 	}
 
-	RenderQueue::~RenderQueue() 
+	renderQueue::~renderQueue() 
 	{
 	}
 
-	void RenderQueue::Enqueue(uint64_t order, renderable_ptr p)
+	void renderQueue::Enqueue(uint64_t order, renderable_ptr p)
 	{
 		renderables_[order] = p;
 	}
 
-	void RenderQueue::Dequeue(uint64_t order)
+	void renderQueue::Dequeue(uint64_t order)
 	{
 		auto it = renderables_.find(order);
-		ASSERT_LOG(it != renderables_.end(), "RenderQueue(" << name() << ") nothing to dequeue at order: " << order);
+		ASSERT_LOG(it != renderables_.end(), "renderQueue(" << name() << ") nothing to dequeue at order: " << order);
 		renderables_.erase(it);
 	}
 
-	void RenderQueue::pre_render()
+	void renderQueue::pre_render()
 	{
 		for(auto r : renderables_) {
 			r.second->pre_render();
 		}
 	}
 
-	void RenderQueue::Render(const window_manager_ptr& wm) const 
+	void renderQueue::render(const window_manager_ptr& wm) const 
 	{
 		for(auto r : renderables_) {
 			wm->render(r.second);
 		}
 	}
 
-	void RenderQueue::PostRender()
+	void renderQueue::Postrender()
 	{
 		renderables_.clear();
 	}
