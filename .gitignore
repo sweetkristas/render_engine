@@ -36,3 +36,4 @@ render_engine
 *.suo
 *.user
 *.unsuccessfulbuild
+*.opensdf
