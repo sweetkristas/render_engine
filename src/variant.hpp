@@ -25,20 +25,26 @@ public:
 
 	variant();
 	variant(const variant&);
+	explicit variant(int);
 	explicit variant(int64_t);
-	explicit variant(float);
+	explicit variant(double);
 	explicit variant(const std::string&);
 	explicit variant(const variant_map&);
+	explicit variant(variant_map*);
 	explicit variant(const variant_list&);
 	explicit variant(std::vector<variant>* list);
 
 	variant_type type() const { return type_; }
 	std::string type_as_string() const;
 
+	std::string to_debug_string() const;
+
 	static variant from_bool(bool b);
 
 	std::string as_string() const;
+	std::string as_string_default(const std::string& def) const;
 	int64_t as_int() const;
+	int as_int32() const;
 	int64_t as_int(int64_t value) const;
 	float as_float() const;
 	float as_float(float value) const;
@@ -47,6 +53,7 @@ public:
 	const variant_list& as_list() const;
 	const variant_map& as_map() const;
 	std::vector<std::string> as_list_string() const;
+	std::vector<int> as_list_int() const;
 
 	variant_list& as_mutable_list();
 	variant_map& as_mutable_map();
@@ -86,7 +93,7 @@ private:
 
 	bool b_;
 	int64_t i_;
-	float f_;
+	double f_;
 	std::string s_;
 	variant_map m_;
 	variant_list l_;

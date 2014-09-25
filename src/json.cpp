@@ -1,3 +1,5 @@
+#include <boost/lexical_cast.hpp>
+
 #include <deque>
 #include <cstdint>
 #include <tuple>
@@ -5,7 +7,6 @@
 #include "filesystem.hpp"
 #include "formatter.hpp"
 #include "json.hpp"
-#include "lexical_cast.hpp"
 
 namespace json
 {
@@ -278,15 +279,15 @@ namespace json
 						if(is_float) {
 							//std::cerr << "Convert \"" << num << "\" to float" << std::endl;
 							try {
-								return std::make_tuple(FLOAT, variant(lex::lexical_cast<float>(num)));
-							} catch (lex::bad_lexical_cast&) {
+								return std::make_tuple(FLOAT, variant(boost::lexical_cast<float>(num)));
+							} catch (boost::bad_lexical_cast&) {
 								throw parse_error(formatter() << "error converting value to float: " << num);
 							}
 						} else {
 							//std::cerr << "Convert \"" << num << "\" to int" << std::endl;
 							try {
-								return std::make_tuple(INTEGER, variant(lex::lexical_cast<int64_t>(num)));
-							} catch (lex::bad_lexical_cast&) {
+								return std::make_tuple(INTEGER, variant(boost::lexical_cast<int64_t>(num)));
+							} catch (boost::bad_lexical_cast&) {
 								throw parse_error(formatter() << "error converting value to integer: " << num);
 							}
 						}

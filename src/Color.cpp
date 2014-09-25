@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2003-2013 by Kristina Simpson <sweet.kristas@gmail.com>
+	Copyright (C) 2013-2014 by Kristina Simpson <sweet.kristas@gmail.com>
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -20,6 +20,9 @@
 	   3. This notice may not be removed or altered from any source
 	   distribution.
 */
+
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 
 #include <algorithm>
 #include <map>
@@ -198,19 +201,81 @@ namespace KRE
 			return res;
 		}
 
+		double convert_string_to_number(const std::string& str)
+		{
+			try {
+				double value = boost::lexical_cast<double>(str);
+				if(value > 1.0) {
+					// Assume it's an integer value.
+					return static_cast<float>(value / 255.0);
+				} else if(value < 1.0) {
+					return static_cast<float>(value);
+				} else {
+					// value = 1.0 -- check the string to try and disambiguate
+					if(str == "1" || str.find('.') == std::string::npos) {
+						return 1.0 / 255.0;
+					}
+					return 1.0;
+				}
+			} catch(boost::bad_lexical_cast&) {
+				ASSERT_LOG(false, "unable to convert value to number: " << str);
+			}
+		}
+
 		float convert_numeric(const variant& node)
 		{
 			if(node.is_int()) {
-				return clamp<int>(node.as_int(), 0, 255) / 255.0f;
+				return clamp<int>(node.as_int32(), 0, 255) / 255.0f;
 			} else if(node.is_float()) {
 				return clamp<float>(node.as_float(), 0.0f, 1.0f);
+			} else if(node.is_string()) {
+				return static_cast<float>(convert_string_to_number(node.as_string()));
 			}
 			ASSERT_LOG(false, "attribute of Color value was expected to be numeric type.");
 			return 1.0f;
 		}
+
+		uint8_t convert_hex_digit(char d) 
+		{
+			uint8_t value = 0;
+			if(d >= 'A' && d <= 'F') {
+				value = d - 'A' + 10;
+			} else if(d >= 'a' && d <= 'f') {
+				value = d - 'a' + 10;
+			} else if(d >= '0' && d <= '9') {
+				value = d - '0';
+			} else {
+				ASSERT_LOG(false, "Unrecognised hex digit: " << d);
+			}
+			return value;
+		}
+
+		Color color_from_hex_string(const std::string& colstr)
+		{
+			std::string s = colstr;
+			ASSERT_LOG(!s.empty(), "No color detail found in string.");
+			if(s[0] == '#') {
+				s = s.substr(1);
+			}
+			ASSERT_LOG(s.length() == 3 || s.length() == 6, "Expected length of color definition to be 3 or 6 characters long, found: " << s);
+			if(s.length() == 3) {
+				int r_hex = convert_hex_digit(s[1]);
+				int g_hex = convert_hex_digit(s[2]);
+				int b_hex = convert_hex_digit(s[3]);
+				return Color((r_hex << 4) | r_hex, (g_hex << 4) | g_hex, (b_hex << 4) | b_hex);
+			}
+			return Color((convert_hex_digit(s[1]) << 4) | convert_hex_digit(s[2]),
+				(convert_hex_digit(s[3]) << 4) | convert_hex_digit(s[4]),
+				(convert_hex_digit(s[5]) << 4) | convert_hex_digit(s[6]));
+		}
+
+		std::vector<std::string> split(const std::string& input, const std::string& re) {
+			// passing -1 as the submatch index parameter performs splitting
+			boost::regex regex(re);
+			boost::sregex_token_iterator first(input.begin(), input.end(), regex, -1), last;
+			return std::vector<std::string>(first, last);
+		}	
 	}
-
-
 
 	Color::Color()
 	{
@@ -248,7 +313,9 @@ namespace KRE
 		if(node.is_string()) {
 			const std::string& colstr = node.as_string();
 			auto it = get_color_table().find(colstr);
-			ASSERT_LOG(it != get_color_table().end(), "Couldn't find color '" << colstr << "' in known color list");
+			if(it == get_color_table().end()) {
+				*this = color_from_hex_string(colstr);
+			}
 			*this = it->second;
 		} else if(node.is_list()) {
 			ASSERT_LOG(node.num_elements() == 3 || node.num_elements() == 4,
@@ -278,7 +345,134 @@ namespace KRE
 				color_[3] = convert_numeric(node["a"]);
 			}
 		} else {
-			ASSERT_LOG(false, "Unrecognised Color value: " << node.type_as_string());
+			ASSERT_LOG(false, "Unrecognised Color value: " << node.to_debug_string());
 		}
+	}
+
+	Color::Color(unsigned long n, ColorByteOrder order)
+	{
+		float b0 = (n & 0xff)/255.0f;
+		float b1 = ((n >> 8) & 0xff)/255.0f;
+		float b2 = ((n >> 16) & 0xff)/255.0f;
+		float b3 = ((n >> 24) & 0xff)/255.0f;
+		switch (order)
+		{
+			case ColorByteOrder::RGBA:
+				color_[0] = b3;
+				color_[1] = b2;
+				color_[2] = b1;
+				color_[3] = b0;
+				break;
+			case ColorByteOrder::ARGB:
+				color_[0] = b2;
+				color_[1] = b1;
+				color_[2] = b0;
+				color_[3] = b3;
+				break;
+			case ColorByteOrder::BGRA:
+				color_[0] = b1;
+				color_[1] = b2;
+				color_[2] = b3;
+				color_[3] = b0;
+				break;
+			case ColorByteOrder::ABGR:
+				color_[0] = b0;
+				color_[1] = b1;
+				color_[2] = b2;
+				color_[3] = b3;
+				break;
+			default: 
+				ASSERT_LOG(false, "Unknown ColorByteOrder value: " << static_cast<int>(order));
+				break;
+		}
+	}
+
+	Color::Color(const std::string& colstr)
+	{
+		ASSERT_LOG(!colstr.empty(), "Empty string passed to Color constructor.");
+		auto it = get_color_table().find(colstr);
+		if(it == get_color_table().end()) {
+			if(colstr[0] == '#') {
+				*this = color_from_hex_string(colstr);
+			} else if(colstr.find(',') != std::string::npos) {
+				std::fill(color_, color_+3, 1.0f);
+				auto buf = split(colstr, ",| |;");
+				unsigned n = 0;
+				for(auto& s : buf) {
+					color_[n] = static_cast<float>(convert_string_to_number(s));
+					if(++n >= 4) {
+						break;
+					}
+				}
+			} else {
+				ASSERT_LOG(false, "Couldn't parse color '" << colstr << "' in known color list");
+			}
+		}
+		*this = it->second;
+	}
+
+	void Color::setAlpha(int a)
+	{
+		color_[3] = clamp<int>(a, 0, 255) / 255.0f;
+	}
+
+	void Color::setAlpha(double a)
+	{
+		color_[3] = clamp<float>(float(a), 0.0f, 1.0f);
+	}
+
+	void Color::setRed(int a)
+	{
+		color_[0] = clamp<int>(a, 0, 255) / 255.0f;
+	}
+
+	void Color::setRed(double a)
+	{
+		color_[0] = clamp<float>(float(a), 0.0f, 1.0f);
+	}
+
+	void Color::setGreen(int a)
+	{
+		color_[1] = clamp<int>(a, 0, 255) / 255.0f;
+	}
+
+	void Color::setGreen(double a)
+	{
+		color_[1] = clamp<float>(float(a), 0.0f, 1.0f);
+	}
+
+	void Color::setBlue(int a)
+	{
+		color_[2] = clamp<int>(a, 0, 255) / 255.0f;
+	}
+
+	void Color::setBlue(double a)
+	{
+		color_[2] = clamp<float>(float(a), 0.0f, 1.0f);
+	}
+
+	ColorPtr Color::factory(const std::string& name)
+	{
+		auto it = get_color_table().find(name);
+		ASSERT_LOG(it != get_color_table().end(), "Couldn't find color '" << name << "' in known color list");
+		return ColorPtr(new Color(it->second));
+	}
+
+	variant Color::write() const
+	{
+		// XXX we should store information on how the Color value was given to us, if it was
+		// a variant, then output in same format.
+		std::vector<variant> v;
+		v.reserve(4);
+		v.push_back(variant(r()));
+		v.push_back(variant(g()));
+		v.push_back(variant(b()));
+		v.push_back(variant(a()));
+		return variant(&v);
+	}
+
+	Color operator*(const Color& lhs, const Color& rhs)
+	{
+		return Color(lhs.r()*rhs.r(), lhs.g()*rhs.g(), lhs.b()*rhs.b(), lhs.a()*rhs.a());
 	}
 }

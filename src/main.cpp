@@ -5,23 +5,22 @@
 
 #include <glm/gtc/type_precision.hpp>
 
-#include "AttributeSet.hpp"
+#include "kre/AttributeSet.hpp"
 #include "json.hpp"
-#include "logger.hpp"
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
-#include "CameraObject.hpp"
-#include "Canvas.hpp"
-#include "LightObject.hpp"
-#include "ParticleSystem.hpp"
-#include "Renderable.hpp"
-#include "RenderManager.hpp"
-#include "RenderQueue.hpp"
-#include "RenderTarget.hpp"
-#include "SceneGraph.hpp"
-#include "SceneNode.hpp"
-#include "WindowManager.hpp"
-#include "VGraph.hpp"
+#include "kre/CameraObject.hpp"
+#include "kre/Canvas.hpp"
+#include "kre/LightObject.hpp"
+#include "kre/ParticleSystem.hpp"
+#include "kre/Renderable.hpp"
+#include "kre/RenderManager.hpp"
+#include "kre/RenderQueue.hpp"
+#include "kre/RenderTarget.hpp"
+#include "kre/SceneGraph.hpp"
+#include "kre/SceneNode.hpp"
+#include "kre/WindowManager.hpp"
+#include "kre/VGraph.hpp"
 
 namespace
 {	
@@ -39,21 +38,21 @@ namespace
 		SquareRenderable() : KRE::SceneObject("square") {
 			using namespace KRE;
 
-			auto ab = DisplayDevice::CreateAttributeSet(false, false, false);
+			auto ab = DisplayDevice::createAttributeSet(false, false, false);
 			auto pc = new Attribute<vertex_color>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
-			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::POSITION, 2, AttributeDesc::VariableType::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
-			pc->AddAttributeDescription(AttributeDesc(AttributeDesc::Type::COLOR, 4, AttributeDesc::VariableType::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
-			ab->AddAttribute(AttributeBasePtr(pc));
-			ab->SetDrawMode(AttributeSet::DrawMode::TRIANGLE_STRIP);
-			AddAttributeSet(ab);
+			pc->addAttributeDesc(AttributeDesc(AttrType::POSITION, 2, AttrFormat::FLOAT, false, sizeof(vertex_color), offsetof(vertex_color, vertex)));
+			pc->addAttributeDesc(AttributeDesc(AttrType::COLOR, 4, AttrFormat::UNSIGNED_BYTE, true, sizeof(vertex_color), offsetof(vertex_color, color)));
+			ab->addAttribute(AttributeBasePtr(pc));
+			ab->setDrawMode(DrawMode::TRIANGLE_STRIP);
+			addAttributeSet(ab);
 
 			std::vector<vertex_color> vertices;
 			vertices.emplace_back(glm::vec2(0.0f,0.0f), glm::u8vec4(255,0,0,255));
 			vertices.emplace_back(glm::vec2(0.0f,100.0f), glm::u8vec4(0,255,0,255));
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
-			ab->SetCount(vertices.size());
-			pc->Update(&vertices);
+			ab->setCount(vertices.size());
+			pc->update(&vertices);
 
 			//std::vector<uint8_t> indices;
 			//indices.emplace_back(0);
@@ -105,15 +104,13 @@ namespace
 			ab->UpdateIndicies(indices);
 			*/
 
-			//SetColor(255,255,255);
-			SetOrder(0);
+			//setColor(255,255,255);
+			setOrder(0);
 		}
 		virtual ~SquareRenderable() {}
 	protected:
-		KRE::DisplayDeviceDef Attach(const KRE::DisplayDevicePtr& dd) {
-			KRE::DisplayDeviceDef def(GetAttributeSet()/*, GetUniformSet()*/);
-			def.SetHint("shader", "attr_color_shader");
-			return def;
+		void doAttach(const KRE::DisplayDevicePtr& dd, KRE::DisplayDeviceDef* def) override {
+			def->setHint("shader", "attr_color_shader");
 		}
 	private:
 		SquareRenderable(const SquareRenderable&);
@@ -127,11 +124,11 @@ class SimpleTextureHolder : public KRE::Blittable
 public:
 	SimpleTextureHolder(const std::string& filename) {
 		using namespace KRE;
-		SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-		auto tex = DisplayDevice::CreateTexture(filename, Texture::Type::TEXTURE_2D, 4);
-		tex->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
-		tex->SetAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
-		SetTexture(tex);
+		setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		auto tex = DisplayDevice::createTexture(filename, Texture::Type::TEXTURE_2D, 4);
+		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		setTexture(tex);
 	}
 private:
 };
@@ -146,28 +143,30 @@ int main(int argc, char *argv[])
 
 	SDL::SDL_ptr manager(new SDL::SDL());
 
-	WindowManagerPtr main_wnd = WindowManager::Factory("SDL", "opengl");
-	main_wnd->EnableVsync(false);
-	main_wnd->CreateWindow(800,600);
+	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 
-	SceneGraphPtr scene = SceneGraph::Create("main");
-	SceneNodePtr root = scene->RootNode();
-	root->SetNodeName("root_node");
+	WindowManagerPtr main_wnd = WindowManager::factory("SDL", "opengl");
+	main_wnd->enableVsync(false);
+	main_wnd->createWindow(800,600);
+
+	SceneGraphPtr scene = SceneGraph::create("main");
+	SceneNodePtr root = scene->getRootNode();
+	root->setNodeName("root_node");
 	auto scenecam = std::make_shared<Camera>("cam0", 0, 800, 0, 600);
-	scenecam->AttachFrustum(std::make_shared<Frustum>());
-	root->AttachCamera(scenecam);
+	scenecam->attachFrustum(std::make_shared<Frustum>());
+	root->attachCamera(scenecam);
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
-	sunlight->SetAmbientColor(glm::vec4(1.0f,1.0f,1.0f,1.0f));
-	root->AttachLight(0, sunlight);
+	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
+	root->attachLight(0, sunlight);
 
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	square->SetPosition(600.0f, 400.0f);
-	square->SetScale(2.0f,2.0f);
-	root->AttachObject(square);
+	square->setPosition(600.0f, 400.0f);
+	square->setScale(2.0f,2.0f);
+	root->attachObject(square);
 
 	auto rman = std::make_shared<RenderManager>();
 	auto rq = std::make_shared<RenderQueue>("opaques");
-	rman->AddQueue(0, rq);
+	rman->addQueue(0, rq);
 
 	auto cairo_canvas = Vector::Context::CreateInstance("cairo", 512, 512);
 	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
@@ -183,16 +182,16 @@ int main(int argc, char *argv[])
 	text->TextPath("ABCDabcde");
 	cairo_canvas->AddPath(text);
 	cairo_canvas->Fill();
-	cairo_canvas->SetOrder(5);
-	cairo_canvas->SetPosition(256.0f,256.0f);
-	cairo_canvas->SetColor(1.0f,1.0f,1.0f,1.0f);
-	root->AttachObject(cairo_canvas);
+	cairo_canvas->setOrder(5);
+	cairo_canvas->setPosition(256.0f,256.0f);
+	cairo_canvas->setColor(1.0f,1.0f,1.0f,1.0f);
+	root->attachObject(cairo_canvas);
 
-	auto psystem = scene->CreateNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+	auto psystem = scene->createNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
 	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
-	particle_cam->LookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	psystem->AttachCamera(particle_cam);
-	root->AttachNode(psystem);
+	particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	psystem->attachCamera(particle_cam);
+	root->attachNode(psystem);
 	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
 	//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
 	//rt->SetDrawRect(rect(400,300,400,300));
@@ -201,19 +200,19 @@ int main(int argc, char *argv[])
 	//root->AttachObject(rt);
 
 	auto tex = std::shared_ptr<Blittable>(new SimpleTextureHolder("card-back.png"));
-	tex->SetDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
-	tex->SetPosition(146.0f/2.0f, 600.0f-130.0f);
-	tex->SetOrder(10);
-	root->AttachObject(tex);
+	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
+	tex->setPosition(146.0f/2.0f, 600.0f-130.0f);
+	tex->setOrder(10);
+	root->attachObject(tex);
 
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
-	auto canvas = Canvas::GetInstance();
-	canvas->SetDimensions(800, 600);
+	auto canvas = Canvas::getInstance();
+	canvas->setDimensions(800, 600);
 
-	auto canvas_texture = DisplayDevice::CreateTexture("widgets.png");
-	canvas_texture->SetFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
+	auto canvas_texture = DisplayDevice::createTexture("widgets.png");
+	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
 
 	SDL_Event e;
 	bool done = false;
@@ -230,22 +229,22 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		main_wnd->Clear(DisplayDevice::ClearFlags::DISPLAY_CLEAR_ALL);
+		main_wnd->clear(ClearFlags::ALL);
 
 		// Called once a cycle before rendering.
-		scene->Process(SDL_GetTicks() / 1000.0f);
+		scene->process(SDL_GetTicks() / 1000.0f);
 
-		tex->SetRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
-		cairo_canvas->SetRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		cairo_canvas->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		angle += angle_step;
 		while(angle >= 360.0f) {
 			angle -= 360.0f;
 		}
 
-		scene->RenderScene(rman);
-		rman->Render(main_wnd);
+		scene->renderScene(rman);
+		rman->render(main_wnd);
 
-		canvas->BlitTexture(canvas_texture, 
+		canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
 			0.0f, 
 			//rect(800-56, 0, 56, 22), 
@@ -254,7 +253,7 @@ int main(int argc, char *argv[])
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {
-			SDL_Delay(Uint32((1.0/50.0-t1)*1000.0));
+		//	SDL_Delay(Uint32((1.0/50.0-t1)*1000.0));
 		}
 		double t = timer.check();
 
@@ -269,7 +268,7 @@ int main(int argc, char *argv[])
 			smoothed_time.pop_front();
 		}
 
-		main_wnd->Swap();
+		main_wnd->swap();
 	}
 	return 0;
 }
