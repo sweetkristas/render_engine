@@ -145,10 +145,11 @@ int main(int argc, char *argv[])
 
 	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 
-	WindowManagerPtr main_wnd = WindowManager::factory("SDL", "opengl");
-	main_wnd->enableVsync(false);
+	WindowManagerPtr main_wnd = WindowManager::createInstance("SDL", "opengl");
+	main_wnd->enableVsync(true);
 	main_wnd->createWindow(800,600);
 
+	// XXX should a scenegraph be created from a specific window? It'd solve a couple of issues
 	SceneGraphPtr scene = SceneGraph::create("main");
 	SceneNodePtr root = scene->getRootNode();
 	root->setNodeName("root_node");
@@ -165,8 +166,7 @@ int main(int argc, char *argv[])
 	root->attachObject(square);
 
 	auto rman = std::make_shared<RenderManager>();
-	auto rq = std::make_shared<RenderQueue>("opaques");
-	rman->addQueue(0, rq);
+	auto rq = rman->addQueue(0, "opaques");
 
 	auto cairo_canvas = Vector::Context::CreateInstance("cairo", 512, 512);
 	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 	root->attachObject(cairo_canvas);
 
 	auto psystem = scene->createNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
-	auto particle_cam = std::make_shared<Camera>("particle_cam", main_wnd);
+	auto particle_cam = std::make_shared<Camera>("particle_cam");
 	particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 	psystem->attachCamera(particle_cam);
 	root->attachNode(psystem);
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 		cumulative_time += t;
 		if(++cnt > 10) {
 			cnt = 0;
-			LOG_DEBUG("FPS: " << (smoothed_time.size()/cumulative_time) << ", Time: " << t1*1000.0);
+			//LOG_DEBUG("FPS: " << (smoothed_time.size()/cumulative_time) << ", Time: " << t1*1000.0);
 		}
 		if(smoothed_time.size() > 50) {
 			cumulative_time -= smoothed_time.front();

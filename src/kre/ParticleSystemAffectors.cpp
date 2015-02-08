@@ -21,15 +21,13 @@
 	   distribution.
 */
 
-#include <cmath>
-
-#include "../asserts.hpp"
-#include "../variant_utils.hpp"
-
+#include "asserts.hpp"
 #include "ParticleSystem.hpp"
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemEmitters.hpp"
 #include "ParticleSystemParameters.hpp"
+#include "variant_utils.hpp"
+#include "spline3d.hpp"
 
 namespace KRE
 {
@@ -39,7 +37,6 @@ namespace KRE
 		{
 		public:
 			explicit TimeColorAffector(ParticleSystemContainer* parent, const variant& node);
-			virtual ~TimeColorAffector() {}
 		protected:
 			virtual void internalApply(Particle& p, float t);
 			virtual Affector* clone() {
@@ -63,7 +60,6 @@ namespace KRE
 		{
 		public:
 			explicit JetAffector(ParticleSystemContainer* parent, const variant& node);
-			virtual ~JetAffector() {}
 		protected:
 			virtual void internalApply(Particle& p, float t);
 			virtual Affector* clone() {
@@ -74,7 +70,6 @@ namespace KRE
 			JetAffector();
 		};
 		// affectors to add: box_collider (width,height,depth, inner or outer collide, friction)
-		// flock_centering.
 		// forcefield (delta, force, octaves, frequency, amplitude, persistence, size, worldsize(w,h,d), movement(x,y,z),movement_frequency)
 		// geometry_rotator (use own rotation, speed(parameter), axis(x,y,z))
 		// inter_particle_collider (sounds like a lot of calculations)
@@ -83,7 +78,6 @@ namespace KRE
 		// path_follower
 		// plane_collider
 		// scale_velocity (parameter_ptr scale; bool since_system_start, bool stop_at_flip)
-		// sine_force
 		// sphere_collider
 		// texture_animator
 		// texture_rotator
@@ -93,7 +87,6 @@ namespace KRE
 		{
 		public:
 			explicit ScaleAffector(ParticleSystemContainer* parent, const variant& node);
-			virtual ~ScaleAffector() {}
 		protected:
 			virtual void internalApply(Particle& p, float t);
 			virtual Affector* clone() {
@@ -113,13 +106,13 @@ namespace KRE
 		{
 		public:
 			explicit VortexAffector(ParticleSystemContainer* parent, const variant& node);
-			virtual ~VortexAffector() {}
 		protected:
 			virtual void internalApply(Particle& p, float t);
 			virtual Affector* clone() {
 				return new VortexAffector(*this);
 			}
 		private:
+			DECLARE_CALLABLE(vortex_affector);
 			glm::quat rotation_axis_;
 			ParameterPtr rotation_speed_;
 			VortexAffector();
@@ -136,6 +129,7 @@ namespace KRE
 				return new GravityAffector(*this);
 			}
 		private:
+			DECLARE_CALLABLE(gravity_affector);
 			float gravity_;
 			GravityAffector();
 		};
@@ -148,9 +142,8 @@ namespace KRE
 				  min_distance_(node["min_distance"].as_float(1.0f)),
 				  max_distance_(node["max_distance"].as_float(std::numeric_limits<float>::max())) {
 			}
-			virtual ~ParticleFollowerAffector() {}
 		protected:
-			virtual void handleEmitProcess(float t) {
+			virtual void handleEmitProcess(float t) override {
 				std::vector<Particle>& particles = getTechnique()->getActiveParticles();
 				// keeps particles following wihin [min_distance, max_distance]
 				if(particles.size() < 1) {
@@ -162,13 +155,13 @@ namespace KRE
 					prev_particle_ = p;
 				}
 			}
-			virtual void internalApply(Particle& p, float t) {
+			virtual void internalApply(Particle& p, float t) override {
 				auto distance = glm::length(p.current.position - prev_particle_->current.position);
 				if(distance > min_distance_ && distance < max_distance_) {
 					p.current.position = prev_particle_->current.position + (min_distance_/distance)*(p.current.position-prev_particle_->current.position);
 				}
 			}
-			virtual Affector* clone() {
+			virtual Affector* clone() override {
 				return new ParticleFollowerAffector(*this);
 			}
 		private:
@@ -184,9 +177,8 @@ namespace KRE
 			explicit AlignAffector(ParticleSystemContainer* parent, const variant& node) 
 				: Affector(parent, node), resize_(node["resize"].as_bool(false)) {
 			}
-			virtual ~AlignAffector() {}
 		protected:
-			virtual void internalApply(Particle& p, float t) {
+			virtual void internalApply(Particle& p, float t) override {
 				glm::vec3 distance = prev_particle_->current.position - p.current.position;
 				if(resize_) {
 					p.current.dimensions.y = glm::length(distance);
@@ -198,7 +190,7 @@ namespace KRE
 				p.current.orientation.y = distance.y;
 				p.current.orientation.z = distance.z;
 			}
-			virtual void handleProcess(float t) {
+			virtual void handleEmitProcess(float t) override {
 				std::vector<Particle>& particles = getTechnique()->getActiveParticles();
 				if(particles.size() < 1) {
 					return;
@@ -209,13 +201,135 @@ namespace KRE
 					prev_particle_ = p;
 				}
 			}
-			virtual Affector* clone() {
+			virtual Affector* clone() override {
 				return new AlignAffector(*this);
 			}
 		private:
 			bool resize_;			
 			std::vector<Particle>::iterator prev_particle_;
 			AlignAffector();
+		};
+
+		class FlockCenteringAffector : public Affector
+		{
+		public:
+			explicit FlockCenteringAffector(ParticleSystemContainer* parent, const variant& node) 
+				: Affector(parent, node), average_(0.0f)
+			{
+			}
+		protected:
+			virtual void internalApply(Particle& p, float t) override {
+				p.current.direction = (average_ - p.current.position) * t;
+			}
+			virtual void handleEmitProcess(float t) override {
+				std::vector<Particle>& particles = getTechnique()->getActiveParticles();
+				if(particles.size() < 1) {
+					return;
+				}
+				int count = particles.size();
+				glm::vec3 sum(0.0f);
+				for(const auto& p : particles) {
+					sum += p.current.position;
+				}
+				average_ /= static_cast<float>(count);
+
+				prev_particle_ = particles.begin();				
+				for(auto p = particles.begin(); p != particles.end(); ++p) {
+					internalApply(*p, t);
+					prev_particle_ = p;
+				}
+			}
+			virtual Affector* clone() {
+				return new FlockCenteringAffector(*this);
+			}
+		private:
+			int count_;
+			glm::vec3 average_;
+			std::vector<Particle>::iterator prev_particle_;
+			FlockCenteringAffector();
+		};
+
+		class BlackHoleAffector : public Affector
+		{
+		public:
+			explicit BlackHoleAffector(ParticleSystemContainer* parent, const variant& node) 
+				: Affector(parent, node), 
+				  velocity_(node["velocity"].as_float()), 
+				  acceleration_(node["acceleration"].as_float())
+			{
+			}
+		private:
+			virtual void handleEmitProcess(float t) override {
+				velocity_ += acceleration_;
+				Affector::handleEmitProcess(t);
+			}
+
+			virtual void internalApply(Particle& p, float t) override {
+				glm::vec3 diff = getPosition() - p.current.position;
+				float len = glm::length(diff);
+				if(len > velocity_) {
+					diff *= velocity_/len;
+				} else {
+					p.current.time_to_live = 0;
+				}
+
+				p.current.position += diff;
+			}
+
+			virtual Affector* clone() {
+				return new BlackHoleAffector(*this);
+			}
+
+			float velocity_, acceleration_;
+		};
+
+		class PathFollowerAffector : public Affector
+		{
+		public:
+			explicit PathFollowerAffector(ParticleSystemContainer* parent, const variant& node) 
+				: Affector(parent, node)
+			{
+				ASSERT_LOG(node.has_key("path") && node["path"].is_list(),
+					"path_follower must have a 'path' attribute.");
+				for(unsigned n = 0; n != node["path"].num_elements(); ++n) {
+					const auto& pt = node["path"][n];
+					ASSERT_LOG(pt.is_list() && pt.num_elements() > 0, "points in path must be lists of more than one element.");
+					const double x = pt[0].as_float();
+					const double y = pt.num_elements() > 1 ? pt[1].as_float() : 0.0;
+					const double z = pt.num_elements() > 2 ? pt[2].as_float() : 0.0;
+					points_.emplace_back(x,y,z);
+				}
+				spl_ = std::make_shared<geometry::spline3d<float>>(points_);
+			}
+		protected:
+			virtual void internalApply(Particle& p, float t) override {
+				const float time_fraction = p.current.time_to_live / p.initial.time_to_live;
+				const float time_fraction_next = (p.current.time_to_live + t) > p.initial.time_to_live 
+					? 1.0f 
+					: (p.current.time_to_live + t) / p.initial.time_to_live;
+				p.current.position += spl_->interpolate(time_fraction_next) - spl_->interpolate(time_fraction);
+			}
+			virtual void handleEmitProcess(float t) override {
+				std::vector<Particle>& particles = getTechnique()->getActiveParticles();
+				if(particles.size() < 1) {
+					return;
+				}
+
+				prev_particle_ = particles.begin();				
+				for(auto p = particles.begin(); p != particles.end(); ++p) {
+					internalApply(*p, t);
+					prev_particle_ = p;
+				}
+			}
+			virtual Affector* clone() {
+				return new PathFollowerAffector(*this);
+			}
+		private:
+			int count_;
+			std::shared_ptr<geometry::spline3d<float>> spl_;
+			std::vector<glm::vec3> points_;
+			std::vector<Particle>::iterator prev_particle_;
+			PathFollowerAffector();
 		};
 
 		class RandomiserAffector : public Affector
@@ -240,7 +354,7 @@ namespace KRE
 			}
 			virtual ~RandomiserAffector() {}
 		protected:
-			virtual void internalApply(Particle& p, float t) {
+			virtual void internalApply(Particle& p, float t) override {
 				if(random_direction_) {
 					// change direction per update
 					p.current.direction += glm::vec3(get_random_float(-max_deviation_.x, max_deviation_.x),
@@ -273,7 +387,7 @@ namespace KRE
 			}
 			virtual void handleProcess(float t) {
 				handle_apply(getTechnique()->getActiveParticles(), t);
-				handle_apply(getTechnique()->getActiveEmitters(), t);
+				handle_apply(getTechnique()->getInstancedEmitters(), t);
 			}
 			virtual Affector* clone() {
 				return new RandomiserAffector(*this);
@@ -326,7 +440,7 @@ namespace KRE
 			}
 			virtual ~SineForceAffector() {}
 		protected:
-			virtual void handleProcess(float t) {
+			virtual void handleEmitProcess(float t) override {
 				angle_ += /*2.0f * M_PI **/ frequency_ * t;
 				float sine_value = sin(angle_);
 				scale_vector_ = force_vector_ * t * sine_value;
@@ -339,7 +453,7 @@ namespace KRE
 				}
 				Affector::handleEmitProcess(t);
 			}
-			virtual void internalApply(Particle& p, float t) {
+			virtual void internalApply(Particle& p, float t) override {
 				if(fa_ == FA_ADD) {
 					p.current.direction += scale_vector_;
 				} else {
@@ -390,7 +504,7 @@ namespace KRE
 		void Affector::handleEmitProcess(float t) 
 		{
 			ASSERT_LOG(technique_ != NULL, "PSYSTEM2: technique_ is null");
-			for(auto& e : technique_->getActiveEmitters()) {
+			for(auto& e : technique_->getInstancedEmitters()) {
 				ASSERT_LOG(e->emitted_by != NULL, "PSYSTEM2: e->emitted_by is null");
 				if(!isEmitterExcluded(e->emitted_by->name())) {
 					internalApply(*e,t);
@@ -431,6 +545,12 @@ namespace KRE
 				return new RandomiserAffector(parent, node);
 			} else if(ntype == "sine_force") {
 				return new SineForceAffector(parent, node);
+			} else if(ntype == "path_follower") {
+				return new PathFollowerAffector(parent, node);
+			} else if(ntype == "black_hole") {
+				return new BlackHoleAffector(parent, node);
+			} else if(ntype == "flock_centering") {
+				return new FlockCenteringAffector(parent, node);
 			} else {
 				ASSERT_LOG(false, "PSYSTEM2: Unrecognised affector type: " << ntype);
 			}
@@ -591,7 +711,7 @@ namespace KRE
 		void GravityAffector::internalApply(Particle& p, float t)
 		{
 			glm::vec3 d = getPosition() - p.current.position;
-			float len_sqr = d.x*d.x + d.y*d.y + d.z*d.z;
+			float len_sqr = sqrt(d.x*d.x + d.y*d.y + d.z*d.z);
 			if(len_sqr > 0) {
 				float force = (gravity_ * p.current.mass * mass()) / len_sqr;
 				p.current.direction += (force * t) * d;
@@ -667,5 +787,23 @@ namespace KRE
 				}
 			}
 		}
+
+		BEGIN_DEFINE_CALLABLE(Affector, EmitObject)
+		DEFINE_FIELD(position, "[decimal,decimal,decimal]")
+			return vec3_to_variant(obj.getPosition());
+		DEFINE_SET_FIELD
+			obj.setPosition(variant_to_vec3(value));
+		END_DEFINE_CALLABLE(affector)
+
+		BEGIN_DEFINE_CALLABLE(GravityAffector, Affector)
+		DEFINE_FIELD(dummy, "null")
+			return variant();
+		END_DEFINE_CALLABLE(GravityAffector)
+
+		BEGIN_DEFINE_CALLABLE(VortexAffector, Affector)
+		DEFINE_FIELD(dummy, "null")
+			return variant();
+		END_DEFINE_CALLABLE(VortexAffector)
+
 	}
 }

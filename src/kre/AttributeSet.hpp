@@ -30,11 +30,11 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "Blend.hpp"
-#include "../Color.hpp"
+#include "Color.hpp"
 #include "DisplayDeviceFwd.hpp"
-#include "Util.hpp"
+#include "util.hpp"
 
 namespace KRE
 {

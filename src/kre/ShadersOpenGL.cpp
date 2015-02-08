@@ -24,7 +24,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "ShadersOpenGL.hpp"
 
 namespace KRE
@@ -111,7 +111,7 @@ namespace KRE
 				{"", ""},
 			};
 
-			const char* const attr_color_vs =
+			const char* const attr_color_vs = 
 				"uniform mat4 u_mvp_matrix;\n"
 				"uniform float u_point_size;\n"
 				"attribute vec2 a_position;\n"

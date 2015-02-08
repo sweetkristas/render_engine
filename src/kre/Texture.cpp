@@ -22,7 +22,7 @@
 */
 
 #include <set>
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "DisplayDevice.hpp"
 #include "Texture.hpp"
 #include "TextureUtils.hpp"
@@ -51,87 +51,29 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const variant& node)
-		: type_(Type::TEXTURE_2D), 
-		mipmaps_(0), 
-		max_anisotropy_(1),
-		lod_bias_(0.0f),
-		surface_width_(0),
-		surface_height_(0),
-		width_(0),
-		height_(0),
-		depth_(0),
-		unpack_alignment_(4)
-	{
-		internalInit();
-		fromVariant(node);
-	}
-
-	Texture::Texture(const SurfacePtr& surface, const variant& node)
+	Texture::Texture(const variant& node, const SurfacePtr& surface)
 		: type_(Type::TEXTURE_2D), 
 		mipmaps_(0), 
 		max_anisotropy_(1),
 		lod_bias_(0.0f),
 		surface_(surface),
-		surface_width_(surface->width()),
-		surface_height_(surface->height()),
+		surface_width_(-1),
+		surface_height_(-1),
 		width_(0),
 		height_(0),
 		depth_(0),
 		unpack_alignment_(4)
 	{
+		if(surface == nullptr && node.is_string()) {
+			surface_ = Surface::create(node.as_string());
+		} else if(surface == nullptr && node.has_key("image") && node["image"].is_string()) {
+			surface_ = Surface::create(node["image"].as_string());
+		}
+		ASSERT_LOG(surface_ != nullptr, "Error in the surface -- was null.");
+		surface_width_ = surface_->width();
+		surface_height_ = surface_->height();
+
 		internalInit();
-		fromVariant(node);
-	}
-
-	Texture::Texture(const SurfacePtr& surface, Type type, int mipmap_levels)
-		: type_(type), 
-		mipmaps_(mipmap_levels), 
-		max_anisotropy_(1),
-		lod_bias_(0.0f),
-		surface_(surface),
-		surface_width_(surface->width()),
-		surface_height_(surface->height()),
-		width_(0),
-		height_(0),
-		depth_(0),
-		unpack_alignment_(4)
-	{
-		internalInit();
-	}
-
-	Texture::Texture(unsigned width, 
-		unsigned height, 
-		unsigned depth,
-		PixelFormat::PF fmt, 
-		Type type)
-		: type_(type), 
-		mipmaps_(0), 
-		max_anisotropy_(1),
-		lod_bias_(0.0f),
-		surface_width_(width),
-		surface_height_(height),
-		width_(width),
-		height_(height),
-		depth_(depth),
-		unpack_alignment_(4)
-	{
-		internalInit();
-	}
-
-	Texture::Texture(const SurfacePtr& surf, const SurfacePtr& palette)
-	{
-		ASSERT_LOG(false, "Write the texture palette code");
-		internalInit();	
-	}
-	
-	Texture::~Texture()
-	{
-		remove_from_texture_registery(this);
-	}
-
-	void Texture::fromVariant(const variant& node)
-	{
 		if(node.has_key("type")) {
 			const std::string& type = node["type"].as_string();
 			if(type == "1d") {
@@ -236,6 +178,52 @@ namespace KRE
 			ASSERT_LOG(node["rect"].is_list(), "'rect' attribute must be a list of numbers.");
 			ASSERT_LOG(node["rect"].num_elements() >= 4, "'rect' attribute must have at least 4 elements.");
 		}
+	}
+
+	Texture::Texture(const SurfacePtr& surface, Type type, int mipmap_levels)
+		: type_(type), 
+		mipmaps_(mipmap_levels), 
+		max_anisotropy_(1),
+		lod_bias_(0.0f),
+		surface_(surface),
+		surface_width_(surface->width()),
+		surface_height_(surface->height()),
+		width_(0),
+		height_(0),
+		depth_(0),
+		unpack_alignment_(4)
+	{
+		internalInit();
+	}
+
+	Texture::Texture(unsigned width, 
+		unsigned height, 
+		unsigned depth,
+		PixelFormat::PF fmt, 
+		Type type)
+		: type_(type), 
+		mipmaps_(0), 
+		max_anisotropy_(1),
+		lod_bias_(0.0f),
+		surface_width_(width),
+		surface_height_(height),
+		width_(width),
+		height_(height),
+		depth_(depth),
+		unpack_alignment_(4)
+	{
+		internalInit();
+	}
+
+	Texture::Texture(const SurfacePtr& surf, const SurfacePtr& palette)
+	{
+		ASSERT_LOG(false, "Write the texture palette code");
+		internalInit();	
+	}
+	
+	Texture::~Texture()
+	{
+		remove_from_texture_registery(this);
 	}
 
 	void Texture::internalInit()

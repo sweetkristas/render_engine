@@ -264,7 +264,6 @@ namespace KRE
 		float color_[4];
 	};
 
-
 	inline bool operator<(const Color& lhs, const Color& rhs)
 	{
 		return lhs.asARGB() < rhs.asARGB();

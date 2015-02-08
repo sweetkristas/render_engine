@@ -23,6 +23,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "CanvasOGL.hpp"
 #include "ShadersOpenGL.hpp"
 #include "TextureOpenGL.hpp"
@@ -104,9 +105,9 @@ namespace KRE
 		glDisableVertexAttribArray(shader->getVertexAttribute()->second.location);
 	}
 
-	void CanvasOGL::blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color) const
+	void CanvasOGL::blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color)
 	{
-		 // XXX
+		ASSERT_LOG(false, "XXX CanvasOGL::blitTexture()");
 	}
 
 	void CanvasOGL::blitTexture(const MaterialPtr& mat, float rotation, const rect& dst, const Color& color) const
@@ -255,82 +256,82 @@ namespace KRE
 
 	void CanvasOGL::drawSolidRect(const rect& r, const Color& fill_color, float rotate) const
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawSolidRect()");
 	}
 
-	void CanvasOGL::drawHollowRect(const rect& r, const Color& stroke_color, float rotate) const 
+	void CanvasOGL::drawHollowRect(const rect& r, const Color& stroke_color, float rotate) const
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawHollowRect()");
 	}
 
-	void CanvasOGL::drawLine(const point& p1, const point& p2, const Color& color) const 
+	void CanvasOGL::drawLine(const point& p1, const point& p2, const Color& color) const
 	{
-		// XXX
-	}
-
-	void CanvasOGL::drawLine(const pointf& p1, const pointf& p2, const Color& color) const
-	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLine()");
 	}
 
 	void CanvasOGL::drawLines(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLines()");
 	}
 
 	void CanvasOGL::drawLines(const std::vector<glm::vec2>& varray, float line_width, const std::vector<glm::u8vec4>& carray) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLines()");
 	}
 
 	void CanvasOGL::drawLineStrip(const std::vector<glm::vec2>& points, float line_width, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLineStrip()");
 	}
 
 	void CanvasOGL::drawLineLoop(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLineLoop()");
 	}
 
-	void CanvasOGL::drawPolygon(const std::vector<glm::vec2>& points, const Color& color) const
+	void CanvasOGL::drawLine(const pointf& p1, const pointf& p2, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawLine()");
 	}
 
-	void CanvasOGL::drawSolidCircle(const point& centre, double radius, const Color& color) const
+	void CanvasOGL::drawPolygon(const std::vector<glm::vec2>& points, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawPolygon()");
+	}
+
+	void CanvasOGL::drawSolidCircle(const point& centre, double radius, const Color& color) const 
+	{
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawSolidCircle()");
 	}
 
 	void CanvasOGL::drawSolidCircle(const point& centre, double radius, const std::vector<uint8_t>& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawSolidCircle()");
 	}
 
 	void CanvasOGL::drawHollowCircle(const point& centre, double radius, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawHollowCircle()");
 	}
 
 	void CanvasOGL::drawSolidCircle(const pointf& centre, double radius, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawSolidCircle()");
 	}
 
 	void CanvasOGL::drawSolidCircle(const pointf& centre, double radius, const std::vector<uint8_t>& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawSolidCircle()");
 	}
 
 	void CanvasOGL::drawHollowCircle(const pointf& centre, double radius, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawHollowCircle()");
 	}
 
 	void CanvasOGL::drawPoints(const std::vector<glm::vec2>& points, float radius, const Color& color) const 
 	{
-		// XXX
+		ASSERT_LOG(false, "XXX write function CanvasOGL::drawPoints()");
 	}
 
 	CanvasPtr CanvasOGL::getInstance()

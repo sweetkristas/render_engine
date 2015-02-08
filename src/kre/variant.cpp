@@ -36,15 +36,22 @@ variant::variant(const variant& rhs)
 variant::variant(int64_t n)
 	: type_(VARIANT_TYPE_INTEGER), i_(n), f_(0.0f), b_(false)
 {
+
 }
 
 variant::variant(int n)
 	: type_(VARIANT_TYPE_INTEGER), i_(n), f_(0.0f), b_(false)
 {
+
+}
+
+variant::variant(float f)
+	: type_(VARIANT_TYPE_FLOAT), i_(0), f_(f), b_(false)
+{
 }
 
 variant::variant(double f)
-	: type_(VARIANT_TYPE_FLOAT), i_(0), f_(f), b_(false)
+	: type_(VARIANT_TYPE_FLOAT), i_(0), f_(static_cast<float>(f)), b_(false)
 {
 }
 
@@ -58,12 +65,6 @@ variant::variant(const std::map<variant,variant>& m)
 {
 }
 
-variant::variant(variant_map* m)
-	: type_(VARIANT_TYPE_MAP), i_(0), f_(0.0f), b_(false)
-{
-	m_.swap(*m);
-}
-
 variant::variant(const std::vector<variant>& l)
 	: type_(VARIANT_TYPE_LIST), i_(0), f_(0.0f), l_(l), b_(false)
 {
@@ -73,6 +74,12 @@ variant::variant(std::vector<variant>* list)
 	: type_(VARIANT_TYPE_LIST), i_(0), f_(0.0f), b_(false)
 {
 	l_.swap(*list);
+}
+
+variant::variant(variant_map* vmap)
+	: type_(VARIANT_TYPE_MAP), i_(0), f_(0), b_(false)
+{
+	m_.swap(*vmap);
 }
 
 variant variant::from_bool(bool b)
@@ -103,11 +110,6 @@ std::string variant::type_as_string() const
 		return "list";
 	}
 	ASSERT_LOG(false, "Unrecognised type converting to string: " << type_);
-}
-
-int variant::as_int32() const
-{
-	return static_cast<int>(as_int());
 }
 
 int64_t variant::as_int() const
@@ -161,7 +163,7 @@ std::string variant::as_string() const
 	return "";
 }
 
-std::string variant::as_string_default(const std::string& def) const
+std::string variant::as_string_default(const std::string& s) const
 {
 	switch(type()) {
 	case VARIANT_TYPE_STRING:
@@ -178,16 +180,16 @@ std::string variant::as_string_default(const std::string& def) const
 	}
 	default: break;
 	}
-	return def;
+	return s;
 }
 
 float variant::as_float() const
 {
 	switch(type()) {
 	case VARIANT_TYPE_INTEGER:
-		return static_cast<float>(i_);
+		return float(i_);
 	case VARIANT_TYPE_FLOAT:
-		return static_cast<float>(f_);
+		return f_;
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1.0f : 0.0f;
 	default: break;
@@ -200,9 +202,9 @@ float variant::as_float(float value) const
 {
 	switch(type()) {
 	case VARIANT_TYPE_INTEGER:
-		return static_cast<float>(i_);
+		return float(i_);
 	case VARIANT_TYPE_FLOAT:
-		return static_cast<float>(f_);
+		return f_;
 	case VARIANT_TYPE_BOOL:
 		return b_ ? 1.0f : 0.0f;
 	default: break;
@@ -348,7 +350,10 @@ bool variant::has_key(const variant& v) const
 
 bool variant::has_key(const std::string& key) const
 {
-	ASSERT_LOG(type() == VARIANT_TYPE_MAP, "Tried to index variant that isn't a map, was: " << type_as_string());
+	//ASSERT_LOG(type() == VARIANT_TYPE_MAP, "Tried to index variant that isn't a map, was: " << type_as_string());
+	if(type() != VARIANT_TYPE_MAP) {
+		return false;
+	}
 	return m_.find(variant(key)) != m_.end() ? true : false;
 }
 
@@ -524,10 +529,10 @@ std::vector<std::string> variant::as_list_string() const
 std::vector<int> variant::as_list_int() const
 {
 	std::vector<int> result;
-	ASSERT_LOG(type_ == VARIANT_TYPE_LIST, "as_list_string: variant must be a list.");
+	ASSERT_LOG(type_ == VARIANT_TYPE_LIST, "as_list_int: variant must be a list.");
 	result.reserve(l_.size());
 	for(auto& el : l_) {
-		ASSERT_LOG(el.is_int(), "as_list_int: Each element in list must be an int.");
+		ASSERT_LOG(el.is_numeric(), "as_list_int: Each element in list must be an integer");
 		result.emplace_back(el.as_int32());
 	}
 	return result;
@@ -617,51 +622,5 @@ variant vec4_to_variant(const glm::vec4& v)
 
 std::string variant::to_debug_string() const
 {
-	std::ostringstream s;
-	switch(type_) {
-	case VARIANT_TYPE_NULL:
-		s << "null";
-		break;
-	case VARIANT_TYPE_BOOL:
-		s << (b_ ? "true" : "false");
-		break;
-	case VARIANT_TYPE_INTEGER:
-		s << i_;
-		break;
-	case VARIANT_TYPE_FLOAT:
-		s << f_;
-		break;
-	case VARIANT_TYPE_LIST: {
-		s << "[";
-		for(size_t n = 0; n != num_elements(); ++n) {
-			if(n != 0) {
-				s << ", ";
-			}
-
-			s << operator[](n).to_debug_string();
-		}
-		s << "]";
-		break;
-	}
-	case VARIANT_TYPE_MAP: {
-		s << "{";
-		bool first_time = true;
-		for(auto& i : m_) {
-			if(!first_time) {
-				s << ",";
-			}
-			first_time = false;
-			s << i.first.to_debug_string();
-			s << ": ";
-			s << i.second.to_debug_string();
-		}
-		s << "}";
-		break;
-	}
-	case VARIANT_TYPE_STRING:
-		s << "'" << s_ << "'";
-		break;
-	}
-
-	return s.str();
+	return write_json(true, 0);
 }

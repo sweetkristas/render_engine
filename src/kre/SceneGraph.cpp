@@ -24,7 +24,7 @@
 #include <functional>
 #include <map>
 
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"

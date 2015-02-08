@@ -27,7 +27,7 @@
 #include "CameraObject.hpp"
 #include "DisplayDevice.hpp"
 #include "Renderable.hpp"
-#include "../variant_utils.hpp"
+#include "variant_utils.hpp"
 
 namespace KRE
 {

@@ -23,7 +23,7 @@
 
 #include <map>
 
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "DisplayDevice.hpp"
 
 namespace KRE
@@ -145,13 +145,6 @@ namespace KRE
 		return tex;
 	}
 
-	TexturePtr DisplayDevice::createTexture(const SurfacePtr& surface, const SurfacePtr& palette)
-	{
-		// XXX
-		ASSERT_LOG(false, "writeme createTexture(surface,palette)");
-		return TexturePtr();
-	}
-
 	TexturePtr DisplayDevice::createTexture(const SurfacePtr& surface, bool cache, const variant& node)
 	{
 		//if(cache) {
@@ -195,6 +188,11 @@ namespace KRE
 	TexturePtr DisplayDevice::createTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
 	{
 		return getCurrent()->handleCreateTexture(filename, type, mipmap_levels);
+	}
+
+	TexturePtr DisplayDevice::createTexture(const SurfacePtr& surface, const SurfacePtr& palette)
+	{
+		return getCurrent()->handleCreateTexture(surface, palette);
 	}
 
 	MaterialPtr DisplayDevice::createMaterial(const variant& node)

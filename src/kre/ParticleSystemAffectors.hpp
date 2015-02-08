@@ -43,16 +43,18 @@ namespace KRE
 				technique_ = tq;
 			}
 
+			float mass() const { return mass_; }
+			const glm::vec3& getPosition() const { return position_; }
+			void setPosition(const glm::vec3& pos) { position_ = pos; }
+			const glm::vec3& getScale() const { return scale_; }
+			bool isEmitterExcluded(const std::string& name);
+
 			static Affector* factory(ParticleSystemContainer* parent, const variant& node);
 		protected:
 			virtual void handleEmitProcess(float t);
 			virtual void internalApply(Particle& p, float t) = 0;
-
-			float mass() const { return mass_; }
-			const glm::vec3& getPosition() const { return position_; }
-			const glm::vec3& getScale() const { return scale_; }
-			bool isEmitterExcluded(const std::string& name);
 		private:
+			DECLARE_CALLABLE(Affector);
 			bool enabled_;
 			float mass_;
 			glm::vec3 position_;

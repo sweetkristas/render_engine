@@ -67,4 +67,14 @@ namespace KRE
 			SceneGraph::registerFactoryFunction(type, [](SceneGraph* sg, const variant& node) -> SceneNodePtr { return std::make_shared<SceneNode>(sg, node); });
 		}
 	};
+
+	template<class T>
+	struct SceneObjectRegistrar
+	{
+		SceneObjectRegistrar(const std::string& type)
+		{
+			// register the class factory function 
+			SceneGraph::registerObjectType(type, [](const std::string& type) -> std::shared_ptr<T> { return std::make_shared<T>(type); });
+		}
+	};
 }

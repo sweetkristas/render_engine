@@ -28,13 +28,11 @@ namespace KRE
 {
 	ShaderProgram::ShaderProgram(const variant& node)
 	{
-		if(node.is_map()) {
-			if(node.has_key("draw")) {
-				draw_ = node["draw"].as_string();
-			}
-			if(node.has_key("create")) {
-				create_ = node["create"].as_string();
-			}
+		if(node.has_key("draw")) {
+			draw_ = node["draw"].as_string();
+		}
+		if(node.has_key("create")) {
+			create_ = node["create"].as_string();
 		}
 	}
 

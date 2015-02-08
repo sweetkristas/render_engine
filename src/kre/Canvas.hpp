@@ -27,10 +27,11 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Color.hpp"
-#include "Geometry.hpp"
+
+#include "Color.hpp"
+#include "geometry.hpp"
 #include "Material.hpp"
-#include "Util.hpp"
+#include "util.hpp"
 #include "VGraph.hpp"
 #include "SceneUtil.hpp"
 
@@ -54,7 +55,7 @@ namespace KRE
 
 		// Blit's a texture from co-ordinates given in src to the screen co-ordinates dst
 		virtual void blitTexture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color=Color::colorWhite()) const = 0;
-		virtual void blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color=Color::colorWhite()) const = 0;
+		virtual void blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color=Color::colorWhite()) = 0;
 		// Blit a texture to the given co-ordinates on the display. Assumes the whole texture is being used.
 		void blitTexture(const TexturePtr& tex, float rotation, const rect& dst, const Color& color=Color::colorWhite()) const;
 		void blitTexture(const TexturePtr& tex, float rotation, int x, int y, const Color& color=Color::colorWhite()) const;

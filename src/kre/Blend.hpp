@@ -23,10 +23,9 @@
 
 #pragma once
 
-#include <memory>
-
-#include "../variant.hpp"
-#include "Util.hpp"
+#include "DisplayDeviceFwd.hpp"
+#include "variant.hpp"
+#include "util.hpp"
 
 namespace KRE
 {
@@ -52,9 +51,6 @@ namespace KRE
 		BE_SUBTRACT,
 		BE_REVERSE_SUBTRACT,
 	};
-
-	class BlendEquationImplBase;
-	typedef std::shared_ptr<BlendEquationImplBase> BlendEquationImplBasePtr;
 
 	class BlendEquation
 	{

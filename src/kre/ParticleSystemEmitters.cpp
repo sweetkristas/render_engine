@@ -21,15 +21,12 @@
 	   distribution.
 */
 
-#include <cmath>
-
-#include "../asserts.hpp"
-#include "../variant_utils.hpp"
-
+#include "asserts.hpp"
 #include "ParticleSystem.hpp"
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemEmitters.hpp"
 #include "ParticleSystemParameters.hpp"
+#include "variant_utils.hpp"
 
 namespace KRE
 {
@@ -134,7 +131,7 @@ namespace KRE
 		public:
 			CircleEmitter(ParticleSystemContainer* parent, const variant& node) 			
 				: Emitter(parent, node), 
-				circle_radius_(node["circle_radius"].as_float(0)), 
+				circle_radius_(Parameter::factory(node["circle_radius"])),
 				circle_step_(node["circle_step"].as_float(0.1f)), 
 				circle_angle_(node["circle_angle"].as_float(0)), 
 				circle_random_(node["emit_random"].as_bool(true)) {
@@ -148,14 +145,16 @@ namespace KRE
 				} else {
 					angle = t * circle_step_;
 				}
-				p.initial.position.x += circle_radius_ * sin(angle + circle_angle_);
-				p.initial.position.z += circle_radius_ * cos(angle + circle_angle_);
+
+				const float r = circle_radius_->getValue();
+				p.initial.position.x += r * sin(angle + circle_angle_);
+				p.initial.position.y += r * cos(angle + circle_angle_);
 			}
 			virtual Emitter* clone() {
 				return new CircleEmitter(*this);
 			}
 		private:
-			float circle_radius_;
+			ParameterPtr circle_radius_;
 			float circle_step_;
 			float circle_angle_;
 			bool circle_random_;
@@ -469,7 +468,7 @@ namespace KRE
 					setParticleStartingValues(start, particles.end());
 				} else {
 					if(emits_type_ == EmitsType::EMITTER) {
-						size_t cnt = calculateParticlesToEmit(t, technique_->getEmitterQuota(), technique_->getActiveEmitters().size());
+						size_t cnt = calculateParticlesToEmit(t, technique_->getEmitterQuota(), technique_->getInstancedEmitters().size());
 						//std::cerr << "XXX: Emitting " << cnt << " emitters" << std::endl;
 						for(int n = 0; n != cnt; ++n) {
 							EmitterPtr e = getParentContainer()->cloneEmitter(emits_name_);
@@ -480,7 +479,7 @@ namespace KRE
 							technique_->addEmitter(e);
 						}
 					} else if(emits_type_ == EmitsType::AFFECTOR) {
-						size_t cnt = calculateParticlesToEmit(t, technique_->getAffectorQuota(), technique_->getActiveAffectors().size());
+						size_t cnt = calculateParticlesToEmit(t, technique_->getAffectorQuota(), technique_->getInstancedAffectors().size());
 						for(int n = 0; n != cnt; ++n) {
 							AffectorPtr a = getParentContainer()->cloneAffector(emits_name_);
 							a->emitted_by = this;
@@ -655,5 +654,10 @@ namespace KRE
 			ASSERT_LOG(false, "PSYSTEM2: Unrecognised emitter type: " << ntype);
 			return NULL;
 		}
+
+		BEGIN_DEFINE_CALLABLE(Emitter, EmitObject)
+		DEFINE_FIELD(dummy, "null")
+			return variant();
+		END_DEFINE_CALLABLE(Emitter)
 	}
 }

@@ -22,10 +22,113 @@
 */
 
 #include "ParticleSystemObservers.hpp"
+#include "ParticleSystem.hpp"
 
 namespace KRE
 {
 	namespace Particles
 	{
+		namespace 
+		{
+			class clear_event_handler : public event_handler
+			{
+			public:
+				clear_event_handler(const variant& node) : event_handler(node), seen_particles_(false) {
+				}
+				event_handler* clone() override {
+					return new clear_event_handler(*this);
+				}
+			private:
+				bool handle_process(Technique* tech, float t) override {
+					ASSERT_LOG(tech != nullptr, "technique was null pointer.");
+					if(!seen_particles_) {
+						if(tech->getActiveParticles().size() > 0) {
+							seen_particles_ = true;
+						}
+					} else {
+						// no particles left
+						if(tech->getActiveParticles().size() == 0) {
+							return true;
+						}
+					}
+					return false;
+				}
+				bool seen_particles_;
+			};
+		}
+
+		event_handler::event_handler(const variant& node)
+			: name_(node["name"].as_string()),
+			  enabled_(node["enabled"].as_bool(true)),
+			  observe_till_event_(node["observe_till_event"].as_bool(false)),
+			  actions_executed_(false)
+		{
+		}
+
+		event_handler::~event_handler()
+		{
+		}
+
+		void event_handler::process(Technique* tech, float t)
+		{
+			if(enabled_) {
+				if(observe_till_event_ && actions_executed_) {
+					return;
+				}
+				if(handle_process(tech, t)) {
+					process_actions(tech, t);
+				}
+			}
+		}
+
+		void event_handler::add_action(action_ptr evt)
+		{
+			actions_.emplace_back(evt);
+		}
+
+		void event_handler::process_actions(Technique* tech, float t)
+		{
+			for(auto a : actions_) {
+				a->execute(tech, t);
+			}
+			actions_executed_ = true;
+		}
+
+		event_handler_ptr event_handler::create(const variant& node)
+		{
+			const std::string& type = node["type"].as_string();
+			if(type == "on_clear") {
+				return std::make_shared<clear_event_handler>(node);
+			}
+
+			ASSERT_LOG(false, "No handler found of type: " << type);
+			return event_handler_ptr();
+		}
+
+		action::action(const variant& node)
+			: name_(node["name"].as_string())
+		{
+			// XXX
+		}
+
+		action::~action()
+		{
+		}
+		
+		void action::execute(Technique* tech, float t)
+		{
+			// XXX
+		}
+
+		action_ptr action::create(const variant& node)
+		{
+			const std::string& type = node["type"].as_string();
+			// XXX
+			//if(type == "stop_system") {
+			//	return std::make_shared<stop_system_action>(node);
+			//}
+			ASSERT_LOG(false, "No handler found of type: " << type);
+			return action_ptr();
+		}
 	}
 }

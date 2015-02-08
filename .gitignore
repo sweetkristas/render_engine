@@ -25,6 +25,9 @@
 
 render_engine
 
+# Dependency files
+*.d
+
 # msvc files we definitely do not want
 *.sdf
 *.tlog
@@ -36,3 +39,10 @@ render_engine
 *.suo
 *.user
 *.unsuccessfulbuild
+*.opensdf
+*.def
+*.exp
+vs2013/*/Debug
+vs2013/*/Release
+vs2012/*/Debug
+vs2012/*/Release

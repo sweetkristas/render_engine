@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2013-2014 by Kristina Simpson <sweet.kristas@gmail.com>
+	Copyright (C) 2003-2013 by Kristina Simpson <sweet.kristas@gmail.com>
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -23,18 +23,45 @@
 
 #pragma once
 
-#define DISALLOW_COPY_AND_ASSIGN(TypeName)  \
-    TypeName(const TypeName&);              \
-    void operator=(const TypeName&)
+#include <exception>
+#include <memory>
+#include <string>
+#include <sstream>
 
-#define DISALLOW_COPY_ASSIGN_AND_DEFAULT(TypeName)  \
-    TypeName();                                     \
-    TypeName(const TypeName&);                      \
-    void operator=(const TypeName&)
+#include "SDL.h"
 
-#define DISALLOW_DEFAULT_AND_ASSIGN(TypeName)	\
-    TypeName();									\
-    void operator=(const TypeName&)
+namespace SDL
+{
+	class init_error : public std::exception
+	{
+	public:
+		init_error() : exception(), msg_(SDL_GetError())
+		{}
+		init_error(const std::string& msg) : exception(), msg_(msg)
+		{}
+		virtual ~init_error() throw()
+		{}
+		virtual const char* what() const throw() { return msg_.c_str(); }
+	private:
+		std::string msg_;
+	};
 
-#define DISALLOW_ASSIGN(TypeName)		\
-	void operator=(const TypeName&)
+	class SDL
+	{
+	public:
+		SDL(Uint32 flags = SDL_INIT_VIDEO)
+		{
+			if (SDL_Init(flags) < 0) {
+				std::stringstream ss;
+				ss << "Unable to initialize SDL: " << SDL_GetError() << std::endl;
+				throw init_error(ss.str());
+			}
+		}
+
+		virtual ~SDL()
+		{
+			SDL_Quit();
+		}
+	};
+	typedef std::shared_ptr<SDL> SDL_ptr;
+}

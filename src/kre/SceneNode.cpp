@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#include "../asserts.hpp"
+#include "asserts.hpp"
 #include "CameraObject.hpp"
 #include "LightObject.hpp"
 #include "RenderManager.hpp"
@@ -50,12 +50,7 @@ namespace KRE
 	{
 		ASSERT_LOG(scene_graph_ != NULL, "scene_graph_ was null.");
 		if(node.has_key("camera")) {
-			// XXX WindowManager::getMainWindow() is a little hack since this scene node might
-			// not be attached to the main window. But the camera needs to know the window size
-			// for an orthogonal camera. Maybe we need to attach a window id to the SceneGraph.
-			// Then we could get the information from there. -- is kind of an ugh situation.
-			auto cam = std::make_shared<Camera>(node["camera"], WindowManager::getMainWindow());
-			attachCamera(cam);
+			attachCamera(Camera::createInstance(node["camera"]));
 		}
 		if(node.has_key("lights")) {
 			auto& lights = node["lights"];
