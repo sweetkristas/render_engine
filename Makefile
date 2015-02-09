@@ -53,11 +53,10 @@ USE_LUA?=$(shell pkg-config --exists lua5.2 && echo yes)
 BASE_CXXFLAGS += -std=c++0x -g -rdynamic -fno-inline-functions \
 	-fthreadsafe-statics -Wnon-virtual-dtor -Werror \
 	-Wignored-qualifiers -Wformat -Wswitch -Wreturn-type \
-	-DUSE_SHADERS -DUTILITY_IN_PROC -DUSE_ISOMAP \
 	-Wno-narrowing -Wno-literal-suffix
 
 # Compiler include options, used after CXXFLAGS and CPPFLAGS.
-INC := -Isrc -I src/kre -Iinclude $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib freetyp2) -Iexternal/include
+INC := -Iinclude $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib freetype2 cairo)
 
 ifdef STEAM_RUNTIME_ROOT
 	INC += -I$(STEAM_RUNTIME_ROOT)/include
@@ -65,7 +64,7 @@ endif
 
 # Linker library options.
 LIBS := $(shell pkg-config --libs x11 gl ) \
-	$(shell pkg-config --libs sdl2 glew SDL2_image libpng zlib) -lSDL2_ttf -lSDL2_mixer
+	$(shell pkg-config --libs sdl2 glew SDL2_image libpng zlib freetype2 cairo) -lSDL2_ttf -lSDL2_mixer
 
 # libvpx check
 USE_LIBVPX?=$(shell pkg-config --exists vpx && echo yes)
@@ -75,32 +74,49 @@ ifeq ($(USE_LIBVPX),yes)
 	LIBS += $(shell pkg-config --libs vpx)
 endif
 
-BASE_CXXFLAGS += -DUSE_SVG
-INC += $(shell pkg-config --cflags cairo)
-LIBS += $(shell pkg-config --libs cairo freetype2)
+MODULES   := kre
+SRC_DIR   := $(addprefix src/,$(MODULES))
+BUILD_DIR := $(addprefix build/,$(MODULES))
 
-SRCS := $(wildcard src/*.cpp)
-OBJS := $(SRCS:.cpp=.o)
+SRC       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
+OBJ       := $(patsubst src/%.cpp,build/%.o,$(SRC))
+INCLUDES  := $(addprefix -I,$(SRC_DIR))
 
-src/%.o : src/%.cpp
-	@echo "Building:" $<
-	@$(CCACHE) $(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) -DIMPLEMENT_SAVE_PNG -c -o $@ $<
-	@$(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) -DIMPLEMENT_SAVE_PNG -MM $< > $*.d
-	@mv -f $*.d $*.d.tmp
-	@sed -e 's|.*:|src/$*.o:|' < $*.d.tmp > src/$*.d
-	@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
-		sed -e 's/^ *//' -e 's/$$/:/' >> src/$*.d
-	@rm -f $*.d.tmp
+vpath %.cpp $(SRC_DIR)
 
-render_engine: $(OBJS)
+define cc-command
+$1/%.o: %.cpp
+	@echo "Building:" $$<
+	@$(CCACHE) $(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) $(INCLUDES) -c -o $$@ $$<
+	#@$(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) $(INCLUDES) -MM $$< > $$*.d
+	#@mv -f $*.d $*.d.tmp
+	#@sed -e 's|.*:|$*.o:|' < $*.d.tmp > $*.d
+	#@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
+	#	sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
+	#@rm -f $*.d.tmp
+endef
+
+.PHONY: all checkdirs clean
+
+all: checkdirs build/render_engine
+
+build/render_engine: $(OBJ)
 	@echo "Linking : render_engine"
 	@$(CCACHE) $(CXX) \
-		$(BASE_CXXFLAGS) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) \
-		$(OBJS) -o render_engine \
+		$(BASE_CXXFLAGS) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) \
+		$(OBJ) -o render_engine \
 		$(LIBS) -lboost_regex -lboost_system -lboost_filesystem -lpthread -fthreadsafe-statics
 
-# pull in dependency info for *existing* .o files
--include $(OBJS:.o=.d)
+checkdirs: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	@mkdir -p $@
 
 clean:
-	rm -f src/*.o src/*.d *.o *.d render_engine
+	rm -f $(BUILD_DIR)
+
+$(foreach bdir,$(BUILD_DIR),$(eval $(call cc-command,$(bdir))))
+
+# pull in dependency info for *existing* .o files
+-include $(OBJ:.o=.d)
+

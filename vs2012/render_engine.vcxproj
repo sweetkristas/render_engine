@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ft_iface.hpp" />
+    <ClInclude Include="..\src\kre\asserts.hpp" />
     <ClInclude Include="..\src\kre\AttributeSet.hpp" />
     <ClInclude Include="..\src\kre\AttributeSetOpenGL.hpp" />
     <ClInclude Include="..\src\kre\Blend.hpp" />

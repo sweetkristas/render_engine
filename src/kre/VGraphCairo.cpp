@@ -54,7 +54,7 @@ namespace KRE
 			PathInstruction() {}
 		private:
 			enum {
-				instruction_type_ = InstructionType::UNKNOWN
+				instruction_type_ = static_cast<unsigned>(InstructionType::UNKNOWN)
 			};
 			PathInstruction(const PathInstruction&);
 		};
@@ -70,7 +70,7 @@ namespace KRE
 			std::string asString() const override { return "close_path"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::CLOSE_PATH
+				instruction_type_ = static_cast<unsigned>(InstructionType::CLOSE_PATH)
 			};
 		};
 
@@ -90,7 +90,7 @@ namespace KRE
 			std::string asString() const override { return "move_to"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::MOVE_TO
+				instruction_type_ = static_cast<unsigned>(InstructionType::MOVE_TO)
 			};
 			double x_;
 			double y_;
@@ -113,7 +113,7 @@ namespace KRE
 			std::string asString() const override { return "line_to"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::LINE_TO
+				instruction_type_ = static_cast<unsigned>(InstructionType::LINE_TO)
 			};
 			double x_;
 			double y_;
@@ -136,7 +136,7 @@ namespace KRE
 			std::string asString() const override { return "arc"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::ARC
+				instruction_type_ = static_cast<unsigned>(InstructionType::ARC)
 			};
 			double x_;
 			double y_;
@@ -162,7 +162,7 @@ namespace KRE
 			std::string asString() const override { return "cubic_bézier"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::CURVE_TO
+				instruction_type_ = static_cast<unsigned>(InstructionType::CURVE_TO)
 			};
 			// control point 1
 			double cp_x1_;
@@ -208,7 +208,7 @@ namespace KRE
 			std::string asString() const override { return "quadratic_bézier"; }
 		private:
 			enum {
-				instruction_type_ = InstructionType::QUAD_CURVE_TO
+				instruction_type_ = static_cast<unsigned>(InstructionType::QUAD_CURVE_TO)
 			};
 			// control point 1
 			double cp_x1_;

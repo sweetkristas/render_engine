@@ -240,11 +240,11 @@ namespace KRE
 			return elements_.size();
 		}
 		void bind() {
-			ASSERT_LOG(GetDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
+			ASSERT_LOG(getDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
 			getDeviceBufferData()->bind();
 		}		
 		void unbind() {
-			ASSERT_LOG(GetDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
+			ASSERT_LOG(getDeviceBufferData() != NULL, "Bind call on null hardware attribute buffer.");
 			getDeviceBufferData()->unbind();
 		}
 		const_iterator begin() const {

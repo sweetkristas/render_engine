@@ -29,7 +29,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Color.hpp"
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "Material.hpp"
 #include "util.hpp"
 #include "VGraph.hpp"

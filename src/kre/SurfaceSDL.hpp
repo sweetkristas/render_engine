@@ -177,7 +177,7 @@ namespace KRE
 			uint32_t gmask, 
 			uint32_t bmask, 
 			uint32_t amask);
-		static SurfacePtr SurfaceSDL::createFromFormat(int width,
+		static SurfacePtr createFromFormat(int width,
 			int height,
 			PixelFormat::PF fmt);
 

@@ -413,10 +413,9 @@ namespace KRE
 	std::vector<WindowManagerPtr> WindowManager::getWindowList()
 	{
 		std::vector<WindowManagerPtr> res;
-		std::map<unsigned,WindowManagerPtr>::iterator& it = get_window_list().begin();
-		while(it != get_window_list().end()) {
-			res.push_back(it->second);
-			++it;
+		auto it = get_window_list().begin();
+		for(auto w : get_window_list()) {
+			res.push_back(w.second);
 		}
 		return res;
 	}

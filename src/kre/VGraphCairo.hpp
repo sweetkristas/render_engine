@@ -25,7 +25,7 @@
 
 #include <cairo/cairo.h>
 
-#include "Geometry.hpp"
+#include "geometry.hpp"
 #include "SceneUtil.hpp"
 #include "VGraph.hpp"
 

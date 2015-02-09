@@ -854,7 +854,7 @@ namespace KRE
 			}
 		}
 		dst->writePixels(dst_pixels);
-		delete[] dst_pixels;
+		delete[] static_cast<uint8_t*>(dst_pixels);
 		return SurfacePtr(dst);
 	}
 
