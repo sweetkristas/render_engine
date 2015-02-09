@@ -222,7 +222,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\src\kre;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
