@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "geometry.hpp"
+#include "Geometry.hpp"
 #include "Material.hpp"
 #include "SceneObject.hpp"
 

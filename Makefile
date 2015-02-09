@@ -57,7 +57,7 @@ BASE_CXXFLAGS += -std=c++0x -g -rdynamic -fno-inline-functions \
 	-Wno-narrowing -Wno-literal-suffix
 
 # Compiler include options, used after CXXFLAGS and CPPFLAGS.
-INC := -Isrc -Iinclude $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib)
+INC := -Isrc -I src/kre -Iinclude $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib freetyp2) -Iexternal/include
 
 ifdef STEAM_RUNTIME_ROOT
 	INC += -I$(STEAM_RUNTIME_ROOT)/include
@@ -79,7 +79,8 @@ BASE_CXXFLAGS += -DUSE_SVG
 INC += $(shell pkg-config --cflags cairo)
 LIBS += $(shell pkg-config --libs cairo freetype2)
 
-include Makefile.common
+SRCS := $(wildcard src/*.cpp)
+OBJS := $(SRCS:.cpp=.o)
 
 src/%.o : src/%.cpp
 	@echo "Building:" $<
@@ -91,15 +92,15 @@ src/%.o : src/%.cpp
 		sed -e 's/^ *//' -e 's/$$/:/' >> src/$*.d
 	@rm -f $*.d.tmp
 
-render_engine: $(objects) $(ogl_objects) $(sdl_objects) $(ogl_fixed_objects)
+render_engine: $(OBJS)
 	@echo "Linking : render_engine"
 	@$(CCACHE) $(CXX) \
 		$(BASE_CXXFLAGS) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) \
-		$(objects) $(ogl_objects) $(sdl_objects) $(ogl_fixed_objects) -o render_engine \
+		$(OBJS) -o render_engine \
 		$(LIBS) -lboost_regex -lboost_system -lboost_filesystem -lpthread -fthreadsafe-statics
 
 # pull in dependency info for *existing* .o files
--include $(objects:.o=.d)
+-include $(OBJS:.o=.d)
 
 clean:
 	rm -f src/*.o src/*.d *.o *.d render_engine

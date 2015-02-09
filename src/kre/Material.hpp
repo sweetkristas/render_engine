@@ -24,7 +24,7 @@
 #pragma once
 
 #include "Blend.hpp"
-#include "geometry.hpp"
+#include "Geometry.hpp"
 #include "Texture.hpp"
 #include "variant.hpp"
 

@@ -28,7 +28,7 @@
 #include <memory>
 #include <tuple>
 
-#include "geometry.hpp"
+#include "Geometry.hpp"
 #include "PixelFormat.hpp"
 #include "WindowManagerFwd.hpp"
 

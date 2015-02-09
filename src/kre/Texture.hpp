@@ -27,7 +27,7 @@
 #include <string>
 #include "Blend.hpp"
 #include "Color.hpp"
-#include "geometry.hpp"
+#include "Geometry.hpp"
 #include "Surface.hpp"
 #include "variant.hpp"
 

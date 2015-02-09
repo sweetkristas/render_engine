@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "geometry.hpp"
+#include "Geometry.hpp"
 #include "variant.hpp"
 
 extern point variant_to_point(const variant& n);
