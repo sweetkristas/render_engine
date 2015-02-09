@@ -119,9 +119,8 @@ namespace
 	typedef std::shared_ptr<SquareRenderable> SquareRenderablePtr;
 }
 
-class SimpleTextureHolder : public KRE::Blittable
+struct SimpleTextureHolder : public KRE::Blittable
 {
-public:
 	SimpleTextureHolder(const std::string& filename) {
 		using namespace KRE;
 		setColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -130,7 +129,6 @@ public:
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
 	}
-private:
 };
 
 int main(int argc, char *argv[])
@@ -199,7 +197,7 @@ int main(int argc, char *argv[])
 	//psystem->AttachRenderTarget(rt);
 	//root->AttachObject(rt);
 
-	auto tex = std::shared_ptr<Blittable>(new SimpleTextureHolder("card-back.png"));
+	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
 	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
 	tex->setPosition(146.0f/2.0f, 600.0f-130.0f);
 	tex->setOrder(10);
@@ -254,15 +252,15 @@ int main(int argc, char *argv[])
 		canvas->drawHollowRect(rect(125, 125, 50, 50), Color("blue"));
 		canvas->drawLine(point(95,95), point(205,205), Color("yellow"));
 		std::vector<glm::vec2> varray;
-		varray.emplace_back(400, 400);
-		varray.emplace_back(500, 500);
-		//varray.emplace_back(400, 400);
-		//varray.emplace_back(500, 400);
 		//varray.emplace_back(400, 400);
 		//varray.emplace_back(500, 500);
-		//varray.emplace_back(400, 400);
-		//varray.emplace_back(400, 500);
-		canvas->drawLines(varray, 4.0f, Color("pink"));
+		varray.emplace_back(400, 400);
+		varray.emplace_back(500, 400);
+		varray.emplace_back(400, 400);
+		varray.emplace_back(500, 500);
+		varray.emplace_back(400, 400);
+		varray.emplace_back(400, 500);
+		canvas->drawLines(varray, 10.0f, Color("pink"));
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {

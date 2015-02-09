@@ -302,7 +302,6 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), stroke_color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
 		glVertexAttribPointer(shader->getVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, vtx_coords_line);
-		// XXX this may not be right.
 		glDrawArrays(GL_LINE_STRIP, 0, 5);
 		glDisableVertexAttribArray(shader->getVertexAttribute()->second.location);
 	}
@@ -335,19 +334,14 @@ namespace KRE
 
 	void CanvasOGL::drawLines(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
-		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = mvp_;
-
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("complex");
 		shader->makeActive();
-		//shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(getModelMatrix()));
-		shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(glm::mat4(1.0f)));
-		shader->setUniformValue(shader->getPUniform(), glm::value_ptr(mvp));
-		//shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
+		shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(getModelMatrix()));
+		shader->setUniformValue(shader->getPUniform(), glm::value_ptr(mvp_));
 
-		//if(shader->getNormalAttribute() == shader->attributesIteratorEnd() || shader->getVertexAttribute() == shader->attributesIteratorEnd()) {
-		//	return;
-		//}
+		if(shader->getNormalAttribute() == shader->attributesIteratorEnd() || shader->getVertexAttribute() == shader->attributesIteratorEnd()) {
+			return;
+		}
 
 		std::vector<glm::vec2> vertices;
 		vertices.reserve(varray.size() * 2);
@@ -357,28 +351,30 @@ namespace KRE
 		for(int n = 0; n != varray.size(); n += 2) {
 			const float dx = varray[n+1].x - varray[n+0].x;
 			const float dy = varray[n+1].y - varray[n+0].y;
-			const glm::vec2 d1 = glm::normalize(glm::vec2(dy, -dx)) * line_width;
-			const glm::vec2 d2 = glm::normalize(glm::vec2(-dy, dx)) * line_width;
+			const glm::vec2 d1 = glm::normalize(glm::vec2(dy, -dx));
+			const glm::vec2 d2 = glm::normalize(glm::vec2(-dy, dx));
 
-			vertices.emplace_back(varray[n+0]+d1);
-			vertices.emplace_back(varray[n+0]+d2);
-			vertices.emplace_back(varray[n+1]+d1);
-			vertices.emplace_back(varray[n+1]+d2);
+			vertices.emplace_back(varray[n+0]);
+			vertices.emplace_back(varray[n+0]);
+			vertices.emplace_back(varray[n+1]);
+			vertices.emplace_back(varray[n+1]);
 						
-			//normals.emplace_back(glm::normalize(glm::vec2(dy, dx)));
-			//normals.emplace_back(glm::normalize(glm::vec2(-dy, -dx)));
-			//normals.emplace_back(glm::normalize(glm::vec2(-dy, -dx)));
-			//normals.emplace_back(glm::normalize(glm::vec2(dy, dx)));
+			normals.emplace_back(d1);
+			normals.emplace_back(d2);
+			normals.emplace_back(d1);
+			normals.emplace_back(d2);
 		}
 
+		static auto blur_uniform = shader->getUniformIterator("u_blur");
+		shader->setUniformValue(blur_uniform, 2.0f);
 		shader->setUniformValue(shader->getLineWidthUniform(), line_width);
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
-		//glEnableVertexAttribArray(shader->getNormalAttribute()->second.location);
+		glEnableVertexAttribArray(shader->getNormalAttribute()->second.location);
 		glVertexAttribPointer(shader->getVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &vertices[0]);
-		//glVertexAttribPointer(shader->getNormalAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &normals[0]);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);//vertices.size()/2);
-		//glDisableVertexAttribArray(shader->getNormalAttribute()->second.location);
+		glVertexAttribPointer(shader->getNormalAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &normals[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
+		glDisableVertexAttribArray(shader->getNormalAttribute()->second.location);
 		glDisableVertexAttribArray(shader->getVertexAttribute()->second.location);
 	}
 

@@ -223,7 +223,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\src\kre;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -231,6 +231,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Projects\boost\stage32-release-static\lib;C:\Projects\render_engine\external\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
