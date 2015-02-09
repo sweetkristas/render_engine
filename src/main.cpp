@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
 	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
 	root->attachLight(0, sunlight);
-
+	
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
 	square->setScale(2.0f,2.0f);
@@ -250,6 +250,19 @@ int main(int argc, char *argv[])
 			//rect(800-56, 0, 56, 22), 
 			rect(0,0,112,44),
 			Color(1.0f,1.0f,1.0f,0.5f));
+		canvas->drawSolidRect(rect(100, 100, 100, 100), Color("red"));
+		canvas->drawHollowRect(rect(125, 125, 50, 50), Color("blue"));
+		canvas->drawLine(point(95,95), point(205,205), Color("yellow"));
+		std::vector<glm::vec2> varray;
+		varray.emplace_back(400, 400);
+		varray.emplace_back(500, 500);
+		//varray.emplace_back(400, 400);
+		//varray.emplace_back(500, 400);
+		//varray.emplace_back(400, 400);
+		//varray.emplace_back(500, 500);
+		//varray.emplace_back(400, 400);
+		//varray.emplace_back(400, 500);
+		canvas->drawLines(varray, 4.0f, Color("pink"));
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {
@@ -262,6 +275,7 @@ int main(int argc, char *argv[])
 		if(++cnt > 10) {
 			cnt = 0;
 			//LOG_DEBUG("FPS: " << (smoothed_time.size()/cumulative_time) << ", Time: " << t1*1000.0);
+			LOG_DEBUG("Draw Time: " << (t * 1000000.0) << " us.");
 		}
 		if(smoothed_time.size() > 50) {
 			cumulative_time -= smoothed_time.front();

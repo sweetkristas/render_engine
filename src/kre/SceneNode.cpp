@@ -32,6 +32,17 @@
 
 namespace KRE
 {
+	namespace
+	{
+		typedef std::map<std::string, ObjectTypeFunction> SceneObjectFactoryLookupTable;
+		SceneObjectFactoryLookupTable& get_object_factory()
+		{
+			static SceneObjectFactoryLookupTable res;
+			return res;
+		}
+
+	}
+
 	SceneNode::SceneNode(SceneGraph* sg)
 		: scene_graph_(sg),
 		position_(0.0f),
@@ -226,6 +237,14 @@ namespace KRE
 	{
 		// nothing need be done as default
 	}
+
+	void SceneNode::registerObjectType(const std::string& type, ObjectTypeFunction fn)
+	{
+		auto it = get_object_factory().find(type);
+		ASSERT_LOG(it != get_object_factory().end(), "Type(" << type << ") already registered");
+		get_object_factory()[type] = fn;
+	}
+
 
 	std::ostream& operator<<(std::ostream& os, const SceneNode& node)
 	{

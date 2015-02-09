@@ -76,12 +76,12 @@ namespace KRE
 		// Draw filled polygon (i.e. triangle fan) using given color	
 		// Should add a version taking fill and stroke color.
 		virtual void drawPolygon(const std::vector<glm::vec2>& points, const Color& color=Color::colorWhite()) const = 0;
-		virtual void drawSolidCircle(const point& centre, double radius, const Color& color=Color::colorWhite()) const = 0;
-		virtual void drawSolidCircle(const point& centre, double radius, const std::vector<uint8_t>& color) const = 0;
-		virtual void drawHollowCircle(const point& centre, double radius, const Color& color=Color::colorWhite()) const = 0;
-		virtual void drawSolidCircle(const pointf& centre, double radius, const Color& color=Color::colorWhite()) const = 0;
-		virtual void drawSolidCircle(const pointf& centre, double radius, const std::vector<uint8_t>& color) const = 0;
-		virtual void drawHollowCircle(const pointf& centre, double radius, const Color& color=Color::colorWhite()) const = 0;
+		virtual void drawSolidCircle(const point& centre, float radius, const Color& color=Color::colorWhite()) const = 0;
+		virtual void drawSolidCircle(const point& centre, float radius, const std::vector<uint8_t>& color) const = 0;
+		virtual void drawHollowCircle(const point& centre, float radius, const Color& color=Color::colorWhite()) const = 0;
+		virtual void drawSolidCircle(const pointf& centre, float radius, const Color& color=Color::colorWhite()) const = 0;
+		virtual void drawSolidCircle(const pointf& centre, float radius, const std::vector<uint8_t>& color) const = 0;
+		virtual void drawHollowCircle(const pointf& centre, float radius, const Color& color=Color::colorWhite()) const = 0;
 		virtual void drawPoints(const std::vector<glm::vec2>& points, float radius, const Color& color=Color::colorWhite()) const = 0;
 
 		void drawVectorContext(const Vector::ContextPtr& context);

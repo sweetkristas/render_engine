@@ -30,8 +30,6 @@
 
 namespace KRE
 {
-	typedef std::function<SceneObjectPtr(const std::string&)> ObjectTypeFunction;
-
 	class SceneGraph
 	{
 	public:
@@ -46,7 +44,6 @@ namespace KRE
 	
 		void process(double);
 
-		static void registerObjectType(const std::string& type, ObjectTypeFunction fn);
 		static void registerFactoryFunction(const std::string& type, std::function<SceneNodePtr(SceneGraph*,const variant&)>);
 	private:
 		std::string name_;
@@ -65,16 +62,6 @@ namespace KRE
 		{
 			// register the class factory function 
 			SceneGraph::registerFactoryFunction(type, [](SceneGraph* sg, const variant& node) -> SceneNodePtr { return std::make_shared<SceneNode>(sg, node); });
-		}
-	};
-
-	template<class T>
-	struct SceneObjectRegistrar
-	{
-		SceneObjectRegistrar(const std::string& type)
-		{
-			// register the class factory function 
-			SceneGraph::registerObjectType(type, [](const std::string& type) -> std::shared_ptr<T> { return std::make_shared<T>(type); });
 		}
 	};
 }
