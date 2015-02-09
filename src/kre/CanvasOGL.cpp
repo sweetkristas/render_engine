@@ -345,9 +345,9 @@ namespace KRE
 		shader->setUniformValue(shader->getPUniform(), glm::value_ptr(mvp));
 		//shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 
-		if(shader->getNormalAttribute() == shader->attributesIteratorEnd() || shader->getVertexAttribute() == shader->attributesIteratorEnd()) {
-			return;
-		}
+		//if(shader->getNormalAttribute() == shader->attributesIteratorEnd() || shader->getVertexAttribute() == shader->attributesIteratorEnd()) {
+		//	return;
+		//}
 
 		std::vector<glm::vec2> vertices;
 		vertices.reserve(varray.size() * 2);
@@ -355,36 +355,30 @@ namespace KRE
 		normals.reserve(varray.size() * 2);
 		
 		for(int n = 0; n != varray.size(); n += 2) {
-			float dx = varray[n+1].x - varray[n+0].x;
-			float dy = varray[n+1].y - varray[n+0].y;
+			const float dx = varray[n+1].x - varray[n+0].x;
+			const float dy = varray[n+1].y - varray[n+0].y;
+			const glm::vec2 d1 = glm::normalize(glm::vec2(dy, -dx)) * line_width;
+			const glm::vec2 d2 = glm::normalize(glm::vec2(-dy, dx)) * line_width;
 
-			vertices.emplace_back(varray[n+0]);
-			std::cerr << "V: " << vertices.back() << "\n";
-			vertices.emplace_back(varray[n+0]);
-			std::cerr << "V: " << vertices.back() << "\n";
-			vertices.emplace_back(varray[n+1]);
-			std::cerr << "V: " << vertices.back() << "\n";
-			vertices.emplace_back(varray[n+1]);
-			std::cerr << "V: " << vertices.back() << "\n";
+			vertices.emplace_back(varray[n+0]+d1);
+			vertices.emplace_back(varray[n+0]+d2);
+			vertices.emplace_back(varray[n+1]+d1);
+			vertices.emplace_back(varray[n+1]+d2);
 						
-			normals.emplace_back(glm::normalize(glm::vec2(-dy, dx)));
-			std::cerr << "N: " << normals.back() << "\n";
-			normals.emplace_back(glm::normalize(glm::vec2(dy, -dx)));
-			std::cerr << "N: " << normals.back() << "\n";
-			normals.emplace_back(glm::normalize(glm::vec2(-dy, dx)));
-			std::cerr << "N: " << normals.back() << "\n";
-			normals.emplace_back(glm::normalize(glm::vec2(dy, -dx)));
-			std::cerr << "N: " << normals.back() << "\n";
+			//normals.emplace_back(glm::normalize(glm::vec2(dy, dx)));
+			//normals.emplace_back(glm::normalize(glm::vec2(-dy, -dx)));
+			//normals.emplace_back(glm::normalize(glm::vec2(-dy, -dx)));
+			//normals.emplace_back(glm::normalize(glm::vec2(dy, dx)));
 		}
 
 		shader->setUniformValue(shader->getLineWidthUniform(), line_width);
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
-		glEnableVertexAttribArray(shader->getNormalAttribute()->second.location);
+		//glEnableVertexAttribArray(shader->getNormalAttribute()->second.location);
 		glVertexAttribPointer(shader->getVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &vertices[0]);
-		glVertexAttribPointer(shader->getNormalAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &normals[0]);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 1);//vertices.size()/2);
-		glDisableVertexAttribArray(shader->getNormalAttribute()->second.location);
+		//glVertexAttribPointer(shader->getNormalAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &normals[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);//vertices.size()/2);
+		//glDisableVertexAttribArray(shader->getNormalAttribute()->second.location);
 		glDisableVertexAttribArray(shader->getVertexAttribute()->second.location);
 	}
 
