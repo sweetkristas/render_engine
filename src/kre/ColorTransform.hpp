@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#if 0
 #pragma once
 
 #include <boost/intrusive_ptr.hpp>
@@ -83,3 +84,6 @@ namespace KRE
 
 	typedef boost::intrusive_ptr<ColorTransform> ColorTransformPtr;
 }
+
+#endif
+

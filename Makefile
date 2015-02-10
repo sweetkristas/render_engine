@@ -75,8 +75,8 @@ ifeq ($(USE_LIBVPX),yes)
 endif
 
 MODULES   := kre
-SRC_DIR   := $(addprefix src/,$(MODULES))
-BUILD_DIR := $(addprefix build/,$(MODULES))
+SRC_DIR   := $(addprefix src/,$(MODULES)) src
+BUILD_DIR := $(addprefix build/,$(MODULES)) build
 
 SRC       := $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp))
 OBJ       := $(patsubst src/%.cpp,build/%.o,$(SRC))
@@ -88,12 +88,12 @@ define cc-command
 $1/%.o: %.cpp
 	@echo "Building:" $$<
 	@$(CCACHE) $(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) $(INCLUDES) -c -o $$@ $$<
-	#@$(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) $(INCLUDES) -MM $$< > $$*.d
-	#@mv -f $*.d $*.d.tmp
-	#@sed -e 's|.*:|$*.o:|' < $*.d.tmp > $*.d
-	#@sed -e 's/.*://' -e 's/\\$$//' < $*.d.tmp | fmt -1 | \
-	#	sed -e 's/^ *//' -e 's/$$/:/' >> $*.d
-	#@rm -f $*.d.tmp
+	@$(CXX) $(BASE_CXXFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INC) $(INCLUDES) -MM $$< > $$@.d
+	@mv -f $$@.d $$@.d.tmp
+	@sed -e 's|.*:|$$@:|' < $$@.d.tmp > $$@.d
+	@sed -e 's/.*://' -e 's/\\$$$$//' < $$@.d.tmp | fmt -1 | \
+		sed -e 's/^ *//' -e 's/$$$$/:/' >> $$@.d
+	@rm -f $$@.d.tmp
 endef
 
 .PHONY: all checkdirs clean
@@ -113,10 +113,10 @@ $(BUILD_DIR):
 	@mkdir -p $@
 
 clean:
-	rm -f $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call cc-command,$(bdir))))
 
 # pull in dependency info for *existing* .o files
--include $(OBJ:.o=.d)
+-include $(OBJ:.o=.o.d)
 

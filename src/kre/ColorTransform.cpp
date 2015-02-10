@@ -21,6 +21,8 @@
 	   distribution.
 */
 
+#if 0
+
 #include "ColorTransform.hpp"
 #include "variant_utils.hpp"
 
@@ -263,3 +265,6 @@ namespace KRE
 			return variant(obj.add_rgba_[3]);
 	END_DEFINE_CALLABLE(ColorTransform)
 }
+
+#endif
+
