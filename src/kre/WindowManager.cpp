@@ -75,7 +75,7 @@ namespace KRE
 			SDL_SetHint(SDL_HINT_RENDER_DRIVER, renderer_hint_.c_str());
 		}
 		~SDLWindowManager() {
-			destroyWindow();
+			//destroyWindow();
 		}
 
 		void doCreateWindow(unsigned width, unsigned height) override {
