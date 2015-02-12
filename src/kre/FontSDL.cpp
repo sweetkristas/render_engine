@@ -25,7 +25,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "filesystem.hpp"
+#include "module.hpp"
 #include "DisplayDevice.hpp"
 #include "FontSDL.hpp"
 #include "SurfaceSDL.hpp"
@@ -47,7 +47,8 @@ namespace KRE
 		{
 			static sys::file_path_map res;
 			if(res.empty()) {
-				sys::get_unique_files("data/fonts/", res);
+				//sys::get_unique_files("data/fonts/", res);
+				module::get_unique_filenames_under_dir("data/fonts/", &res);
 			}
 			return res;
 		}

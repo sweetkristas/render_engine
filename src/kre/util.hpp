@@ -26,6 +26,9 @@
 #include <vector>
 #include <string>
 
+#define DISALLOW_ASSIGN(TypeName) \
+	void operator=(const TypeName&)
+
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)  \
     TypeName(const TypeName&);              \
     void operator=(const TypeName&)

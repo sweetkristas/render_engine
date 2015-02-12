@@ -54,7 +54,6 @@ namespace KRE
 			virtual void handleEmitProcess(float t);
 			virtual void internalApply(Particle& p, float t) = 0;
 		private:
-			DECLARE_CALLABLE(Affector);
 			bool enabled_;
 			float mass_;
 			glm::vec3 position_;

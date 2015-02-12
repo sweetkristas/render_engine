@@ -155,7 +155,8 @@ namespace geometry
 
 	template<typename T> inline 
 	Rect<T>::Rect(const Point<T>& xy, T w, T h)
-		: Rect(xy.x, xy.y, w, h)
+		: top_left_(std::min<T>(xy.x, xy.x + w), std::min<T>(xy.y, xy.y + h)),
+		  bottom_right_(std::max<T>(xy.x, xy.x + w), std::max<T>(xy.y, xy.y + h))
 	{
 	}
 
@@ -316,7 +317,7 @@ namespace geometry
 		return os;
 	}
 
-	/*template<typename T> inline
+	template<typename T> inline
 	variant Rect<T>::write() const
 	{
 		std::vector<variant> v;
@@ -336,7 +337,7 @@ namespace geometry
 		v.emplace_back(x);
 		v.emplace_back(y);
 		return variant(&v);
-	}*/
+	}
 
 	template<typename T> inline
 	bool pointInRect(const Point<T>& p, const Rect<T>& r)

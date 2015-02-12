@@ -654,10 +654,5 @@ namespace KRE
 			ASSERT_LOG(false, "PSYSTEM2: Unrecognised emitter type: " << ntype);
 			return NULL;
 		}
-
-		BEGIN_DEFINE_CALLABLE(Emitter, EmitObject)
-		DEFINE_FIELD(dummy, "null")
-			return variant();
-		END_DEFINE_CALLABLE(Emitter)
 	}
 }

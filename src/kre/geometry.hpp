@@ -32,7 +32,7 @@ namespace geometry
 		explicit Point(const std::string& s);
 		explicit Point(const variant& v);
 		explicit Point(const std::vector<T>& v);
-		//variant write() const;
+		variant write() const;
 		void clear() { x = T(0); y = T(0); }
 		void operator +=(const Point& p) {
 			x += p.x;
@@ -162,7 +162,7 @@ namespace geometry
 		const Point<T>& top_left() const { return top_left_; }
 		const Point<T>& bottom_right() const { return bottom_right_; }
 
-		//variant write() const;
+		variant write() const;
 
 		void operator+=(const Point<T>& p) {
 			top_left_.x += p.x;

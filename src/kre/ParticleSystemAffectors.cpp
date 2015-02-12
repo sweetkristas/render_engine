@@ -112,7 +112,6 @@ namespace KRE
 				return new VortexAffector(*this);
 			}
 		private:
-			DECLARE_CALLABLE(vortex_affector);
 			glm::quat rotation_axis_;
 			ParameterPtr rotation_speed_;
 			VortexAffector();
@@ -129,7 +128,6 @@ namespace KRE
 				return new GravityAffector(*this);
 			}
 		private:
-			DECLARE_CALLABLE(gravity_affector);
 			float gravity_;
 			GravityAffector();
 		};
@@ -787,23 +785,5 @@ namespace KRE
 				}
 			}
 		}
-
-		BEGIN_DEFINE_CALLABLE(Affector, EmitObject)
-		DEFINE_FIELD(position, "[decimal,decimal,decimal]")
-			return vec3_to_variant(obj.getPosition());
-		DEFINE_SET_FIELD
-			obj.setPosition(variant_to_vec3(value));
-		END_DEFINE_CALLABLE(affector)
-
-		BEGIN_DEFINE_CALLABLE(GravityAffector, Affector)
-		DEFINE_FIELD(dummy, "null")
-			return variant();
-		END_DEFINE_CALLABLE(GravityAffector)
-
-		BEGIN_DEFINE_CALLABLE(VortexAffector, Affector)
-		DEFINE_FIELD(dummy, "null")
-			return variant();
-		END_DEFINE_CALLABLE(VortexAffector)
-
 	}
 }
