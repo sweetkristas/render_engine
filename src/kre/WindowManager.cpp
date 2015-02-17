@@ -65,8 +65,8 @@ namespace KRE
 		SDLWindowManager(const std::string& title, const std::string& renderer_hint) 
 			: WindowManager(title), 
 			renderer_hint_(renderer_hint),
-			renderer_(NULL),
-			context_(NULL) {
+			renderer_(nullptr),
+			context_(nullptr) {
 			if(renderer_hint_.empty()) {
 				renderer_hint_ = "opengl";
 			}
@@ -78,7 +78,7 @@ namespace KRE
 			//destroyWindow();
 		}
 
-		void doCreateWindow(unsigned width, unsigned height) override {
+		void doCreateWindow(int width, int height) override {
 			logical_width_ = width_ = width;
 			logical_height_ = height_ = height;
 
@@ -107,7 +107,7 @@ namespace KRE
 					if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) != 0) {
 						LOG_WARN("MSAA(" << multiSamples() << ") requested but mutlisample buffer couldn't be allocated.");
 					} else {
-						unsigned msaa = next_pow2(multiSamples());
+						int msaa = next_pow2(multiSamples());
 						if(SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaa) != 0) {
 							LOG_INFO("Requested MSAA of " << msaa << " but couldn't allocate");
 						}
@@ -143,7 +143,7 @@ namespace KRE
 				display_.reset();
 				if(context_) {
 					SDL_GL_DeleteContext(context_);
-					context_ = NULL;
+					context_ = nullptr;
 				}
 				SDL_DestroyWindow(wnd);
 			});
@@ -154,13 +154,13 @@ namespace KRE
 					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
 				}
 				renderer_ = SDL_CreateRenderer(window_.get(), -1, rnd_flags);
-				ASSERT_LOG(renderer_ != NULL, "Failed to create renderer: " << SDL_GetError());				
+				ASSERT_LOG(renderer_ != nullptr, "Failed to create renderer: " << SDL_GetError());				
 			}
 
-			ASSERT_LOG(window_ != NULL, "Failed to create window: " << SDL_GetError());
+			ASSERT_LOG(window_ != nullptr, "Failed to create window: " << SDL_GetError());
 			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				context_ = SDL_GL_CreateContext(window_.get());	
-				ASSERT_LOG(context_ != NULL, "Failed to GL Context: " << SDL_GetError());
+				ASSERT_LOG(context_ != nullptr, "Failed to GL Context: " << SDL_GetError());
 			}
 
 			display_->setClearColor(clear_color_);
@@ -190,7 +190,7 @@ namespace KRE
 			}
 		}
 
-		void setViewPort(int x, int y, unsigned width, unsigned height) override {
+		void setViewPort(int x, int y, int width, int height) override {
 			display_->setViewPort(x, y, width, height);
 		}
 
@@ -203,25 +203,25 @@ namespace KRE
 			SDL_SetWindowIcon(window_.get(), icon.get());
 		}
 		
-		bool setWindowSize(unsigned width, unsigned height) override {
+		bool setWindowSize(int width, int height) override {
 			SDL_SetWindowSize(window_.get(), width, height);
 			width_ = width;
 			height_ = height;
 			return false;
 		}
 
-		bool autoWindowSize(unsigned& width, unsigned& height) override {
+		bool autoWindowSize(int& width, int& height) override {
 			// XXX
 			return false;
 		}
 
 		void setWindowTitle(const std::string& title) override {
-			ASSERT_LOG(window_ != NULL, "Window is null");
+			ASSERT_LOG(window_ != nullptr, "Window is null");
 			SDL_SetWindowTitle(window_.get(), title.c_str());		
 		}
 
 		virtual void render(const Renderable* r) const override {
-			ASSERT_LOG(display_ != NULL, "No display to render to.");
+			ASSERT_LOG(display_ != nullptr, "No display to render to.");
 			display_->render(r);
 		}
 
@@ -246,8 +246,8 @@ namespace KRE
 		}
 	protected:
 	private:
-		void handleSetClearColor() override {
-			if(display_ != NULL) {
+		void handleSetClearColor() const override {
+			if(display_ != nullptr) {
 				display_->setClearColor(clear_color_);
 			}
 		}
@@ -293,7 +293,7 @@ namespace KRE
 		use_16bpp_ = bpp;
 	}
 
-	void WindowManager::enableMultisampling(bool multi_sampling, unsigned samples) {
+	void WindowManager::enableMultisampling(bool multi_sampling, int samples) {
 		use_multi_sampling_ = multi_sampling;
 		samples_ = samples;
 	}
@@ -326,22 +326,28 @@ namespace KRE
 		}
 	}
 
-	bool WindowManager::setLogicalWindowSize(unsigned width, unsigned height)
+	bool WindowManager::setLogicalWindowSize(int width, int height)
 	{
 		logical_width_ = width;
 		logical_height_ = height;
 		return handleLogicalWindowSizeChange();
 	}
 
-	void WindowManager::setClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	void WindowManager::setClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) const
 	{
 		clear_color_ = Color(r,g,b,a);
 		handleSetClearColor();
 	}
 
-	void WindowManager::setClearColor(float r, float g, float b, float a)
+	void WindowManager::setClearColor(float r, float g, float b, float a) const
 	{
 		clear_color_ = Color(r,g,b,a);
+		handleSetClearColor();
+	}
+
+	void WindowManager::setClearColor(const Color& color) const
+	{
+		clear_color_ = color;
 		handleSetClearColor();
 	}
 
@@ -356,7 +362,7 @@ namespace KRE
 		WindowManagerPtr main_window = nullptr;
 	}
 
-	void WindowManager::createWindow(unsigned width, unsigned height)
+	void WindowManager::createWindow(int width, int height)
 	{
 		doCreateWindow(width, height);
 	}
@@ -375,7 +381,7 @@ namespace KRE
 		doDestroyWindow();
 	}
 
-	void WindowManager::notifyNewWindowSize(unsigned new_width, unsigned new_height)
+	void WindowManager::notifyNewWindowSize(int new_width, int new_height)
 	{
 		width_ = new_width;
 		height_ = new_height;
@@ -425,7 +431,7 @@ namespace KRE
 		return main_window;
 	}
 
-	WindowManagerPtr getWindowFromID(unsigned id)
+	WindowManagerPtr WindowManager::getWindowFromID(unsigned id)
 	{
 		auto it = get_window_list().find(id);
 		ASSERT_LOG(it != get_window_list().end(), "Couldn't get window from id: " << id);

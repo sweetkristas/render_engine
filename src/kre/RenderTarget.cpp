@@ -83,22 +83,22 @@ namespace KRE
 	{
 	}
 
-	void RenderTarget::create()
+	void RenderTarget::on_create()
 	{
 		handleCreate();
 	}
 	
-	void RenderTarget::apply()
+	void RenderTarget::apply() const
 	{
 		handleApply();
 	}
 
-	void RenderTarget::unapply()
+	void RenderTarget::unapply() const
 	{
 		handleUnapply();
 	}
 
-	void RenderTarget::clear()
+	void RenderTarget::clear() const
 	{
 		handleClear();
 	}
@@ -144,8 +144,19 @@ namespace KRE
 		return res.build();
 	}
 
-	RenderTargetPtr RenderTarget::factory(const variant& node)
+	RenderTargetPtr RenderTarget::create(const variant& node)
 	{
 		return DisplayDevice::renderTargetInstance(node);
 	}
+
+	RenderTargetPtr RenderTarget::create(int width, int height, 
+		unsigned color_plane_count, 
+		bool depth, 
+		bool stencil, 
+		bool use_multi_sampling, 
+		unsigned multi_samples)
+	{
+		return DisplayDevice::renderTargetInstance(width, height, color_plane_count, depth, stencil, use_multi_sampling, multi_samples);
+	}
+
 }

@@ -75,9 +75,6 @@
     <ClCompile Include="..\src\kre\LightObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\kre\PaletteMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,22 +135,16 @@
     <ClCompile Include="..\src\kre\ClipScopeOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\DisplayDeviceOpenGL.cpp">
+    <ClCompile Include="..\src\kre\DisplayDeviceOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\EffectsOpenGL.cpp">
+    <ClCompile Include="..\src\kre\EffectsOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\FboOpenGL.cpp">
+    <ClCompile Include="..\src\kre\FboOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\MaterialOpenGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\PaletteMapOpenGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\ShadersOpenGL.cpp">
+    <ClCompile Include="..\src\kre\ShadersOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kre\ScissorOGL.cpp">
@@ -165,14 +156,8 @@
     <ClCompile Include="..\src\kre\UniformBufferOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\VGraphOpenGL.cpp">
+    <ClCompile Include="..\src\kre\VGraphOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\DisplayDeviceOpenGLFixed.cpp">
-      <Filter>Source Files\OpenGLFixed</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\VGraphOpenGLFixed.cpp">
-      <Filter>Source Files\OpenGLFixed</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kre\DisplayDeviceSDL.cpp">
       <Filter>Source Files\SDL</Filter>
@@ -201,7 +186,7 @@
     <ClCompile Include="..\src\kre\ParticleSystemParameters.cpp">
       <Filter>Source Files\Particle Systems</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\TextureOpenGL.cpp">
+    <ClCompile Include="..\src\kre\TextureOGL.cpp">
       <Filter>Source Files\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp">
@@ -229,6 +214,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kre\filesystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\VGraphOGLFixed.cpp">
+      <Filter>Source Files\OpenGLFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\DisplayDeviceOGLFixed.cpp">
+      <Filter>Source Files\OpenGLFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\BlendModeScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ColorScope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -282,9 +279,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\LightObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\Material.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\PaletteMap.hpp">
@@ -359,7 +353,7 @@
     <ClInclude Include="..\src\kre\VGraph.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\AttributeSetOpenGL.hpp">
+    <ClInclude Include="..\src\kre\AttributeSetOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\BlendOGL.hpp">
@@ -371,13 +365,13 @@
     <ClInclude Include="..\src\kre\ClipScopeOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\DisplayDeviceOpenGL.hpp">
+    <ClInclude Include="..\src\kre\DisplayDeviceOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\EffectsOpenGL.hpp">
+    <ClInclude Include="..\src\kre\EffectsOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\FboOpenGL.hpp">
+    <ClInclude Include="..\src\kre\FboOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\FontSDL.hpp">
@@ -386,35 +380,23 @@
     <ClInclude Include="..\src\kre\DisplayDeviceSDL.hpp">
       <Filter>Header Files\SDL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\DisplayDeviceOpenGLFixed.hpp">
-      <Filter>Header Files\OpenGLFixed</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\MaterialOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\PaletteMapOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\kre\ScissorOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\ShadersOpenGL.hpp">
+    <ClInclude Include="..\src\kre\ShadersOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\StencilScopeOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\TextureOpenGL.hpp">
+    <ClInclude Include="..\src\kre\TextureOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\UniformBufferOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\VGraphOpenGL.hpp">
+    <ClInclude Include="..\src\kre\VGraphOGL.hpp">
       <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\VGraphOpenGLFixed.hpp">
-      <Filter>Header Files\OpenGLFixed</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\ParticleSystem.hpp">
       <Filter>Header Files\Particle Systems</Filter>
@@ -480,6 +462,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\asserts.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDeviceOGLFixed.hpp">
+      <Filter>Header Files\OpenGLFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\VGraphOGLFixed.hpp">
+      <Filter>Header Files\OpenGLFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\BlendModeScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ColorScope.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

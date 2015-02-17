@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2013-2014 by Kristina Simpson <sweet.kristas@gmail.com>
+	Copyright (C) 2012-2014 by Kristina Simpson <sweet.kristas@gmail.com>
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -21,12 +21,34 @@
 	   distribution.
 */
 
-#include "DisplayDeviceOpenGLFixed.hpp"
+#include <GL/glew.h>
+#include "EffectsOGL.hpp"
 
 namespace KRE
 {
-	namespace
+	namespace OpenGL
 	{
-		//DisplayDeviceRegistrar<DisplayDeviceOpenGLFixed> ogl_register("opengl-fixed");
+		StippleEffect::StippleEffect(const variant& node)
+			: pattern_(0),
+			factor_(1)
+		{
+			ASSERT_LOG(node.has_key("pattern"), "StippleEffect requires 'pattern' attribute: " << node.to_debug_string());
+			pattern_ = static_cast<unsigned>(node["pattern"].as_int());
+			factor_ = node["factor"].as_int32(1);
+		}
+
+		void StippleEffect::apply()
+		{
+			// These are deprecated in OpenGL 3.1. We really should replace them with a shader solution.
+			// technically should apply these in a stack.
+			glEnable(GL_LINE_STIPPLE);
+			glLineStipple(factor_, pattern_);
+		}
+
+		void StippleEffect::clear()
+		{
+			glDisable(GL_LINE_STIPPLE);
+			glLineStipple(1,0);
+		}
 	}
 }

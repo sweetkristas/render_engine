@@ -41,6 +41,9 @@ namespace KRE
 	class Effect;
 	typedef std::shared_ptr<Effect> EffectPtr;
 
+	class BlendModeScope;
+	typedef std::unique_ptr<BlendModeScope> BlendModeScopePtr;
+
 	class BlendEquationImplBase;
 	typedef std::shared_ptr<BlendEquationImplBase> BlendEquationImplBasePtr;
 }

@@ -25,7 +25,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "asserts.hpp"
-#include "ShadersOpenGL.hpp"
+#include "ShadersOGL.hpp"
 
 namespace KRE
 {
@@ -301,14 +301,14 @@ namespace KRE
 				shader_ = 0;
 			}
 
-			ASSERT_LOG(glCreateShader != NULL, "Something bad happened with Glew shader not initialised.");
+			ASSERT_LOG(glCreateShader != nullptr, "Something bad happened with Glew shader not initialised.");
 			shader_ = glCreateShader(type_);
 			if(shader_ == 0) {
 				std::cerr << "Enable to create shader." << std::endl;
 				return false;
 			}
 			const char* shader_code = code.c_str();
-			glShaderSource(shader_, 1, &shader_code, NULL);
+			glShaderSource(shader_, 1, &shader_code, nullptr);
 			glCompileShader(shader_);
 			glGetShaderiv(shader_, GL_COMPILE_STATUS, &compiled);
 			if(!compiled) {
@@ -317,7 +317,7 @@ namespace KRE
 				if(info_len > 1) {
 					std::vector<char> info_log;
 					info_log.resize(info_len);
-					glGetShaderInfoLog(shader_, info_log.capacity(), NULL, &info_log[0]);
+					glGetShaderInfoLog(shader_, info_log.capacity(), nullptr, &info_log[0]);
 					std::string s(info_log.begin(), info_log.end());
 					std::cerr << "Error compiling shader: " << s << std::endl;
 				}
@@ -447,7 +447,7 @@ namespace KRE
 				if(info_len > 1) {
 					std::vector<char> info_log;
 					info_log.resize(info_len);
-					glGetProgramInfoLog(object_, info_log.capacity(), NULL, &info_log[0]);
+					glGetProgramInfoLog(object_, info_log.capacity(), nullptr, &info_log[0]);
 					std::string s(info_log.begin(), info_log.end());
 					std::cerr << "Error linking object: " << s << std::endl;
 				}
@@ -511,7 +511,7 @@ namespace KRE
 				return;
 			}
 			const Actives& u = it->second;
-			ASSERT_LOG(value != NULL, "setUniformValue(): value is NULL");
+			ASSERT_LOG(value != nullptr, "setUniformValue(): value is nullptr");
 			switch(u.type) {
 			case GL_INT:
 			case GL_BOOL:
@@ -608,7 +608,7 @@ namespace KRE
 				return;
 			}
 			const Actives& u = it->second;
-			ASSERT_LOG(value != NULL, "set_uniform(): value is NULL");
+			ASSERT_LOG(value != nullptr, "set_uniform(): value is nullptr");
 			switch(u.type) {
 			case GL_INT:
 			case GL_BOOL:
@@ -640,7 +640,7 @@ namespace KRE
 				return;
 			}
 			const Actives& u = it->second;
-			ASSERT_LOG(value != NULL, "setUniformValue(): value is NULL");
+			ASSERT_LOG(value != nullptr, "setUniformValue(): value is nullptr");
 			switch(u.type) {
 			case GL_FLOAT: {
 				glUniform1f(u.location, *value);
@@ -780,14 +780,14 @@ namespace KRE
 		void ShaderProgram::setUniform(ActivesHandleBasePtr active, const void* value) 
 		{
 			auto ptr = std::dynamic_pointer_cast<ActivesHandle>(active);
-			ASSERT_LOG(ptr != NULL, "Unable to convert active to correct type.");
+			ASSERT_LOG(ptr != nullptr, "Unable to convert active to correct type.");
 			setUniformValue(ptr->getIterator(), value);
 		}
 
 		/*void ShaderProgram::setAttribute(ActivesHandleBasePtr active, const void* value) 
 		{
 			auto ptr = std::dynamic_pointer_cast<ActivesHandle>(active);
-			ASSERT_LOG(ptr != NULL, "Unable to convert active to correct type.");
+			ASSERT_LOG(ptr != nullptr, "Unable to convert active to correct type.");
 			setAttributeValue(ptr->getIterator(), value);
 		}*/
 
@@ -803,12 +803,60 @@ namespace KRE
 			return it->second;
 		}
 
+		ShaderProgramPtr ShaderProgram::factory(const variant& node)
+		{
+			return getProgramFromVariant(node);
+		}
+
 		ShaderProgramPtr ShaderProgram::defaultSystemShader()
 		{
 			auto& sf = get_shader_factory();
 			auto it = sf.find("default");
 			ASSERT_LOG(it != sf.end(), "No 'default' shader found in the list of shaders.");
 			return it->second;
+		}
+
+		ShaderProgramPtr ShaderProgram::getProgramFromVariant(const variant& node)
+		{
+			auto& sf = get_shader_factory();
+
+			ASSERT_LOG(node.is_map(), "instance must be a map.");
+			ASSERT_LOG(node.has_key("fragment") && node.has_key("vertex") && node.has_key("name"), 
+				"instances must have 'fragment', 'vertex' and 'name' attributes.");
+		
+			const std::string& name = node["name"].as_string();
+			const std::string& vert_data = node["vertex"].as_string();
+			const std::string& frag_data = node["fragment"].as_string();
+
+			auto it = sf.find(name);
+			if(it != sf.end()) {
+				return it->second;
+			}
+
+			auto spp = new ShaderProgram(name, 
+				ShaderDef(name + "_vs", vert_data),
+				ShaderDef(name + "_fs", frag_data),
+				node);
+			it = sf.find(name);
+			if(it != sf.end()) {
+				LOG_WARN("Overwriting shader with name: " << name);
+			}
+			sf[name] = ShaderProgramPtr(spp);
+			if(node.has_key("uniforms")) {
+				ASSERT_LOG(node["uniforms"].is_map(), "'uniforms' attribute in shader(" << name << ") must be a map.");
+				for(auto uni : node["uniforms"].as_map()) {
+					spp->setAlternateUniformName(uni.first.as_string(), uni.second.as_string());
+				}
+			}
+			if(node.has_key("attributes")) {
+				ASSERT_LOG(node["attributes"].is_map(), "'attributes' attribute in shader(" << name << ") must be a map.");
+				for(auto attr : node["attributes"].as_map()) {
+					spp->setAlternateAttributeName(attr.first.as_string(), attr.second.as_string());
+				}
+			}
+			spp->setActives();
+
+			return ShaderProgramPtr(spp);
 		}
 
 		void ShaderProgram::loadFromFile(const variant& node)
@@ -819,36 +867,7 @@ namespace KRE
 			ASSERT_LOG(node["instances"].is_list(), "'instances' attribute should be a list.");
 
 			for(auto instance : node["instances"].as_list()) {
-				ASSERT_LOG(instance.is_map(), "Each item in the 'instances' list must be a map.");
-				ASSERT_LOG(instance.has_key("fragment") && instance.has_key("vertex") && instance.has_key("name"), 
-					"instances must have 'fragment', 'vertex' and 'name' attributes.");
-
-				const std::string& name = instance["name"].as_string();
-				const std::string& vert_data = instance["vertex"].as_string();
-				const std::string& frag_data = instance["fragment"].as_string();
-
-				auto spp = new ShaderProgram(name, 
-					ShaderDef(name + "_vs", vert_data),
-					ShaderDef(name + "_fs", frag_data),
-					instance);
-				auto it = sf.find(name);
-				if(it != sf.end()) {
-					LOG_WARN("Overwriting shader with name: " << name);
-				}
-				sf[name] = ShaderProgramPtr(spp);
-				if(instance.has_key("uniforms")) {
-					ASSERT_LOG(instance["uniforms"].is_map(), "'uniforms' attribute in shader(" << name << ") must be a map.");
-					for(auto uni : instance["uniforms"].as_map()) {
-						spp->setAlternateUniformName(uni.first.as_string(), uni.second.as_string());
-					}
-				}
-				if(instance.has_key("attributes")) {
-					ASSERT_LOG(instance["attributes"].is_map(), "'attributes' attribute in shader(" << name << ") must be a map.");
-					for(auto attr : instance["attributes"].as_map()) {
-						spp->setAlternateAttributeName(attr.first.as_string(), attr.second.as_string());
-					}
-				}
-				spp->setActives();
+				getProgramFromVariant(instance);
 			}
 		}
 	}

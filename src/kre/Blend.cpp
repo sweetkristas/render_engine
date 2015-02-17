@@ -143,7 +143,7 @@ namespace KRE
 			ASSERT_LOG(false, "BlendMode: Setting blend requires either a string or a list of greater than two elements." << node.to_debug_string());
 		}
 	}
-
+	
 	variant BlendMode::write() const
 	{
 		if(src_ == BlendModeConstants::BM_ONE && dst_ == BlendModeConstants::BM_ONE) {

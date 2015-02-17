@@ -23,19 +23,10 @@
 
 #pragma once
 
-#include "Blend.hpp"
+#include "ScopeableValue.hpp"
 
 namespace KRE
 {
-	class BlendModeManagerOGL
-	{
-	public:
-		BlendModeManagerOGL(const BlendMode& bm);
-		~BlendModeManagerOGL();
-	private:
-		const BlendMode& blend_mode_;
-	};
-
 	class BlendEquationImplOGL : public BlendEquationImplBase
 	{
 	public:
@@ -46,4 +37,23 @@ namespace KRE
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlendEquationImplOGL);
 	};
+
+	struct BlendEquationScopeOGL
+	{
+		BlendEquationScopeOGL(const ScopeableValue& eqn);
+		~BlendEquationScopeOGL();
+	private:
+		bool stored_;
+	};
+
+	struct BlendModeScopeOGL
+	{
+		BlendModeScopeOGL(const ScopeableValue& bm);
+		~BlendModeScopeOGL();
+	private:
+		bool stored_;
+	};
+
+	void set_blend_mode(const BlendMode& bm);
+	void set_blend_equation(const BlendEquation& eqn);
 }

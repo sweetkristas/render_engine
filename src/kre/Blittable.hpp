@@ -24,7 +24,7 @@
 #pragma once
 
 #include "geometry.hpp"
-#include "Material.hpp"
+#include "Texture.hpp"
 #include "SceneObject.hpp"
 
 namespace KRE
@@ -45,13 +45,12 @@ namespace KRE
 		};
 		Blittable();
 		explicit Blittable(const TexturePtr& tex);
-		explicit Blittable(const MaterialPtr& mat);
 		virtual ~Blittable();
-		void setTexture(const TexturePtr& tex);
 
 		template<typename T>
 		void setDrawRect(const geometry::Rect<T>& r) {
 			draw_rect_ = r.template as_type<float>();
+			changed_ = true;
 		}
 
 		void preRender(const WindowManagerPtr& wm) override;
@@ -63,12 +62,18 @@ namespace KRE
 		void setCentreCoords(const geometry::Point<T>& p) {
 			centre_offset_ = p;
 			centre_ = Centre::MANUAL;
+			changed_ = true;
 		}
+		void update(std::vector<vertex_texcoord>* queue);
+		void setDrawMode(DrawMode mode);
 	private:
 		void init();
+		virtual void onTextureChanged() { changed_ = true; }
+
 		std::shared_ptr<Attribute<vertex_texcoord>> attribs_;
 		rectf draw_rect_;
 		pointf centre_offset_;
 		Centre centre_;
+		bool changed_;
 	};
 }

@@ -50,6 +50,8 @@ namespace KRE
 		BE_ADD,
 		BE_SUBTRACT,
 		BE_REVERSE_SUBTRACT,
+		BE_MIN,
+		BE_MAX,
 	};
 
 	class BlendEquation
@@ -77,6 +79,13 @@ namespace KRE
 		BlendEquationConstants rgb_;
 		BlendEquationConstants alpha_;
 	};
+
+	inline bool operator==(const BlendEquation& lhs, const BlendEquation& rhs) {
+		return lhs.getRgbEquation() == rhs.getRgbEquation() && lhs.getAlphaEquation()== rhs.getAlphaEquation();
+	}
+	inline bool operator!=(const BlendEquation& lhs, const BlendEquation& rhs) {
+		return !operator==(lhs, rhs);
+	}
 
 	class BlendEquationImplBase
 	{
@@ -121,5 +130,11 @@ namespace KRE
 		BlendModeConstants src_;
 		BlendModeConstants dst_;
 	};
-	
+
+	inline bool operator==(const BlendMode& lhs, const BlendMode& rhs) {
+		return lhs.src() == rhs.src() && lhs.dst()== rhs.dst();
+	}
+	inline bool operator!=(const BlendMode& lhs, const BlendMode& rhs) {
+		return !operator==(lhs, rhs);
+	}
 }

@@ -21,34 +21,40 @@
 	   distribution.
 */
 
-#pragma once
-
-#include "Renderable.hpp"
-#include "SceneFwd.hpp"
-#include "util.hpp"
+#include "ColorScope.hpp"
 
 namespace KRE
 {
-	class SceneObject : public Renderable
+	namespace 
 	{
-	public:
-		explicit SceneObject(const std::string& name);
-		explicit SceneObject(const variant& node);
-		SceneObject(const SceneObject& op);
-		virtual ~SceneObject();
-		size_t getQueue() const { return queue_; }
-		void setQueue(size_t q) { queue_ = q; }
-		const std::string& objectName() const { return name_; }
-		void setObjectName(const std::string name) { name_ = name; }
-		const std::string& getShaderName() const { return shader_name_; }
-		void setShaderName(const std::string& shader);
-		DisplayDeviceDef attach(const DisplayDevicePtr& dd);
-	private:
-		virtual void doAttach(const DisplayDevicePtr& dd, DisplayDeviceDef* def) {}
-		size_t queue_;
-		std::string name_;
-		std::string shader_name_;
+		ColorScope::color_stack_type& get_color_stack()
+		{
+			static ColorScope::color_stack_type res;
+			return res;
+		}
 
-		SceneObject();
-	};
+		const Color& get_default_color()
+		{
+			static Color res = Color::colorWhite();
+			return res;
+		}
+	}
+
+	ColorScope::ColorScope(const Color& color)
+	{
+		it_ = get_color_stack().emplace(get_color_stack().end(), color);
+	}
+
+	ColorScope::~ColorScope()
+	{
+		get_color_stack().erase(it_);
+	}
+
+	const Color& ColorScope::getCurrentColor()
+	{
+		if(get_color_stack().empty()) {
+			return get_default_color();
+		}
+		return get_color_stack().back();
+	}
 }

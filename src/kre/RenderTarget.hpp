@@ -32,21 +32,27 @@ namespace KRE
 	class RenderTarget : public Blittable
 	{
 	public:
-		explicit RenderTarget(int width, int height, 
-			unsigned color_plane_count=1, 
-			bool depth=false, 
-			bool stencil=false, 
-			bool use_multi_sampling=false, 
-			unsigned multi_samples=0);
-		explicit RenderTarget(const variant& node);
 		virtual ~RenderTarget();
 
 		variant write();
 
-		void create();
-		void apply();
-		void unapply();
-		void clear();
+		void on_create();
+		void apply() const;
+		void unapply() const;
+		void clear() const;
+
+		void renderToThis() const { apply(); }
+		void renderToPrevious() const { unapply(); }
+
+		struct RenderScope {
+			RenderScope(RenderTargetPtr rt) : rt_(rt) {
+				rt_->apply();
+			}
+			~RenderScope() {
+				rt_->unapply();
+			}
+			RenderTargetPtr rt_;
+		};
 
 		int width() const { return width_; }
 		int height() const { return height_; }
@@ -63,12 +69,26 @@ namespace KRE
 
 		RenderTargetPtr clone();
 
-		static RenderTargetPtr factory(const variant& node);
+		static RenderTargetPtr create(int width, int height, 
+			unsigned color_plane_count=1, 
+			bool depth=false, 
+			bool stencil=false, 
+			bool use_multi_sampling=false, 
+			unsigned multi_samples=0);
+		static RenderTargetPtr create(const variant& node);
+	protected:
+		explicit RenderTarget(int width, int height, 
+			unsigned color_plane_count, 
+			bool depth, 
+			bool stencil, 
+			bool use_multi_sampling, 
+			unsigned multi_samples);
+		explicit RenderTarget(const variant& node);
 	private:
 		virtual void handleCreate() = 0;
-		virtual void handleApply() = 0;
-		virtual void handleUnapply() = 0;
-		virtual void handleClear() = 0;
+		virtual void handleApply() const = 0;
+		virtual void handleUnapply() const = 0;
+		virtual void handleClear() const = 0;
 		virtual RenderTargetPtr handleClone() = 0;
 
 		int width_;

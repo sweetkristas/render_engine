@@ -45,6 +45,11 @@ namespace KRE
 		return DisplayDevice::getCurrent()->getShaderProgram(name);
 	}
 
+	ShaderProgramPtr ShaderProgram::getProgram(const variant& node)
+	{
+		return DisplayDevice::getCurrent()->getShaderProgram(node);
+	}
+
 	void ShaderProgram::loadFromFile(const variant& node)
 	{
 		DisplayDevice::getCurrent()->loadShadersFromFile(node);

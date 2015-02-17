@@ -23,22 +23,30 @@
 
 #pragma once
 
-#include "BlendOGL.hpp"
-#include "Material.hpp"
-#include "WindowManagerFwd.hpp"
+#include <list>
+
+#include "Blend.hpp"
+#include "Util.hpp"
 
 namespace KRE
 {
-	class OpenGLMaterial : public Material
+	class BlendModeScope
 	{
 	public:
-		OpenGLMaterial(const variant& node);
-		OpenGLMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false);
-		virtual ~OpenGLMaterial();
+		// We use a list type for the stack type of scopes since iterators
+		// aren't invalidated by removing/adding elements (unless you remove the item
+		// the iterator points to -- but this is the expected case).
+		// Access to the back element and adding new elements is constant.
+		// Only erasing is linear in complexity.
+		typedef std::list<BlendMode> color_stack_type;
+		typedef std::list<BlendMode>::iterator iterator;
+
+		explicit BlendModeScope(const BlendMode& bm);
+		explicit BlendModeScope(const BlendModeConstants& src, const BlendModeConstants& dst);
+		~BlendModeScope();
+		static const BlendMode& getCurrentMode();
 	private:
-		void handleApply() override;
-		void handleUnapply() override;
-		TexturePtr createTexture(const variant& node) override;
-		std::unique_ptr<BlendModeManagerOGL> blend_mode_manager_;
+		DISALLOW_COPY_ASSIGN_AND_DEFAULT(BlendModeScope);
+		iterator it_;
 	};
 }

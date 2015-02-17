@@ -28,20 +28,19 @@
 #include <GL/glew.h>
 
 #include "asserts.hpp"
-#include "AttributeSetOpenGL.hpp"
+#include "AttributeSetOGL.hpp"
 #include "BlendOGL.hpp"
 #include "CameraObject.hpp"
 #include "CanvasOGL.hpp"
 #include "ClipScopeOGL.hpp"
-#include "DisplayDeviceOpenGL.hpp"
-#include "EffectsOpenGL.hpp"
-#include "FboOpenGL.hpp"
+#include "DisplayDeviceOGL.hpp"
+#include "EffectsOGL.hpp"
+#include "FboOGL.hpp"
 #include "LightObject.hpp"
-#include "MaterialOpenGL.hpp"
 #include "ScissorOGL.hpp"
-#include "ShadersOpenGL.hpp"
+#include "ShadersOGL.hpp"
 #include "StencilScopeOGL.hpp"
-#include "TextureOpenGL.hpp"
+#include "TextureOGL.hpp"
 
 namespace KRE
 {
@@ -49,24 +48,6 @@ namespace KRE
 	{
 		static DisplayDeviceRegistrar<DisplayDeviceOpenGL> ogl_register("opengl");
 	}
-
-	// These basically get attached to renderable's and we can retreive them during the
-	// rendering process. So we store stuff like shader information and shader variables.
-	class OpenGLDeviceData : public DisplayDeviceData
-	{
-	public:
-		OpenGLDeviceData() {
-		}
-		~OpenGLDeviceData() { 
-		}
-		void setShader(OpenGL::ShaderProgramPtr shader) {
-			shader_ = shader;
-		}
-		OpenGL::ShaderProgramPtr getShader() const { return shader_; }
-	private:
-		OpenGL::ShaderProgramPtr shader_;
-		OpenGLDeviceData(const OpenGLDeviceData&);
-	};
 
 	class RenderVariableDeviceData : public DisplayDeviceData
 	{
@@ -143,6 +124,9 @@ namespace KRE
 	}
 
 	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
+		: seperate_blend_equations_(false),
+		  have_render_to_texture_(false),
+		  npot_textures_(false)
 	{
 	}
 
@@ -160,8 +144,18 @@ namespace KRE
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Register with the render variable factory so we can create 
-		// VBO backed render variables.
+		// Get extensions
+		int extension_count = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &extension_count);
+		for(int n = 0; n != extension_count; ++n) {
+			std::string ext(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, n)));
+			extensions_.emplace(ext);
+			LOG_INFO("Extensions: " << ext);
+		}
+
+		seperate_blend_equations_ = extensions_.find("EXT_blend_equation_separate") != extensions_.end();
+		have_render_to_texture_ = extensions_.find("EXT_framebuffer_object") != extensions_.end();
+		npot_textures_ = extensions_.find("ARB_texture_non_power_of_two") != extensions_.end();
 	}
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
@@ -186,12 +180,12 @@ namespace KRE
 			| clr & ClearFlags::STENCIL ? GL_STENCIL_BUFFER_BIT : 0);
 	}
 
-	void DisplayDeviceOpenGL::setClearColor(float r, float g, float b, float a)
+	void DisplayDeviceOpenGL::setClearColor(float r, float g, float b, float a) const
 	{
 		glClearColor(r, g, b, a);
 	}
 
-	void DisplayDeviceOpenGL::setClearColor(const Color& color)
+	void DisplayDeviceOpenGL::setClearColor(const Color& color) const
 	{
 		glClearColor(float(color.r()), float(color.g()), float(color.b()), float(color.a()));
 	}
@@ -203,20 +197,24 @@ namespace KRE
 
 	DisplayDeviceDataPtr DisplayDeviceOpenGL::createDisplayDeviceData(const DisplayDeviceDef& def)
 	{
-		OpenGLDeviceData* dd = new OpenGLDeviceData();
+		DisplayDeviceDataPtr dd = std::make_shared<DisplayDeviceData>();
+		OpenGL::ShaderProgramPtr shader;
 		bool use_default_shader = true;
 		for(auto& hints : def.getHints()) {
 			if(hints.first == "shader") {
 				// Need to have retrieved more shader data here.
-				dd->setShader(OpenGL::ShaderProgram::factory(hints.second[0]));
-				use_default_shader = false;
+				shader = OpenGL::ShaderProgram::factory(hints.second[0]);
+				if(shader != nullptr) {
+					dd->setShader(shader);
+				}
 			}
 			// ...
 			// add more hints here if needed.
 		}
 		// If there is no shader hint, we will assume the default system shader.
-		if(use_default_shader) {
-			dd->setShader(OpenGL::ShaderProgram::defaultSystemShader());
+		if(shader == nullptr) {
+			shader = OpenGL::ShaderProgram::defaultSystemShader();
+			dd->setShader(shader);
 		}
 		
 		// XXX Set uniforms from block here.
@@ -224,37 +222,33 @@ namespace KRE
 		for(auto& as : def.getAttributeSet()) {
 			for(auto& attr : as->getAttributes()) {
 				for(auto& desc : attr->getAttrDesc()) {
-					auto ddp = DisplayDeviceDataPtr(new RenderVariableDeviceData(dd->getShader()->getAttributeIterator(desc.getAttrName())));
+					auto ddp = DisplayDeviceDataPtr(new RenderVariableDeviceData(shader->getAttributeIterator(desc.getAttrName())));
 					desc.setDisplayData(ddp);
 				}
 			}
 		}
 
-		return DisplayDeviceDataPtr(dd);
+		return dd;
 	}
 
 	void DisplayDeviceOpenGL::render(const Renderable* r) const
 	{
-		auto dd = std::dynamic_pointer_cast<OpenGLDeviceData>(r->getDisplayData());
-		ASSERT_LOG(dd != NULL, "Failed to cast display data to the type required(OpenGLDeviceData).");
-		auto shader = dd->getShader();
+		auto dd = r->getDisplayData();
+		// XXX work out removing this dynamic_pointer_cast.
+		auto shader = std::dynamic_pointer_cast<OpenGL::ShaderProgram>(dd->getShader());
+		ASSERT_LOG(shader != nullptr, "Failed to cast shader to the type required(OpenGL::ShaderProgram).");
 		shader->makeActive();
 
-		BlendEquation::Manager blend(r->getBlendEquation());
-		BlendModeManagerOGL blend_mode(r->getBlendMode());
+		BlendEquationScopeOGL be_scope(*r);
+		BlendModeScopeOGL bm_scope(*r);
 
-		// lighting can be switched on or off at a material level.
-		// so we grab the return of the Material::Apply() function
-		// to find whether to apply it or not.
-		bool use_lighting = true;
-		if(r->getMaterial()) {
-			use_lighting = r->getMaterial()->apply();
-		}
+		// apply lighting/depth check/depth write here.
+		bool use_lighting = false;
 
-		glm::mat4 pmat(1.0f);
+		glm::mat4 pvmat(1.0f);
 		if(r->getCamera()) {
 			// set camera here.
-			pmat = r->getCamera()->getProjectionMat() * r->getCamera()->getViewMat();
+			pvmat = r->getCamera()->getProjectionMat() * r->getCamera()->getViewMat();
 		}
 
 		if(use_lighting) {
@@ -268,12 +262,16 @@ namespace KRE
 		}
 
 		if(shader->getMvpUniform() != shader->uniformsIteratorEnd()) {
-			pmat *= r->getModelMatrix();
-			shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(pmat));
+			pvmat *= r->getModelMatrix();
+			shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(pvmat));
 		}
 
-		if(shader->getColorUniform() != shader->uniformsIteratorEnd() && r->isColorSet()) {
-			shader->setUniformValue(shader->getColorUniform(), r->getColor().asFloatVector());
+		if(shader->getColorUniform() != shader->uniformsIteratorEnd()) {
+			if(r->isColorSet()) {
+				shader->setUniformValue(shader->getColorUniform(), r->getColor().asFloatVector());
+			} else {
+				shader->setUniformValue(shader->getColorUniform(), ColorScope::getCurrentColor().asFloatVector());
+			}
 		}
 
 		// XXX The material may need to set more texture uniforms for multi-texture -- need to do that here.
@@ -286,7 +284,7 @@ namespace KRE
 		/*for(auto& urv : r->UniformRenderVariables()) {
 			for(auto& rvd : urv->VariableDescritionList()) {
 				auto rvdd = std::dynamic_pointer_cast<RenderVariableDeviceData>(rvd->GetDisplayData());
-				ASSERT_LOG(rvdd != NULL, "Unable to cast DeviceData to RenderVariableDeviceData.");
+				ASSERT_LOG(rvdd != nullptr, "Unable to cast DeviceData to RenderVariableDeviceData.");
 				shader->SetUniformValue(rvdd->GetActiveMapIterator(), urv->Value());
 			}
 		}*/
@@ -298,11 +296,11 @@ namespace KRE
 			std::vector<GLuint> enabled_attribs;
 
 			// apply blend, if any, from attribute set.
-			BlendEquation::Manager attrset_eq(r->getBlendEquation());
-			BlendModeManagerOGL attrset_mode(r->getBlendMode());
+			BlendEquationScopeOGL be_scope(*as);
+			BlendModeScopeOGL bm_scope(*as);
 
-			if(shader->getColorUniform() != shader->uniformsIteratorEnd() && as->getColor()) {
-				shader->setUniformValue(shader->getColorUniform(), as->getColor()->asFloatVector());
+			if(shader->getColorUniform() != shader->uniformsIteratorEnd() && as->isColorSet()) {
+				shader->setUniformValue(shader->getColorUniform(), as->getColor().asFloatVector());
 			}
 
 			for(auto& attr : as->getAttributes()) {
@@ -311,7 +309,7 @@ namespace KRE
 				attr_hw->bind();
 				for(auto& attrdesc : attr->getAttrDesc()) {
 					auto ddp = std::dynamic_pointer_cast<RenderVariableDeviceData>(attrdesc.getDisplayData());
-					ASSERT_LOG(ddp != NULL, "Converting attribute device data was NULL.");
+					ASSERT_LOG(ddp != nullptr, "Converting attribute device data was nullptr.");
 					glEnableVertexAttribArray(ddp->getActiveMapIterator()->second.location);
 					
 					glVertexAttribPointer(ddp->getActiveMapIterator()->second.location, 
@@ -349,9 +347,6 @@ namespace KRE
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-		if(r->getMaterial()) {
-			r->getMaterial()->unapply();
-		}
 		if(r->getRenderTarget()) {
 			r->getRenderTarget()->unapply();
 		}
@@ -365,38 +360,41 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const variant& node) 
 	{
-		return TexturePtr(new OpenGLTexture(node, nullptr));
+		return std::make_shared<OpenGLTexture>(node, std::vector<SurfacePtr>());
 	}
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, const variant& node)
 	{
-		return TexturePtr(new OpenGLTexture(node, surface));
+		std::vector<SurfacePtr> surfaces(1, surface);
+		return std::make_shared<OpenGLTexture>(node, surfaces);
 	}
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
 	{
-		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
+		std::vector<SurfacePtr> surfaces(1, surface);
+		return std::make_shared<OpenGLTexture>(surfaces, type, mipmap_levels);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(unsigned width, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture1D(unsigned width, PixelFormat::PF fmt)
 	{
-		return TexturePtr(new OpenGLTexture(width, 0, fmt, Texture::Type::TEXTURE_1D));
+		return std::make_shared<OpenGLTexture>(1, width, 0, fmt, Texture::Type::TEXTURE_1D);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
 	{
-		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_2D));
+		return std::make_shared<OpenGLTexture>(1, width, height, fmt, Texture::Type::TEXTURE_2D);
 	}
 	
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture3D(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
 	{
-		return TexturePtr(new OpenGLTexture(width, height, fmt, Texture::Type::TEXTURE_3D, depth));
+		return std::make_shared<OpenGLTexture>(1, width, height, fmt, Texture::Type::TEXTURE_3D, depth);
 	}
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
 	{
-		auto surface = Surface::create(filename);
-		return TexturePtr(new OpenGLTexture(surface, type, mipmap_levels));
+		auto surface = Surface::create(filename);		
+		std::vector<SurfacePtr> surfaces(1, surface);
+		return std::make_shared<OpenGLTexture>(surfaces, type, mipmap_levels);
 	}
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, const SurfacePtr& palette)
@@ -404,20 +402,24 @@ namespace KRE
 		return std::make_shared<OpenGLTexture>(surface, palette);
 	}
 
-	MaterialPtr DisplayDeviceOpenGL::handleCreateMaterial(const variant& node)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(int count, int width, int height, PixelFormat::PF fmt)
 	{
-		return MaterialPtr(new OpenGLMaterial(node));
+		return std::make_shared<OpenGLTexture>(count, width, height, fmt, Texture::Type::TEXTURE_2D);
 	}
 
-	MaterialPtr DisplayDeviceOpenGL::handleCreateMaterial(const std::string& name, 
-		const std::vector<TexturePtr>& textures, 
-		const BlendMode& blend, 
-		bool fog, 
-		bool lighting, 
-		bool depth_write, 
-		bool depth_check)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<std::string>& filenames, const variant& node)
 	{
-		return MaterialPtr(new OpenGLMaterial(name, textures, blend, fog, lighting, depth_write, depth_check));
+		std::vector<SurfacePtr> surfaces;
+		surfaces.reserve(filenames.size());
+		for(auto& fn : filenames) {
+			surfaces.emplace_back(Surface::create(fn));
+		}
+		return std::make_shared<OpenGLTexture>(node, surfaces);
+	}
+
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache)
+	{
+		return std::make_shared<OpenGLTexture>(surfaces, Texture::Type::TEXTURE_2D);
 	}
 
 	RenderTargetPtr DisplayDeviceOpenGL::handleCreateRenderTarget(size_t width, size_t height, 
@@ -476,11 +478,13 @@ namespace KRE
 		bool ret_val = false;
 		switch(cap) {
 		case DisplayDeviceCapabilties::NPOT_TEXTURES:
-			// XXX We could put a force npot textures check here.
-			if(GLEW_ARB_texture_non_power_of_two) {
-				ret_val = true;
-			}
-			break;
+			return npot_textures_;
+		case DisplayDeviceCapabilties::BLEND_EQUATION_SEPERATE:
+			return seperate_blend_equations_;
+		case DisplayDeviceCapabilties::RENDER_TO_TEXTURE:
+			return have_render_to_texture_;
+		case DisplayDeviceCapabilties::SHADERS:
+			return true;
 		default:
 			ASSERT_LOG(false, "Unknown value for DisplayDeviceCapabilties given.");
 		}
@@ -497,11 +501,16 @@ namespace KRE
 		return OpenGL::ShaderProgram::factory(name);
 	}
 
+	ShaderProgramPtr DisplayDeviceOpenGL::getShaderProgram(const variant& node)
+	{
+		return OpenGL::ShaderProgram::factory(node);
+	}
+
 	// XXX Need a way to deal with blits with Camera/Lighting.
 	void DisplayDeviceOpenGL::doBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
 		auto texture = std::dynamic_pointer_cast<OpenGLTexture>(tex);
-		ASSERT_LOG(texture != NULL, "Texture passed in was not of expected type.");
+		ASSERT_LOG(texture != nullptr, "Texture passed in was not of expected type.");
 
 		const float tx1 = float(srcx) / texture->width();
 		const float ty1 = float(srcy) / texture->height();
@@ -526,10 +535,8 @@ namespace KRE
 		};
 
 		// Apply blend mode from texture if there is any.
-		std::unique_ptr<BlendModeManagerOGL> bmm;
-		if(tex->hasBlendMode()) {
-			bmm.reset(new BlendModeManagerOGL(tex->getBlendMode()));
-		}
+		BlendEquationScopeOGL be_scope(*tex);
+		BlendModeScopeOGL bm_scope(*tex);
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vy1)/2.0f,-(vy1+vy1)/2.0f,0.0f));
 		glm::mat4 mvp = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f) * model;

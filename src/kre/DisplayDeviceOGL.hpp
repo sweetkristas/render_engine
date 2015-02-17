@@ -23,9 +23,11 @@
 
 #pragma once
 
+#include <set>
+
 #include "DisplayDevice.hpp"
-#include "Material.hpp"
-#include "ShadersOpenGL.hpp"
+#include "Texture.hpp"
+#include "ShadersOGL.hpp"
 
 namespace KRE
 {
@@ -40,8 +42,8 @@ namespace KRE
 		void swap() override;
 		void clear(ClearFlags clr) override;
 
-		void setClearColor(float r, float g, float b, float a) override;
-		void setClearColor(const Color& color) override;
+		void setClearColor(float r, float g, float b, float a) const override;
+		void setClearColor(const Color& color) const override;
 
 		void render(const Renderable* r) const override;
 
@@ -54,6 +56,7 @@ namespace KRE
 
 		void loadShadersFromFile(const variant& node) override;
 		ShaderProgramPtr getShaderProgram(const std::string& name) override;
+		ShaderProgramPtr getShaderProgram(const variant& node) override;
 
 		BlendEquationImplBasePtr getBlendEquationImpl() override;
 
@@ -85,14 +88,20 @@ namespace KRE
 		TexturePtr handleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels) override;
 		TexturePtr handleCreateTexture(const SurfacePtr& surface, const variant& node) override;
 		TexturePtr handleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels) override;
-		TexturePtr handleCreateTexture(unsigned width, PixelFormat::PF fmt) override;
-		TexturePtr handleCreateTexture(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D) override;
-		TexturePtr handleCreateTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt) override;
+		TexturePtr handleCreateTexture1D(unsigned width, PixelFormat::PF fmt) override;
+		TexturePtr handleCreateTexture2D(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type=Texture::Type::TEXTURE_2D) override;
+		TexturePtr handleCreateTexture3D(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt) override;
 		TexturePtr handleCreateTexture(const SurfacePtr& surface, const SurfacePtr& palette) override;
-
-		MaterialPtr handleCreateMaterial(const variant& node) override;
-		MaterialPtr handleCreateMaterial(const std::string& name, const std::vector<TexturePtr>& textures, const BlendMode& blend=BlendMode(), bool fog=false, bool lighting=false, bool depth_write=false, bool depth_check=false) override;
+		TexturePtr handleCreateTexture2D(int count, int width, int height, PixelFormat::PF fmt) override;
+		TexturePtr handleCreateTexture2D(const std::vector<std::string>& filenames, const variant& node) override;
+		TexturePtr handleCreateTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache) override;
 
 		bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data) override;
+
+		std::set<std::string> extensions_;
+
+		bool seperate_blend_equations_;
+		bool have_render_to_texture_;
+		bool npot_textures_;
 	};
 }

@@ -21,34 +21,12 @@
 	   distribution.
 */
 
-#pragma once
-
-#include "Renderable.hpp"
-#include "SceneFwd.hpp"
-#include "util.hpp"
+#include "DisplayDeviceOGLFixed.hpp"
 
 namespace KRE
 {
-	class SceneObject : public Renderable
+	namespace
 	{
-	public:
-		explicit SceneObject(const std::string& name);
-		explicit SceneObject(const variant& node);
-		SceneObject(const SceneObject& op);
-		virtual ~SceneObject();
-		size_t getQueue() const { return queue_; }
-		void setQueue(size_t q) { queue_ = q; }
-		const std::string& objectName() const { return name_; }
-		void setObjectName(const std::string name) { name_ = name; }
-		const std::string& getShaderName() const { return shader_name_; }
-		void setShaderName(const std::string& shader);
-		DisplayDeviceDef attach(const DisplayDevicePtr& dd);
-	private:
-		virtual void doAttach(const DisplayDevicePtr& dd, DisplayDeviceDef* def) {}
-		size_t queue_;
-		std::string name_;
-		std::string shader_name_;
-
-		SceneObject();
-	};
+		//DisplayDeviceRegistrar<DisplayDeviceOpenGLFixed> ogl_register("opengl-fixed");
+	}
 }

@@ -25,9 +25,8 @@
 
 #include <memory>
 #include <string>
-#include "Blend.hpp"
-#include "Color.hpp"
 #include "geometry.hpp"
+#include "ScopeableValue.hpp"
 #include "Surface.hpp"
 #include "variant.hpp"
 
@@ -42,7 +41,7 @@ namespace KRE
 	// unpack image height
 	// unpack skip rows, skip pixels
 
-	class Texture
+	class Texture : public ScopeableValue
 	{
 	public:
 		enum class Type {
@@ -63,17 +62,6 @@ namespace KRE
 			LINEAR,
 			ANISOTROPIC,
 		};
-		explicit Texture(const variant& node, const SurfacePtr& surface=nullptr);
-		explicit Texture(const SurfacePtr& surface, 
-			Type type=Type::TEXTURE_2D, 
-			int mipmap_levels=0);
-		explicit Texture(unsigned width, 
-			unsigned height, 
-			unsigned depth,
-			PixelFormat::PF fmt, 
-			Texture::Type type);
-		// Constrcutor to create paletteized texture from a file name and optional surface.
-		explicit Texture(const SurfacePtr& surf, const SurfacePtr& palette);
 		virtual ~Texture();
 
 		void setAddressModes(AddressMode u, AddressMode v=AddressMode::WRAP, AddressMode w=AddressMode::WRAP, const Color& bc=Color(0.0f,0.0f,0.0f));
@@ -98,16 +86,16 @@ namespace KRE
 
 		void internalInit();
 
-		unsigned width() const { return width_; }
-		unsigned height() const { return height_; }
-		unsigned depth() const { return depth_; }
+		int width() const { return width_; }
+		int height() const { return height_; }
+		int depth() const { return depth_; }
 
-		unsigned surfaceWidth() const { return surface_width_; }
-		unsigned surfacehHeight() const { return surface_height_; }
+		int surfaceWidth() const { return surface_width_; }
+		int surfacehHeight() const { return surface_height_; }
 
 		virtual void init() = 0;
 		virtual void bind() = 0;
-		virtual unsigned id() = 0;
+		virtual unsigned id(int n = 0) = 0;
 
 		virtual void update(int x, unsigned width, void* pixels) = 0;
 		// Less safe version for updating a multi-texture.
@@ -127,9 +115,13 @@ namespace KRE
 		static TexturePtr createTexture(const SurfacePtr& surface, bool cache);
 		static TexturePtr createTexture(const SurfacePtr& surface, bool cache, const variant& node);
 		
-		static TexturePtr createTexture(unsigned width, PixelFormat::PF fmt);
-		static TexturePtr createTexture(unsigned width, unsigned height, PixelFormat::PF fmt);
-		static TexturePtr createTexture(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt);
+		static TexturePtr createTexture1D(int width, PixelFormat::PF fmt);
+		static TexturePtr createTexture2D(int width, int height, PixelFormat::PF fmt);
+		static TexturePtr createTexture3D(int width, int height, int depth, PixelFormat::PF fmt);
+
+		static TexturePtr createTexture2D(int count, int width, int height, PixelFormat::PF fmt);
+		static TexturePtr createTexture2D(const std::vector<std::string>& filenames, const variant& node);
+		static TexturePtr createTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache);
 
 		/* Functions for creating a texture that only has a single channel and an associated
 			secondary texture that is used for doing palette look-ups to get the actual color.
@@ -139,14 +131,11 @@ namespace KRE
 		static TexturePtr createPalettizedTexture(const SurfacePtr& surf);
 		static TexturePtr createPalettizedTexture(const SurfacePtr& surf, const SurfacePtr& palette);
 
-		const SurfacePtr& getSurface() const { return surface_; }
+		const SurfacePtr& getFrontSurface() const { return surfaces_.front(); }
+		std::vector<SurfacePtr> getSurfaces() const { return surfaces_; }
 
 		int getUnpackAlignment() const { return unpack_alignment_; }
 		void setUnpackAlignment(int align);
-
-		bool hasBlendMode() const { return blend_mode_ != NULL; }
-		const BlendMode getBlendMode() const;
-		void setBlendMode(const BlendMode& bm) { blend_mode_.reset(new BlendMode(bm)); }
 
 		template<typename N, typename T>
 		const geometry::Rect<N> getNormalisedTextureCoords(const geometry::Rect<T>& r) {
@@ -155,15 +144,46 @@ namespace KRE
 			return geometry::Rect<N>(static_cast<N>(r.x())/w, static_cast<N>(r.y())/h, static_cast<N>(r.x2())/w, static_cast<N>(r.y2())/h);		
 		}
 
-		// Can return NULL if not-implemented, invalid underlying surface.
+		template<typename N, typename T>
+		const N getNormalisedTextureCoordW(const T& x) {
+			return static_cast<N>(x) / static_cast<N>(surface_width_);
+		}
+		template<typename N, typename T>
+		const N getNormalisedTextureCoordH(const T& y) {
+			return static_cast<N>(y) / static_cast<N>(surface_height_);
+		}
+
+		// Can return nullptr if not-implemented, invalid underlying surface.
 		virtual const unsigned char* colorAt(int x, int y) const = 0;
-		bool isAlpha(unsigned x, unsigned y) { return alpha_map_[y*width_+x]; }
-		std::vector<bool>::const_iterator getAlphaRow(int x, int y) const { return alpha_map_.begin() + y*width_ + x; }
-		std::vector<bool>::const_iterator endAlpha() const { return alpha_map_.end(); }
+		bool isAlpha(unsigned x, unsigned y, int n = 0) const;
+		std::vector<bool>::const_iterator getAlphaRow(int x, int y, int n = 0) const;
+		std::vector<bool>::const_iterator endAlpha(int n = 0) const;
 
 		static void clearCache();
+
+		// Set source rect in un-normalised co-ordinates.
+		void setSourceRect(const rect& r);
+		// Set source rect in normalised co-ordinates.
+		void setSourceRectNormalised(const rectf& r);
+
+		const rectf& getSourceRectNormalised() const { return src_rect_norm_; }
+		const rect& getSourceRect() const { return src_rect_; }
+
+		virtual TexturePtr clone() = 0;
 	protected:
-		void setTextureDimensions(unsigned w, unsigned h, unsigned d=0);
+		explicit Texture(const variant& node, const std::vector<SurfacePtr>& surfaces);
+		explicit Texture(const std::vector<SurfacePtr>& surfaces,
+			Type type=Type::TEXTURE_2D, 
+			int mipmap_levels=0);
+		explicit Texture(int count, 
+			int width, 
+			int height, 
+			int depth,
+			PixelFormat::PF fmt, 
+			Texture::Type type);
+		// Constrcutor to create paletteized texture from a file name and optional surface.
+		explicit Texture(const SurfacePtr& surf, const SurfacePtr& palette);
+		void setTextureDimensions(int w, int h, int d=0);
 	private:
 		virtual void rebuild() = 0;
 
@@ -175,22 +195,23 @@ namespace KRE
 		int max_anisotropy_;
 		float lod_bias_;
 		Texture();
-		SurfacePtr surface_;
+		std::vector<SurfacePtr> surfaces_;
 
-		std::unique_ptr<BlendMode> blend_mode_;
-
-		std::vector<bool> alpha_map_;
+		std::vector<std::vector<bool>> alpha_map_;
 		
-		unsigned surface_width_;
-		unsigned surface_height_;
+		int surface_width_;
+		int surface_height_;
 
 		// Width/Height/Depth of the created texture -- may be a 
 		// different size than the surface if things like only
 		// allowing power-of-two textures is in effect.
-		unsigned width_;
-		unsigned height_;
-		unsigned depth_;
+		int width_;
+		int height_;
+		int depth_;
 
 		int unpack_alignment_;
+
+		rect src_rect_;
+		rectf src_rect_norm_;
 	};
 }

@@ -26,6 +26,7 @@
 #include <stack>
 
 #include "asserts.hpp"
+#include "BlendModeScope.hpp"
 #include "BlendOGL.hpp"
 
 namespace KRE
@@ -39,6 +40,16 @@ namespace KRE
 				case BlendEquationConstants::BE_ADD:				return GL_FUNC_ADD;
 				case BlendEquationConstants::BE_SUBTRACT:			return GL_FUNC_SUBTRACT;
 				case BlendEquationConstants::BE_REVERSE_SUBTRACT:	return GL_FUNC_REVERSE_SUBTRACT;
+				case BlendEquationConstants::BE_MIN:
+					if(GLEW_EXT_blend_minmax) {
+						return GL_MIN_EXT;
+					}
+					break;
+				case BlendEquationConstants::BE_MAX:
+					if(GLEW_EXT_blend_minmax) {
+						return GL_MAX_EXT;
+					}
+					break;
 				default: break;
 			}
 			ASSERT_LOG(false, "Unrecognised blend equation");
@@ -67,15 +78,15 @@ namespace KRE
 			return GL_ZERO;
 		}
 
-		std::stack<BlendMode>& get_mode_stack()
-		{
-			static std::stack<BlendMode> res;
-			return res;
-		}
-
 		std::stack<BlendEquation>& get_equation_stack()
 		{
 			static std::stack<BlendEquation> res;
+			return res;
+		}
+
+		std::stack<BlendMode>& get_blend_mode_stack()
+		{
+			static std::stack<BlendMode> res;
 			return res;
 		}
 	}
@@ -90,7 +101,7 @@ namespace KRE
 
 	void BlendEquationImplOGL::apply(const BlendEquation& eqn) const
 	{
-		if(eqn.getRgbEquation() != BlendEquationConstants::BE_ADD || eqn.getAlphaEquation() != BlendEquationConstants::BE_ADD) {
+		if(eqn != BlendEquation()) {
 			if(get_equation_stack().empty()) {
 				get_equation_stack().emplace(BlendEquationConstants::BE_ADD, BlendEquationConstants::BE_ADD);
 			}
@@ -101,7 +112,7 @@ namespace KRE
 
 	void BlendEquationImplOGL::clear(const BlendEquation& eqn) const
 	{
-		if(eqn.getRgbEquation() != BlendEquationConstants::BE_ADD || eqn.getAlphaEquation() != BlendEquationConstants::BE_ADD) {
+		if(eqn != BlendEquation()) {
 			ASSERT_LOG(!get_equation_stack().empty(), "Something went badly wrong blend mode stack was empty.");
 			get_equation_stack().pop();
 			BlendEquation& eqn = get_equation_stack().top();
@@ -109,27 +120,60 @@ namespace KRE
 		}
 	}
 
-	BlendModeManagerOGL::BlendModeManagerOGL(const BlendMode& bm)
-		: blend_mode_(bm)
+	BlendEquationScopeOGL::BlendEquationScopeOGL(const ScopeableValue& sv)
+		: stored_(false)
 	{
-		if(blend_mode_.src() != BlendModeConstants::BM_SRC_ALPHA 
-			|| blend_mode_.dst() != BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
-			if(get_mode_stack().empty()) {
-				get_mode_stack().emplace(BlendModeConstants::BM_SRC_ALPHA, BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA);
-			}
-			get_mode_stack().emplace(bm);
-			glBlendFunc(convert_blend_mode(blend_mode_.src()), convert_blend_mode(blend_mode_.dst()));
+		const BlendEquation& eqn = sv.getBlendEquation();
+		if(sv.isBlendEquationSet() && eqn != BlendEquation()) {
+			get_equation_stack().emplace(eqn);
+			glBlendEquationSeparate(convert_eqn(eqn.getRgbEquation()), convert_eqn(eqn.getAlphaEquation()));
+			stored_ = true;
 		}
 	}
 
-	BlendModeManagerOGL::~BlendModeManagerOGL()
+	BlendEquationScopeOGL::~BlendEquationScopeOGL()
 	{
-		if(blend_mode_.src() != BlendModeConstants::BM_SRC_ALPHA 
-			|| blend_mode_.dst() != BlendModeConstants::BM_ONE_MINUS_SRC_ALPHA) {
-			ASSERT_LOG(!get_mode_stack().empty(), "Something went badly wrong blend mode stack was empty.");
-			get_mode_stack().pop();
-			BlendMode& bm = get_mode_stack().top();
+		if(stored_) {
+			ASSERT_LOG(!get_equation_stack().empty(), "Something went badly wrong blend equation stack was empty.");
+			get_equation_stack().pop();
+			BlendEquation& eqn = get_equation_stack().top();
+			glBlendEquationSeparate(convert_eqn(eqn.getRgbEquation()), convert_eqn(eqn.getAlphaEquation()));
+		}
+	}
+
+	BlendModeScopeOGL::BlendModeScopeOGL(const ScopeableValue& sv)
+		: stored_(false)
+	{
+		auto& bm = sv.getBlendMode();
+		if(sv.isBlendModeSet() && bm != BlendMode()) {
+			get_blend_mode_stack().emplace(bm);
+			stored_ = true;
+			glBlendFunc(convert_blend_mode(bm.src()), convert_blend_mode(bm.dst()));
+		} else if(BlendModeScope::getCurrentMode() != BlendMode()) {
+			auto& bm = BlendModeScope::getCurrentMode();
+			get_blend_mode_stack().emplace(bm);
+			stored_ = true;
 			glBlendFunc(convert_blend_mode(bm.src()), convert_blend_mode(bm.dst()));
 		}
+	}
+
+	BlendModeScopeOGL::~BlendModeScopeOGL()
+	{
+		if(stored_) {
+			ASSERT_LOG(!get_blend_mode_stack().empty(), "Something went badly wrong blend mode stack was empty.");
+			get_blend_mode_stack().pop();
+			BlendMode& bm = get_blend_mode_stack().top();
+			glBlendFunc(convert_blend_mode(bm.src()), convert_blend_mode(bm.dst()));
+		}
+	}
+
+	void set_blend_mode(const BlendMode& bm)
+	{
+		glBlendFunc(convert_blend_mode(bm.src()), convert_blend_mode(bm.dst()));
+	}
+
+	void set_blend_equation(const BlendEquation& eqn)
+	{
+		glBlendEquationSeparate(convert_eqn(eqn.getRgbEquation()), convert_eqn(eqn.getAlphaEquation()));
 	}
 }
