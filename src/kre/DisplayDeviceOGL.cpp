@@ -31,6 +31,7 @@
 #include "AttributeSetOGL.hpp"
 #include "BlendOGL.hpp"
 #include "CameraObject.hpp"
+#include "ColorScope.hpp"
 #include "CanvasOGL.hpp"
 #include "ClipScopeOGL.hpp"
 #include "DisplayDeviceOGL.hpp"
@@ -126,7 +127,9 @@ namespace KRE
 	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
 		: seperate_blend_equations_(false),
 		  have_render_to_texture_(false),
-		  npot_textures_(false)
+		  npot_textures_(false),
+		  major_version_(0),
+		  minor_version_(0)
 	{
 	}
 
@@ -144,13 +147,26 @@ namespace KRE
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Get extensions
 		int extension_count = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &extension_count);
-		for(int n = 0; n != extension_count; ++n) {
-			std::string ext(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, n)));
-			extensions_.emplace(ext);
-			LOG_INFO("Extensions: " << ext);
+
+		if(major_version_ >= 3) {
+			// Get extensions
+			for(int n = 0; n != extension_count; ++n) {
+				std::string ext(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, n)));
+				extensions_.emplace(ext);
+				LOG_INFO("Extensions: " << ext);
+			}
+		} else {
+			std::string exts(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+			if(glGetError() == GL_NONE) {
+				for(auto& ext : Util::split(exts, " ")) {
+					extensions_.emplace(ext);
+					LOG_INFO("Extensions: " << ext);
+				}
+			} else {
+				LOG_ERROR("Couldn't get the GL extension list. Extension count=" << extension_count);
+			}
 		}
 
 		seperate_blend_equations_ = extensions_.find("EXT_blend_equation_separate") != extensions_.end();
@@ -160,16 +176,14 @@ namespace KRE
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
 	{
-		GLint minor_version;
-		GLint major_version;
-		glGetIntegerv(GL_MINOR_VERSION, &minor_version);
-		glGetIntegerv(GL_MAJOR_VERSION, &major_version);
+		glGetIntegerv(GL_MINOR_VERSION, &minor_version_);
+		glGetIntegerv(GL_MAJOR_VERSION, &major_version_);
 		if(glGetError() != GL_NONE) {
 			// fall-back to old glGetStrings method.
 			const char* version_str = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 			std::cerr << "OpenGL version: " << version_str << std::endl;
 		} else {
-			std::cerr << "OpenGL version: " << major_version << "." << minor_version << std::endl;
+			std::cerr << "OpenGL version: " << major_version_ << "." << minor_version_ << std::endl;
 		}
 	}
 
@@ -365,11 +379,14 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, const variant& node)
 	{
-		std::vector<SurfacePtr> surfaces(1, surface);
+		std::vector<SurfacePtr> surfaces;
+		if(surface != nullptr) {
+			surfaces.emplace_back(surface);
+		}
 		return std::make_shared<OpenGLTexture>(node, surfaces);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, Texture::Type type, int mipmap_levels)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, TextureType type, int mipmap_levels)
 	{
 		std::vector<SurfacePtr> surfaces(1, surface);
 		return std::make_shared<OpenGLTexture>(surfaces, type, mipmap_levels);
@@ -377,20 +394,20 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture1D(unsigned width, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, 0, fmt, Texture::Type::TEXTURE_1D);
+		return std::make_shared<OpenGLTexture>(1, width, 0, fmt, TextureType::TEXTURE_1D);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(unsigned width, unsigned height, PixelFormat::PF fmt, Texture::Type type)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(unsigned width, unsigned height, PixelFormat::PF fmt, TextureType type)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, height, fmt, Texture::Type::TEXTURE_2D);
+		return std::make_shared<OpenGLTexture>(1, width, height, fmt, TextureType::TEXTURE_2D);
 	}
 	
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture3D(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, height, fmt, Texture::Type::TEXTURE_3D, depth);
+		return std::make_shared<OpenGLTexture>(1, width, height, fmt, TextureType::TEXTURE_3D, depth);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const std::string& filename, Texture::Type type, int mipmap_levels)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const std::string& filename, TextureType type, int mipmap_levels)
 	{
 		auto surface = Surface::create(filename);		
 		std::vector<SurfacePtr> surfaces(1, surface);
@@ -404,7 +421,7 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(int count, int width, int height, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(count, width, height, fmt, Texture::Type::TEXTURE_2D);
+		return std::make_shared<OpenGLTexture>(count, width, height, fmt, TextureType::TEXTURE_2D);
 	}
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<std::string>& filenames, const variant& node)
@@ -419,7 +436,7 @@ namespace KRE
 
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache)
 	{
-		return std::make_shared<OpenGLTexture>(surfaces, Texture::Type::TEXTURE_2D);
+		return std::make_shared<OpenGLTexture>(surfaces, TextureType::TEXTURE_2D);
 	}
 
 	RenderTargetPtr DisplayDeviceOpenGL::handleCreateRenderTarget(size_t width, size_t height, 

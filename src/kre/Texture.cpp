@@ -48,19 +48,23 @@ namespace KRE
 
 		void add_to_texture_registry(Texture* tex) 
 		{
+			LOG_DEBUG("Added texture to registry: 0x" << std::hex << tex);
 			texture_registry().insert(tex);
 		}
 
 		void remove_from_texture_registery(Texture* tex)
 		{
-			auto it = texture_registry().find(tex);
-			ASSERT_LOG(it != texture_registry().end(), "tried to erase texture from registry that doesn't exist");
-			texture_registry().erase(it);
+			LOG_DEBUG("Remove texture from registry: 0x" << std::hex << tex);
+			if(tex != nullptr) {
+				auto it = texture_registry().find(tex);
+				LOG_ERROR("Tried to erase texture from registry that doesn't exist");
+				texture_registry().erase(it);
+			}
 		}
 	}
 
 	Texture::Texture(const variant& node, const std::vector<SurfacePtr>& surfaces)
-		: type_(Type::TEXTURE_2D), 
+		: type_(TextureType::TEXTURE_2D), 
 		  mipmaps_(0), 
 		  max_anisotropy_(1),
 		  lod_bias_(0.0f),
@@ -87,13 +91,13 @@ namespace KRE
 		if(node.has_key("type")) {
 			const std::string& type = node["type"].as_string();
 			if(type == "1d") {
-				type_ = Type::TEXTURE_1D;
+				type_ = TextureType::TEXTURE_1D;
 			} else if(type == "2d") {
-				type_ = Type::TEXTURE_2D;
+				type_ = TextureType::TEXTURE_2D;
 			} else if(type == "3d") {
-				type_ = Type::TEXTURE_3D;
+				type_ = TextureType::TEXTURE_3D;
 			} else if(type == "cubic") {
-				type_ = Type::TEXTURE_CUBIC;
+				type_ = TextureType::TEXTURE_CUBIC;
 			} else {
 				ASSERT_LOG(false, "Unrecognised texture type '" << type << "'. Valid values are 1d,2d,3d and cubic.");
 			}
@@ -191,7 +195,7 @@ namespace KRE
 		}
 	}
 
-	Texture::Texture(const std::vector<SurfacePtr>& surfaces, Type type, int mipmap_levels)
+	Texture::Texture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
 		: type_(type), 
 		  mipmaps_(mipmap_levels), 
 		  max_anisotropy_(1),
@@ -220,7 +224,7 @@ namespace KRE
 		int height, 
 		int depth,
 		PixelFormat::PF fmt, 
-		Texture::Type type)
+		TextureType type)
 		: type_(type), 
 		  mipmaps_(0), 
 		  max_anisotropy_(1),
@@ -238,7 +242,7 @@ namespace KRE
 	}
 
 	Texture::Texture(const SurfacePtr& surf, const SurfacePtr& palette)
-		: type_(Type::TEXTURE_2D), 
+		: type_(TextureType::TEXTURE_2D), 
 		  mipmaps_(0), 
 		  max_anisotropy_(1),
 		  lod_bias_(0.0f),
@@ -257,12 +261,12 @@ namespace KRE
 	
 	Texture::~Texture()
 	{
-		remove_from_texture_registery(this);
+		//remove_from_texture_registery(this);
 	}
 
 	void Texture::internalInit()
 	{
-		add_to_texture_registry(this);
+		//add_to_texture_registry(this);
 
 		for(auto& am : address_mode_) {
 			am = AddressMode::CLAMP;
@@ -291,33 +295,22 @@ namespace KRE
 		int n = 0;
 		for(auto& s : surfaces_) {
 			alpha_map_[n].resize(npixels);
+			std::fill(alpha_map_[n].begin(), alpha_map_[n].end(), false);
+
 			// surfaces with zero for the alpha mask have no alpha channel
 			if(s && s->getPixelFormat()->hasAlphaChannel()) {
 				auto fmt = s->getPixelFormat();
-				const unsigned char* pixels = reinterpret_cast<const unsigned char*>(s->pixels());
-				for(int y = 0; y != height_; ++y) {
-					const unsigned char* pix = pixels;
-					for(int x = 0; x != width_; ++x) {
-						bool alpha = false;
-						uint32_t pixel_value;
-						switch(fmt->bytesPerPixel()) {
-						// XXX - these probably need an endian-ness test. 
-						// Or moved to Surface.
-						case 1: pixel_value = pix[0]; break;						
-						case 2: pixel_value = (pix[1] << 8) | pix[0]; break;
-						case 4: pixel_value = (pix[3] << 24) | (pix[2] << 16) | (pix[1] << 8) | pix[0]; break;
-						}
-						auto alpha_value = (((pixel_value & fmt->getAlphaMask()) >> fmt->getAlphaShift()) << fmt->getAlphaLoss());
-						alpha_map_[n][x+y*width_] = alpha_value == 0;
-						pix += fmt->bytesPerPixel();
-					}
-					pixels += s->rowPitch();
-				}
-
-			} else {
-				for(int y = 0; y != height_; ++y) {
-					for(int x = 0; x != width_; ++x) {
-						alpha_map_[n][x + y*width_] = false;
+				const uint8_t* pixels = reinterpret_cast<const uint8_t*>(s->pixels());
+				for(int y = 0; y != surface_height_; ++y) {
+					int offs = 0;
+					int ndx = 0;
+					const uint8_t* pixel_ptr = pixels + y * s->rowPitch();
+					uint32_t red, green, blue, alpha;
+					while(offs < surface_width_) {
+						auto ret = s->getPixelFormat()->extractRGBA(pixel_ptr + offs, ndx, red, green, blue, alpha);
+						alpha_map_[n][offs+y*width_] = alpha == 0;
+						offs += std::get<0>(ret);
+						ndx = std::get<1>(ret);
 					}
 				}
 			}
@@ -400,7 +393,7 @@ namespace KRE
 		return DisplayDevice::createTexture(nullptr, true, node);
 	}
 
-	TexturePtr Texture::createTexture(const std::string& filename, Type type, int mipmap_levels)
+	TexturePtr Texture::createTexture(const std::string& filename, TextureType type, int mipmap_levels)
 	{
 		return DisplayDevice::createTexture(filename, type, mipmap_levels);
 	}

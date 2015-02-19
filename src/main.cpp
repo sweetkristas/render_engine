@@ -52,7 +52,7 @@ namespace
 			vertices.emplace_back(glm::vec2(100.0f,0.0f), glm::u8vec4(0,0,255,255));
 			vertices.emplace_back(glm::vec2(100.0f,100.0f), glm::u8vec4(255,0,0,255));
 			ab->setCount(vertices.size());
-			pc->update(&vertices);
+			pc->update(&vertices, pc->end());
 
 			//std::vector<uint8_t> indices;
 			//indices.emplace_back(0);
@@ -124,7 +124,7 @@ struct SimpleTextureHolder : public KRE::Blittable
 	SimpleTextureHolder(const std::string& filename) {
 		using namespace KRE;
 		setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		auto tex = DisplayDevice::createTexture(filename, Texture::Type::TEXTURE_2D, 4);
+		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
 		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);

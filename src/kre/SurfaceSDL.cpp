@@ -126,7 +126,8 @@ namespace KRE
 
 	SurfaceSDL::SurfaceSDL(const std::string& filename)
 	{
-		surface_ = IMG_Load(filename.c_str());
+		auto filter = Surface::getFileFilter(FileFilterType::LOAD);
+		surface_ = IMG_Load(filter(filename).c_str());
 		if(surface_ == nullptr) {
 			LOG_ERROR("Failed to load image file: '" << filename << "' : " << IMG_GetError());
 			throw ImageLoadError();
@@ -599,7 +600,8 @@ namespace KRE
 
 	SurfacePtr SurfaceSDL::createFromFile(const std::string& filename, PixelFormat::PF fmt, SurfaceConvertFn fn)
 	{
-		auto s = IMG_Load(filename.c_str());
+		auto filter = Surface::getFileFilter(FileFilterType::LOAD);
+		auto s = IMG_Load(filter(filename).c_str());
 		if(s == nullptr) {
 			LOG_ERROR("Failed to load image file: '" << filename << "' : " << IMG_GetError());
 			throw ImageLoadError();
@@ -845,12 +847,16 @@ namespace KRE
 		for(size_t h = 0; h != height(); ++h) {
 			int offs = 0;
 			int ndx = 0;
-			uint8_t* pixel_ptr = static_cast<uint8_t*>(surface_->pixels) + h*rowPitch();
-			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + h*rowPitch();
+			int dst_offs = 0;
+			uint8_t* pixel_ptr = static_cast<uint8_t*>(surface_->pixels) + h * rowPitch();
+			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + h * rowPitch();
 			while(offs < width()) {
-				std::tie(offs, ndx) = getPixelFormat()->extractRGBA(pixel_ptr + offs, ndx, red, green, blue, alpha);
+				auto ret = getPixelFormat()->extractRGBA(pixel_ptr + offs, ndx, red, green, blue, alpha);
 				convert(red, green, blue, alpha);
-				dst->getPixelFormat()->encodeRGBA(dst_pixels, red, green, blue, alpha);
+				dst->getPixelFormat()->encodeRGBA(dst_pixel_ptr + dst_offs, red, green, blue, alpha);
+				offs += std::get<0>(ret);
+				ndx = std::get<1>(ret);				
+				dst_offs += dst->getPixelFormat()->bytesPerPixel();
 			}
 		}
 		dst->writePixels(dst_pixels);
@@ -860,8 +866,9 @@ namespace KRE
 
 	void SurfaceSDL::savePng(const std::string& filename)
 	{
+		auto filter = Surface::getFileFilter(FileFilterType::SAVE);
 		SurfaceLock lock(SurfacePtr(this));
-		auto err = IMG_SavePNG(surface_, filename.c_str());
+		auto err = IMG_SavePNG(surface_, filter(filename).c_str());
 		ASSERT_LOG(err == 0, "Error saving PNG file: " << SDL_GetError());
 	}
 
