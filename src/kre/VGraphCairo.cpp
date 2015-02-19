@@ -25,9 +25,10 @@
 
 #include "asserts.hpp"
 #include "AttributeSet.hpp"
-#include "SceneFwd.hpp"
-#include "VGraphCairo.hpp"
 #include "DisplayDevice.hpp"
+#include "SceneFwd.hpp"
+#include "Texture.hpp"
+#include "VGraphCairo.hpp"
 
 namespace KRE
 {

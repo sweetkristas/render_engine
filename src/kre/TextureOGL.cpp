@@ -64,7 +64,7 @@ namespace KRE
 		init();
 	}
 
-	OpenGLTexture::OpenGLTexture(const std::vector<SurfacePtr>& surfaces, Type type, int mipmap_levels)
+	OpenGLTexture::OpenGLTexture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
 		: Texture(surfaces, type, mipmap_levels), 
 		  format_(GL_RGBA),
 		  internal_format_(GL_RGBA),
@@ -160,7 +160,7 @@ namespace KRE
 					ASSERT_LOG(false, "No support for updating cubic textures yet.");
 			}
 		
-			if(getMipMapLevels() > 0 && getType() > Type::TEXTURE_1D) {
+			if(getMipMapLevels() > 0 && getType() > TextureType::TEXTURE_1D) {
 				glGenerateMipmap(GetGLTextureType(getType()));
 			}
 		}
@@ -191,7 +191,7 @@ namespace KRE
 			case TextureType::TEXTURE_CUBIC:
 				ASSERT_LOG(false, "No support for updating cubic textures yet.");
 		}
-		if(getMipMapLevels() > 0 && getType() > Type::TEXTURE_1D) {
+		if(getMipMapLevels() > 0 && getType() > TextureType::TEXTURE_1D) {
 			glGenerateMipmap(GetGLTextureType(getType()));
 		}
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
