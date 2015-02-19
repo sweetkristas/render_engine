@@ -461,9 +461,6 @@
     <ClInclude Include="..\src\kre\util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\asserts.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\kre\DisplayDeviceOGLFixed.hpp">
       <Filter>Header Files\OpenGLFixed</Filter>
     </ClInclude>
@@ -474,6 +471,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\ColorScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\asserts.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

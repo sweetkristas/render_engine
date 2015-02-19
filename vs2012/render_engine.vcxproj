@@ -76,8 +76,8 @@
     <ClCompile Include="..\src\module.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\asserts.hpp" />
     <ClInclude Include="..\src\ft_iface.hpp" />
-    <ClInclude Include="..\src\kre\asserts.hpp" />
     <ClInclude Include="..\src\kre\AttributeSet.hpp" />
     <ClInclude Include="..\src\kre\AttributeSetOGL.hpp" />
     <ClInclude Include="..\src\kre\Blend.hpp" />
@@ -204,7 +204,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>c:\Projects\render_engine\external\include\cairo;C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\src\kre;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\Projects\render_engine\external\include\cairo;C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\src;C:\Projects\render_engine\src\kre;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

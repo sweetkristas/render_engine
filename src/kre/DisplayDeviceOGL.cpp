@@ -270,6 +270,10 @@ namespace KRE
 				/// xxx need to set lights here.
 			}
 		}
+		
+		if(r->getTexture()) {
+			r->getTexture()->bind();
+		}
 
 		if(r->getRenderTarget()) {
 			r->getRenderTarget()->apply();
@@ -361,6 +365,7 @@ namespace KRE
 			}
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
+
 		if(r->getRenderTarget()) {
 			r->getRenderTarget()->unapply();
 		}
