@@ -36,6 +36,7 @@
     <ClCompile Include="..\src\kre\Font.cpp" />
     <ClCompile Include="..\src\kre\FontSDL.cpp" />
     <ClCompile Include="..\src\kre\Frustum.cpp" />
+    <ClCompile Include="..\src\kre\HintMap.cpp" />
     <ClCompile Include="..\src\kre\LightObject.cpp" />
     <ClCompile Include="..\src\kre\PaletteMap.cpp" />
     <ClCompile Include="..\src\kre\ParticleSystem.cpp" />
@@ -106,6 +107,7 @@
     <ClInclude Include="..\src\kre\FontSDL.hpp" />
     <ClInclude Include="..\src\kre\Frustum.hpp" />
     <ClInclude Include="..\src\kre\geometry.hpp" />
+    <ClInclude Include="..\src\kre\HintMap.hpp" />
     <ClInclude Include="..\src\kre\lexical_cast.hpp" />
     <ClInclude Include="..\src\kre\LightObject.hpp" />
     <ClInclude Include="..\src\kre\PaletteMap.hpp" />

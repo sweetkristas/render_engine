@@ -23,26 +23,23 @@
 
 #pragma once
 
-#include "Renderable.hpp"
-#include "SceneFwd.hpp"
-#include "Util.hpp"
+#include <map>
+#include <string>
+#include <vector>
 
 namespace KRE
 {
-	class SceneObject : public Renderable
+	typedef std::vector<std::string> HintList;
+	typedef std::map<std::string,HintList> HintMap;
+	class HintMapContainer
 	{
 	public:
-		explicit SceneObject(const std::string& name);
-		explicit SceneObject(const variant& node);
-		virtual ~SceneObject();
-		size_t getQueue() const { return queue_; }
-		void setQueue(size_t q) { queue_ = q; }
-		const std::string& objectName() const { return name_; }
-		void setObjectName(const std::string name) { name_ = name; }
+		HintMapContainer();
+		void setHint(const std::string& hint_name, const std::string& hint);
+		void setHint(const std::string& hint_name, const HintList& hint);
+		const std::vector<std::string>& findHint(const std::string& name) const;
+		HintMap getHints() const { return hints_; }
 	private:
-		size_t queue_;
-		std::string name_;
-
-		SceneObject();
+		HintMap hints_;
 	};
 }

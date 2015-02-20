@@ -21,28 +21,34 @@
 	   distribution.
 */
 
-#pragma once
-
-#include "Renderable.hpp"
-#include "SceneFwd.hpp"
-#include "Util.hpp"
+#include "asserts.hpp"
+#include "HintMap.hpp"
 
 namespace KRE
 {
-	class SceneObject : public Renderable
+	HintMapContainer::HintMapContainer()
 	{
-	public:
-		explicit SceneObject(const std::string& name);
-		explicit SceneObject(const variant& node);
-		virtual ~SceneObject();
-		size_t getQueue() const { return queue_; }
-		void setQueue(size_t q) { queue_ = q; }
-		const std::string& objectName() const { return name_; }
-		void setObjectName(const std::string name) { name_ = name; }
-	private:
-		size_t queue_;
-		std::string name_;
+	}
 
-		SceneObject();
-	};
+	const std::vector<std::string>& HintMapContainer::findHint(const std::string& name) const
+	{
+		static std::vector<std::string> no_hint_list;
+		auto it = hints_.find(name);
+		if(it != hints_.end()) {
+			return it->second;
+		}
+		LOG_WARN("No hint named '" << name << "' found.");
+		return no_hint_list;
+	}
+
+	void HintMapContainer::setHint(const std::string& hint_name, const std::string& hint)
+	{
+		HintList hint_list(1,hint);
+		hints_.insert(std::make_pair(hint_name, hint_list));
+	}
+
+	void HintMapContainer::setHint(const std::string& hint_name, const HintList& hint)
+	{
+		hints_[hint_name] = hint;
+	}
 }

@@ -5,22 +5,23 @@
 
 #include <glm/gtc/type_precision.hpp>
 
-#include "kre/AttributeSet.hpp"
+#include "AttributeSet.hpp"
 #include "json.hpp"
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
-#include "kre/CameraObject.hpp"
-#include "kre/Canvas.hpp"
-#include "kre/LightObject.hpp"
-#include "kre/ParticleSystem.hpp"
-#include "kre/Renderable.hpp"
-#include "kre/RenderManager.hpp"
-#include "kre/RenderQueue.hpp"
-#include "kre/RenderTarget.hpp"
-#include "kre/SceneGraph.hpp"
-#include "kre/SceneNode.hpp"
-#include "kre/WindowManager.hpp"
-#include "kre/VGraph.hpp"
+#include "CameraObject.hpp"
+#include "Canvas.hpp"
+#include "LightObject.hpp"
+#include "ParticleSystem.hpp"
+#include "Renderable.hpp"
+#include "RenderManager.hpp"
+#include "RenderQueue.hpp"
+#include "RenderTarget.hpp"
+#include "SceneGraph.hpp"
+#include "SceneNode.hpp"
+#include "Shaders.hpp"
+#include "WindowManager.hpp"
+#include "VGraph.hpp"
 
 namespace
 {	
@@ -37,6 +38,8 @@ namespace
 	public:
 		SquareRenderable() : KRE::SceneObject("square") {
 			using namespace KRE;
+
+			setShader(ShaderProgram::getProgram("attr_color_shader"));
 
 			auto ab = DisplayDevice::createAttributeSet(false, false, false);
 			auto pc = new Attribute<vertex_color>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW);
@@ -108,10 +111,6 @@ namespace
 			setOrder(0);
 		}
 		virtual ~SquareRenderable() {}
-	protected:
-		void doAttach(const KRE::DisplayDevicePtr& dd, KRE::DisplayDeviceDef* def) override {
-			def->setHint("shader", "attr_color_shader");
-		}
 	private:
 		SquareRenderable(const SquareRenderable&);
 		SquareRenderable& operator=(const SquareRenderable&);
@@ -129,6 +128,56 @@ struct SimpleTextureHolder : public KRE::Blittable
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
 	}
+};
+
+struct FreeTextureHolder : public KRE::SceneObject
+{
+	FreeTextureHolder(const std::string& filename)
+		: KRE::SceneObject("FreeTextureHolder") 
+	{
+		using namespace KRE;
+		setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
+		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		setTexture(tex);
+
+		auto as = DisplayDevice::createAttributeSet();
+		attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
+		attribs_->addAttributeDesc(AttributeDesc(AttrType::POSITION, 2, AttrFormat::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
+		attribs_->addAttributeDesc(AttributeDesc(AttrType::TEXTURE,  2, AttrFormat::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
+		as->addAttribute(AttributeBasePtr(attribs_));
+		as->setDrawMode(DrawMode::TRIANGLE_STRIP);
+		
+		addAttributeSet(as);
+	}
+	void preRender(const KRE::WindowManagerPtr& wm) override
+	{
+		const float offs_x = 0.0f;
+		const float offs_y = 0.0f;
+		// XXX we should only do this if things changed.
+		const float vx1 = draw_rect_.x() + offs_x;
+		const float vy1 = draw_rect_.y() + offs_y;
+		const float vx2 = draw_rect_.x2() + offs_x;
+		const float vy2 = draw_rect_.y2() + offs_y;
+
+		const rectf& r = getTexture()->getSourceRectNormalised();
+
+		std::vector<KRE::vertex_texcoord> vertices;
+		vertices.emplace_back(glm::vec2(vx1,vy1), glm::vec2(r.x(),r.y()));
+		vertices.emplace_back(glm::vec2(vx2,vy1), glm::vec2(r.x2(),r.y()));
+		vertices.emplace_back(glm::vec2(vx1,vy2), glm::vec2(r.x(),r.y2()));
+		vertices.emplace_back(glm::vec2(vx2,vy2), glm::vec2(r.x2(),r.y2()));
+		getAttributeSet().back()->setCount(vertices.size());
+		attribs_->update(&vertices);
+	}
+	template<typename T>
+	void setDrawRect(const geometry::Rect<T>& r) {
+		draw_rect_ = r.template as_type<float>();
+	}
+private:
+	std::shared_ptr<KRE::Attribute<KRE::vertex_texcoord>> attribs_;
+	rectf draw_rect_;
 };
 
 int main(int argc, char *argv[])
@@ -157,6 +206,8 @@ int main(int argc, char *argv[])
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
 	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
 	root->attachLight(0, sunlight);
+
+	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 100, 800, 0, 500));
 	
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
@@ -203,6 +254,16 @@ int main(int argc, char *argv[])
 	tex->setOrder(10);
 	root->attachObject(tex);
 
+	// test cloning
+	auto new_tex = std::make_shared<SimpleTextureHolder>(*tex);
+	new_tex->setOrder(tex->getOrder()+1);
+	new_tex->setPosition(800.0f/2.0f, 600.0f/2.0f);
+	root->attachObject(new_tex);
+
+	auto free_tex = std::make_shared<FreeTextureHolder>("card-back.png");
+	free_tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
+	free_tex->setPosition(800.0f - 146.0f, 0.0f);
+
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
@@ -233,6 +294,7 @@ int main(int argc, char *argv[])
 		scene->process(SDL_GetTicks() / 1000.0f);
 
 		tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		new_tex->setRotation(360.0f - angle, glm::vec3(0.0f,0.0f,1.0f));
 		cairo_canvas->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		angle += angle_step;
 		while(angle >= 360.0f) {
@@ -242,7 +304,10 @@ int main(int argc, char *argv[])
 		scene->renderScene(rman);
 		rman->render(main_wnd);
 
-		canvas->blitTexture(canvas_texture, 
+		free_tex->preRender(main_wnd);
+		main_wnd->render(free_tex.get());
+
+		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
 			0.0f, 
 			//rect(800-56, 0, 56, 22), 
@@ -260,7 +325,7 @@ int main(int argc, char *argv[])
 		varray.emplace_back(500, 500);
 		varray.emplace_back(400, 400);
 		varray.emplace_back(400, 500);
-		canvas->drawLines(varray, 10.0f, Color("pink"));
+		canvas->drawLines(varray, 10.0f, Color("pink"));*/
 
 		double t1 = timer.check();
 		if(t1 < 1.0/50.0) {
