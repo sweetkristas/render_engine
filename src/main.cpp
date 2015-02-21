@@ -313,6 +313,14 @@ int main(int argc, char *argv[])
 	free_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
 	free_tex->setPosition(800.0f - 256.0f, 0.0f);
 
+	// Test that cache surfaces and textures is working.
+	std::vector<std::shared_ptr<FreeTextureHolder>> texture_list;		
+	for(int n = 0; n != 100; ++n) {
+		auto surf2 = Surface::create("editor-tools.png");
+		auto tex1 = std::make_shared<FreeTextureHolder>(surf2);
+		texture_list.emplace_back(tex1);
+	}
+
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
