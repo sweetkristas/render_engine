@@ -20,6 +20,7 @@
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "Shaders.hpp"
+#include "Surface.hpp"
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
@@ -132,16 +133,30 @@ struct SimpleTextureHolder : public KRE::Blittable
 
 struct FreeTextureHolder : public KRE::SceneObject
 {
+	FreeTextureHolder(KRE::SurfacePtr surface)
+		: KRE::SceneObject("FreeTextureHolder") 
+	{
+		using namespace KRE;
+		auto tex = DisplayDevice::createTexture(surface, TextureType::TEXTURE_2D);
+		//tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		//tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		setTexture(tex);
+		init();
+	}
 	FreeTextureHolder(const std::string& filename)
 		: KRE::SceneObject("FreeTextureHolder") 
 	{
 		using namespace KRE;
-		setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
 		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
-
+		init();
+	}
+	void init()
+	{
+		using namespace KRE;
+		setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		auto as = DisplayDevice::createAttributeSet();
 		attribs_.reset(new Attribute<vertex_texcoord>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
 		attribs_->addAttributeDesc(AttributeDesc(AttrType::POSITION, 2, AttrFormat::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
@@ -180,6 +195,27 @@ private:
 	rectf draw_rect_;
 };
 
+void set_alpha_masks()
+{
+	LOG_DEBUG("SETTING ALPHA MASKS");
+	using namespace KRE;
+	std::vector<SimpleColor> alpha_colors;
+
+	auto surf = Surface::create("alpha-colors.png");
+	for(auto col : *surf) {
+		alpha_colors.emplace_back(col.red, col.green, col.blue);
+		LOG_DEBUG("Added alpha color: (" << col.red << "," << col.green << "," << col.blue << ")");	
+	}
+	Surface::setAlphaFilter([=](int r, int g, int b) {
+		for(auto& c : alpha_colors) {
+			if(c.red == r && c.green == g && c.blue == b) {
+				return true;
+			}
+		}
+		return false;
+	});
+}
+
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
@@ -195,6 +231,17 @@ int main(int argc, char *argv[])
 	WindowManagerPtr main_wnd = WindowManager::createInstance("SDL", "opengl");
 	main_wnd->enableVsync(true);
 	main_wnd->createWindow(800,600);
+
+#ifdef linux
+	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "images/" + fname; });
+#endif
+
+	auto surf = Surface::create("test_image.png");
+	for(auto col : *surf) {
+		LOG_DEBUG(col.red << "," << col.green << "," << col.blue << "," << col.alpha);
+	}
+	
+	set_alpha_masks();	
 
 	// XXX should a scenegraph be created from a specific window? It'd solve a couple of issues
 	SceneGraphPtr scene = SceneGraph::create("main");
@@ -260,15 +307,17 @@ int main(int argc, char *argv[])
 	new_tex->setPosition(800.0f/2.0f, 600.0f/2.0f);
 	root->attachObject(new_tex);
 
-	auto free_tex = std::make_shared<FreeTextureHolder>("card-back.png");
-	free_tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
-	free_tex->setPosition(800.0f - 146.0f, 0.0f);
+	auto free_surf = Surface::create("editor-tools.png", SurfaceFlags::NO_ALPHA_FILTER);
+	//auto free_tex = std::make_shared<FreeTextureHolder>("editor-tools.png");
+	auto free_tex = std::make_shared<FreeTextureHolder>(free_surf);
+	free_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
+	free_tex->setPosition(800.0f - 256.0f, 0.0f);
 
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
 	auto canvas = Canvas::getInstance();
-	canvas->setDimensions(800, 600);
+	//canvas->setDimensions(800, 600);
 
 	auto canvas_texture = DisplayDevice::createTexture("widgets.png");
 	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
