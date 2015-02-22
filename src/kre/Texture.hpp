@@ -89,7 +89,7 @@ namespace KRE
 		int depth() const { return surfaces_.size(); }
 
 		int surfaceWidth() const { return surface_width_; }
-		int surfacehHeight() const { return surface_height_; }
+		int surfaceHeight() const { return surface_height_; }
 
 		virtual void init() = 0;
 		virtual void bind() = 0;
@@ -128,6 +128,8 @@ namespace KRE
 		static TexturePtr createPalettizedTexture(const std::string& filename, const SurfacePtr& palette);
 		static TexturePtr createPalettizedTexture(const SurfacePtr& surf);
 		static TexturePtr createPalettizedTexture(const SurfacePtr& surf, const SurfacePtr& palette);
+
+		void addPalette(const SurfacePtr& palette);
 
 		const SurfacePtr& getFrontSurface() const { return surfaces_.front(); }
 		std::vector<SurfacePtr> getSurfaces() const { return surfaces_; }
@@ -181,6 +183,7 @@ namespace KRE
 		void setTextureDimensions(int w, int h, int d=0);
 	private:
 		virtual void rebuild() = 0;
+		virtual void handleAddPalette(const SurfacePtr& palette) = 0;
 
 		TextureType type_;
 		int mipmaps_;
