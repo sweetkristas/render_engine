@@ -443,26 +443,30 @@ namespace KRE
 
 	void CanvasOGL::drawSolidCircle(const pointf& centre, float radius, const std::vector<glm::u8vec4>& color) const 
 	{
-		glm::mat4 mvp = mvp_ * glm::translate(glm::mat4(1.0f), glm::vec3(centre.x, centre.y, 0.0f)) * getModelMatrix();
+		glm::mat4 mvp = mvp_ * getModelMatrix();
 
-		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
+		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("attr_color_shader");
 		shader->makeActive();
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
+		shader->setUniformValue(shader->getColorUniform(), /*getColor().asFloatVector()*/ glm::value_ptr(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 
 		// XXX figure out a nice way to do this with shaders.
 		std::vector<glm::vec2> varray;
 		varray.reserve(color.size());
-		varray.emplace_back(0.0f, 0.0f);
-		for(double angle = 0; angle < M_PI * 2.0; angle += (M_PI*2.0*4.0)/color.size()) {
-				varray.emplace_back(radius*cos(angle), radius*sin(angle));
+		varray.emplace_back(centre.x, centre.y);
+		// First color co-ordinate is center of the circle
+		for(int n = 0; n != color.size()-2; ++n) {
+			const float angle = static_cast<float>(n) * static_cast<float>(M_PI * 2.0) / static_cast<float>(color.size() - 2);
+			varray.emplace_back(centre.x + radius * std::cos(angle), centre.y + radius * std::sin(angle));
 		}
+		// last co-ordinate is repeated first point on circle.
 		varray.emplace_back(varray[1]);
 
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
 		glEnableVertexAttribArray(shader->getColorAttribute()->second.location);
 		glVertexAttribPointer(shader->getVertexAttribute()->second.location, 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
 		glVertexAttribPointer(shader->getColorAttribute()->second.location, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, &color[0]);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 1);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, varray.size());
 		glDisableVertexAttribArray(shader->getColorAttribute()->second.location);
 		glDisableVertexAttribArray(shader->getVertexAttribute()->second.location);
 

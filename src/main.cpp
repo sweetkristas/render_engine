@@ -391,6 +391,20 @@ int main(int argc, char *argv[])
 		canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
 		canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
 
+		const int num_points = 12;
+		std::vector<glm::u8vec4> circle_colors;
+		circle_colors.emplace_back(255, 255, 255, 255); // center color.
+		float hue = 0;
+		const float sat = 1.0f;
+		const float value = 1.0f;
+		for(int n = 0; n != num_points; n++) {
+			auto c = Color::from_hsv(hue, sat, value);
+			circle_colors.emplace_back(c.ri(), c.gi(), c.bi(), c.ai());
+			hue += 1.0f/static_cast<float>(num_points-1);
+		}
+		circle_colors.emplace_back(circle_colors[1]);
+		canvas->drawSolidCircle(pointf(400.0f, 300.0f), 150.0f, circle_colors);
+
 		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
 			0.0f, 
