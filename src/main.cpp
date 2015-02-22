@@ -379,14 +379,17 @@ int main(int argc, char *argv[])
 			angle -= 360.0f;
 		}
 
-		scene->renderScene(rman);
+		/*scene->renderScene(rman);
 		rman->render(main_wnd);
 
 		free_tex->preRender(main_wnd);
 		main_wnd->render(free_tex.get());
 
 		text_tex->preRender(main_wnd);
-		main_wnd->render(text_tex.get());
+		main_wnd->render(text_tex.get());*/
+
+		canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
+		canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
 
 		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
