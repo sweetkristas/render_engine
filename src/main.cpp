@@ -11,6 +11,7 @@
 #include "SDLWrapper.hpp"
 #include "CameraObject.hpp"
 #include "Canvas.hpp"
+#include "Font.hpp"
 #include "LightObject.hpp"
 #include "ParticleSystem.hpp"
 #include "Renderable.hpp"
@@ -143,6 +144,13 @@ struct FreeTextureHolder : public KRE::SceneObject
 		setTexture(tex);
 		init();
 	}
+	FreeTextureHolder(KRE::TexturePtr tex)
+		: KRE::SceneObject("FreeTextureHolder") 
+	{
+		using namespace KRE;
+		setTexture(tex);
+		init();
+	}
 	FreeTextureHolder(const std::string& filename)
 		: KRE::SceneObject("FreeTextureHolder") 
 	{
@@ -155,6 +163,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 	}
 	void init()
 	{
+		setDrawRect(rect(0, 0, getTexture()->surfaceWidth(), getTexture()->surfaceHeight()));
 		using namespace KRE;
 		setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		auto as = DisplayDevice::createAttributeSet();
@@ -254,7 +263,7 @@ int main(int argc, char *argv[])
 	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
 	root->attachLight(0, sunlight);
 
-	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 100, 800, 0, 500));
+	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, 800, 0, 600));
 	
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
@@ -321,6 +330,18 @@ int main(int argc, char *argv[])
 		texture_list.emplace_back(tex1);
 	}
 
+	std::map<std::string, std::string> font_paths;
+	font_paths["FreeSans.ttf"] = "FreeSans.ttf";
+	Font::setAvailableFonts(font_paths);
+	auto fnt_surf = Font::getInstance()->renderText("test", Color::colorOrange(), 20, false, "FreeSans.ttf");
+	auto text_tex = std::make_shared<FreeTextureHolder>(fnt_surf);
+	//text_tex->setDrawRect(rect(0, 0, fnt_surf->surfaceWidth(), fnt_surf->surfaceHeight()));
+	text_tex->setPosition(fnt_surf->surfaceWidth()/2, fnt_surf->surfaceHeight()/2);
+	//text_tex->setPosition(fnt_surf->surfaceWidth()/2, fnt_surf->surfaceHeight()/2);
+	//text_tex->setDrawRect(rectf(0.0f, 0.0f, fnt_surf->surfaceWidth(), fnt_surf->surfaceHeight()));
+	//text_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
+	//text_tex->setPosition(128.0f,128.0f);
+
 	float angle = 1.0f;
 	float angle_step = 0.5f;
 
@@ -363,6 +384,9 @@ int main(int argc, char *argv[])
 
 		free_tex->preRender(main_wnd);
 		main_wnd->render(free_tex.get());
+
+		text_tex->preRender(main_wnd);
+		main_wnd->render(text_tex.get());
 
 		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
