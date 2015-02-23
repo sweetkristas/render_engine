@@ -225,42 +225,6 @@ void set_alpha_masks()
 	});
 }
 
-namespace 
-{
-	struct rgb
-	{
-		uint8_t r, g, b;
-	};
-
-	rgb hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v)
-	{
-		rgb out;
-		uint8_t region, remainder, p, q, t;
-
-		if(s == 0) {
-			out.r = out.g = out.b = v;
-		} else {
-			region = h / 43;
-			remainder = (h - (region * 43)) * 6; 
-
-			p = (v * (255 - s)) >> 8;
-			q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-			t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
-
-			switch(region)
-			{
-				case 0:  out.r = v; out.g = t; out.b = p; break;
-				case 1:  out.r = q; out.g = v; out.b = p; break;
-				case 2:  out.r = p; out.g = v; out.b = t; break;
-				case 3:  out.r = p; out.g = q; out.b = v; break;
-				case 4:  out.r = t; out.g = p; out.b = v; break;
-				default: out.r = v; out.g = p; out.b = q; break;
-			}
-		}
-		return out;
-	}
-}
-
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
@@ -387,24 +351,6 @@ int main(int argc, char *argv[])
 	auto canvas_texture = DisplayDevice::createTexture("widgets.png");
 	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
 
-	// render target test.
-	auto rt1 = RenderTarget::create(300, 300);
-	{
-		RenderTarget::RenderScope render_scope(rt1);
-		//rt1->setClearColor(Color::colorRed());
-		rt1->setClearColor(Color(0,0,0,0));
-		rt1->clear();
-		canvas->setDimensions(300, 300);
-		std::vector<glm::u8vec4> circle_colors2;
-		generate_color_wheel(60, &circle_colors2, Color(0,0,0,0), 0.8f, 0.8f);
-		canvas->drawSolidCircle(point(150, 150), 150.0f, circle_colors2);
-		canvas->drawSolidRect(rect(50, 50, 200, 200), Color::colorGrey());
-		canvas->drawSolidCircle(point(150, 150), 20.0f, Color::colorCyan());
-		rt1->setCentre(Blittable::Centre::TOP_LEFT);
-		rt1->preRender(main_wnd);
-		canvas->setDimensions(800, 600);
-	}
-
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
@@ -445,26 +391,19 @@ int main(int argc, char *argv[])
 		canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
 		canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
 
+		const int num_points = 12;
 		std::vector<glm::u8vec4> circle_colors;
-		generate_color_wheel(60, &circle_colors, Color(0,0,0,0), 0.1f, 0.1f);
-		canvas->drawSolidCircle(point(400, 300), 150.0f, circle_colors);
-
-		canvas->blitTexture(rt1->getTexture(), 0.0f, 0, 300);
-
-		{
-			Canvas::ModelManager mm(0, 0, 10.0f, 1.0f);
-			canvas->drawSolidRect(rect(600, 400, 100, 100), Color::colorCoral());
-			{
-				Canvas::ModelManager mm(500, 300, 20.0f, 3.0f);
-				/*mm.setIdentity();
-				mm.translate(700, 500);
-				mm.translate(-200, -200);
-				mm.rotate(20);
-				mm.scale(1.5f);
-				mm.scale(2.0f);*/
-				canvas->drawSolidRect(rect(0, 0, 100, 100), Color::colorChartreuse());
-			}
+		circle_colors.emplace_back(255, 255, 255, 255); // center color.
+		float hue = 0;
+		const float sat = 1.0f;
+		const float value = 1.0f;
+		for(int n = 0; n != num_points; n++) {
+			auto c = Color::from_hsv(hue, sat, value);
+			circle_colors.emplace_back(c.ri(), c.gi(), c.bi(), c.ai());
+			hue += 1.0f/static_cast<float>(num_points-1);
 		}
+		circle_colors.emplace_back(circle_colors[1]);
+		canvas->drawSolidCircle(pointf(400.0f, 300.0f), 150.0f, circle_colors);
 
 		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 
