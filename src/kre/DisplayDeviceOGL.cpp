@@ -137,6 +137,9 @@ namespace KRE
 		seperate_blend_equations_ = extensions_.find("EXT_blend_equation_separate") != extensions_.end();
 		have_render_to_texture_ = extensions_.find("EXT_framebuffer_object") != extensions_.end();
 		npot_textures_ = extensions_.find("ARB_texture_non_power_of_two") != extensions_.end();
+
+		int64_t max_element_index;
+		glGetInteger64v(GL_MAX_ELEMENT_INDEX, &max_element_index);
 	}
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
