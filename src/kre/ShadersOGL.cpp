@@ -445,12 +445,12 @@ namespace KRE
 			}
 			auto alt_name_it = attribute_alternate_name_map_.find(attr);
 			if(alt_name_it == attribute_alternate_name_map_.end()) {
-				LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
+				//LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 				return GLint(-1);
 			}
 			it = attribs_.find(alt_name_it->second);
 			if(it == attribs_.end()) {
-				LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
+				//LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 				return GLint(-1);
 			}
 			return it->second.location;
@@ -464,12 +464,12 @@ namespace KRE
 			}
 			auto alt_name_it = uniform_alternate_name_map_.find(attr);
 			if(alt_name_it == uniform_alternate_name_map_.end()) {
-				LOG_WARN("Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
+				//LOG_WARN("Uniform '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 				return GLint(-1);
 			}
 			it = uniforms_.find(alt_name_it->second);
 			if(it == uniforms_.end()) {
-				LOG_WARN("Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
+				//LOG_WARN("Uniform \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 				return GLint(-1);
 			}
 			return it->second.location;
