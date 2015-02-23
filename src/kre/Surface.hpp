@@ -188,6 +188,8 @@ namespace KRE
 
 		unsigned getColorCount(ColorCountFlags flags=ColorCountFlags::NONE);
 
+		virtual const std::vector<Color>& getPalette() = 0;
+
 		static bool registerSurfaceCreator(const std::string& name, 
 			SurfaceCreatorFileFn file_fn, 
 			SurfaceCreatorPixelsFn pixels_fn, 

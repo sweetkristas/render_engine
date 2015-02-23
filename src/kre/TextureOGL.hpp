@@ -60,7 +60,7 @@ namespace KRE
 		TexturePtr clone() override;
 		static void handleClearTextures();
 	private:
-		void createTexture(const PixelFormat::PF& fmt);
+		void createTexture(int n, const PixelFormat::PF& fmt);
 		void rebuild() override;
 		void handleAddPalette(const SurfacePtr& palette) override;
 
@@ -71,9 +71,13 @@ namespace KRE
 		// Still deciding whether to use a vector of shared_ptr<GLuint>
 		// Whether to store the textures in a registry, with ref-counting.
 		// or what we do here.
-		std::vector<std::shared_ptr<GLuint>> texture_ids_;
+		struct TextureData {
+			std::shared_ptr<GLuint> id;
+			PixelFormat::PF fmt;
+			std::vector<Color> palette;
+		};
+		std::vector<TextureData> texture_data_;
 
-		PixelFormat::PF pixel_format_;
 		// Set for YUV style textures;
 		bool is_yuv_planar_;
 

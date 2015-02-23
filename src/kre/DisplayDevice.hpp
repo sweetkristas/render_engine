@@ -37,12 +37,15 @@
 
 namespace KRE
 {
-	enum class DisplayDeviceCapabilties
-	{
+	enum class DisplayDeviceCapabilties {
 		NPOT_TEXTURES,
 		BLEND_EQUATION_SEPERATE,
 		RENDER_TO_TEXTURE,
 		SHADERS,
+	};
+
+	enum class DisplayDeviceParameters {
+		MAX_TEXTURE_UNITS,
 	};
 
 	enum class ClearFlags {
@@ -150,6 +153,8 @@ namespace KRE
 		virtual ShaderProgramPtr getShaderProgram(const std::string& name) = 0;
 		virtual ShaderProgramPtr getShaderProgram(const variant& node) = 0;
 		virtual ShaderProgramPtr getDefaultShader() = 0;
+
+		virtual int queryParameteri(DisplayDeviceParameters param) = 0;
 
 		virtual BlendEquationImplBasePtr getBlendEquationImpl() = 0;
 

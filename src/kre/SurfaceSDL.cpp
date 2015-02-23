@@ -134,6 +134,7 @@ namespace KRE
 		}
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
+		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(SDL_Surface* surface)
@@ -142,6 +143,7 @@ namespace KRE
 		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
+		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(int width, int height, PixelFormat::PF format)
@@ -155,6 +157,7 @@ namespace KRE
 		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
+		createPalette();
 	}
 
 	SurfaceSDL::~SurfaceSDL()
@@ -208,6 +211,19 @@ namespace KRE
 			});	
 		}
 		return shared_from_this();
+	}
+
+	void SurfaceSDL::createPalette()
+	{
+		ASSERT_LOG(surface_ != nullptr, "No internal surface for createPalette.");
+		ASSERT_LOG(surface_->format != nullptr, "No internal format field.");
+		if(surface_->format->palette) {
+			auto p = surface_->format->palette;
+			palette_.resize(p->ncolors);
+			for(int n = 0; n != p->ncolors; ++n) {
+				palette_[n] = Color(p->colors[n].r, p->colors[n].g, p->colors[n].b, p->colors[n].a);
+			}
+		}
 	}
 
 	const void* SurfaceSDL::pixels() const

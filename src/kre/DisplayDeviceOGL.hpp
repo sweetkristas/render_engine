@@ -69,6 +69,8 @@ namespace KRE
 		void init(size_t width, size_t height) override;
 		void printDeviceInfo() override;
 
+		int queryParameteri(DisplayDeviceParameters param) override;
+
 		void setViewPort(int x, int y, unsigned width, unsigned height) override;
 	private:
 		DisplayDeviceOpenGL(const DisplayDeviceOpenGL&);
@@ -106,6 +108,7 @@ namespace KRE
 		bool seperate_blend_equations_;
 		bool have_render_to_texture_;
 		bool npot_textures_;
+		int max_texture_units_;
 
 		int major_version_;
 		int minor_version_;

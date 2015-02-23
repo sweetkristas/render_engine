@@ -152,6 +152,8 @@ namespace KRE
 		void blitTo(SurfacePtr src, const rect& dst_rect) override;
 		void blitToScaled(SurfacePtr src, const rect& src_rect, const rect& dst_rect) override;
 
+		const std::vector<Color>& getPalette() override { return palette_; }
+
 		void setBlendMode(BlendMode bm) override;
 		BlendMode getBlendMode() const override;
 
@@ -190,9 +192,11 @@ namespace KRE
 	private:
 		SurfacePtr handleConvert(PixelFormat::PF fmt, SurfaceConvertFn convert) override;
 		SurfacePtr runGlobalAlphaFilter() override;
+		void createPalette();
 
 		SDL_Surface* surface_;
 		bool has_data_;
+		std::vector<Color> palette_;
 		SurfaceSDL();
 	};
 }

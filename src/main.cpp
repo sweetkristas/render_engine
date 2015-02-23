@@ -156,7 +156,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 	{
 		using namespace KRE;
 		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
-		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		//tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
 		init();
@@ -405,6 +405,11 @@ int main(int argc, char *argv[])
 		canvas->setDimensions(800, 600);
 	}
 
+	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
+	palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
+	palette_tex->setPosition(400.0f - palette_tex->getTexture()->surfaceWidth(), 300.0f - palette_tex->getTexture()->surfaceHeight());
+	palette_tex->setScale(2.0f, 2.0f);
+
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
@@ -433,6 +438,9 @@ int main(int argc, char *argv[])
 			angle -= 360.0f;
 		}
 
+		palette_tex->preRender(main_wnd);
+		main_wnd->render(palette_tex.get());
+
 		/*scene->renderScene(rman);
 		rman->render(main_wnd);
 
@@ -442,29 +450,29 @@ int main(int argc, char *argv[])
 		text_tex->preRender(main_wnd);
 		main_wnd->render(text_tex.get());*/
 
-		canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
-		canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
+		//canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
+		//canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
 
-		std::vector<glm::u8vec4> circle_colors;
-		generate_color_wheel(60, &circle_colors, Color(0,0,0,0), 0.1f, 0.1f);
-		canvas->drawSolidCircle(point(400, 300), 150.0f, circle_colors);
+		//std::vector<glm::u8vec4> circle_colors;
+		//generate_color_wheel(60, &circle_colors, Color(0,0,0,0), 0.1f, 0.1f);
+		//canvas->drawSolidCircle(point(400, 300), 150.0f, circle_colors);
 
-		canvas->blitTexture(rt1->getTexture(), 0.0f, 0, 300);
+		//canvas->blitTexture(rt1->getTexture(), 0.0f, 0, 300);
 
-		{
+		/*{
 			Canvas::ModelManager mm(0, 0, 10.0f, 1.0f);
 			canvas->drawSolidRect(rect(600, 400, 100, 100), Color::colorCoral());
 			{
-				Canvas::ModelManager mm(500, 300, 20.0f, 3.0f);
+				Canvas::ModelManager mm(500, 300, 20.0f, 3.0f);*/
 				/*mm.setIdentity();
 				mm.translate(700, 500);
 				mm.translate(-200, -200);
 				mm.rotate(20);
 				mm.scale(1.5f);
 				mm.scale(2.0f);*/
-				canvas->drawSolidRect(rect(0, 0, 100, 100), Color::colorChartreuse());
+				/*canvas->drawSolidRect(rect(0, 0, 100, 100), Color::colorChartreuse());
 			}
-		}
+		}*/
 
 		/*canvas->blitTexture(canvas_texture, 
 			rect(3,4,56,22), 

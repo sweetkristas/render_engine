@@ -94,7 +94,8 @@ namespace KRE
 		  have_render_to_texture_(false),
 		  npot_textures_(false),
 		  major_version_(0),
-		  minor_version_(0)
+		  minor_version_(0),
+		  max_texture_units_(-1)
 	{
 	}
 
@@ -137,6 +138,10 @@ namespace KRE
 		seperate_blend_equations_ = extensions_.find("EXT_blend_equation_separate") != extensions_.end();
 		have_render_to_texture_ = extensions_.find("EXT_framebuffer_object") != extensions_.end();
 		npot_textures_ = extensions_.find("ARB_texture_non_power_of_two") != extensions_.end();
+
+		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units_);
+		err = glGetError();
+		LOG_ERROR("Failed query for GL_MAX_TEXTURE_IMAGE_UNITS: 0x" << std::hex << err);
 	}
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
@@ -150,6 +155,23 @@ namespace KRE
 		} else {
 			std::cerr << "OpenGL version: " << major_version_ << "." << minor_version_ << std::endl;
 		}
+		
+		if(max_texture_units_ > 0) {
+			LOG_INFO("Maximum texture units: " << max_texture_units_);
+		} else {
+			LOG_INFO("Maximum texture units: <<unknown>>" );
+		}
+	}
+
+	int DisplayDeviceOpenGL::queryParameteri(DisplayDeviceParameters param)
+	{
+		switch (param)
+		{
+		case DisplayDeviceParameters::MAX_TEXTURE_UNITS:	return max_texture_units_;
+		default: break;
+		}
+		ASSERT_LOG(false, "Invalid Parameter requested: " << static_cast<int>(param));
+		return -1;
 	}
 
 	void DisplayDeviceOpenGL::clearTextures()
