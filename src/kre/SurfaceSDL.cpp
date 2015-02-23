@@ -24,6 +24,7 @@
 #ifndef _USE_MATH_DEFINES
 #	define _USE_MATH_DEFINES	1
 #endif 
+#define HAVE_M_PI
 
 #include "SDL_image.h"
 
