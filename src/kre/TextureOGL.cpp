@@ -62,10 +62,7 @@ namespace KRE
 	OpenGLTexture::OpenGLTexture(const variant& node, const std::vector<SurfacePtr>& surfaces)
 		: Texture(node, surfaces),
 		  texture_data_(),
-		  is_yuv_planar_(false),
-		  format_(GL_RGBA),
-		  internal_format_(GL_RGBA),
-		  type_(GL_UNSIGNED_BYTE)
+		  is_yuv_planar_(false)
 	{
 		int max_tex_units = DisplayDevice::getCurrent()->queryParameteri(DisplayDeviceParameters::MAX_TEXTURE_UNITS);
 		if(max_tex_units > 0) {
@@ -75,8 +72,8 @@ namespace KRE
 		texture_data_.resize(getSurfaces().size());
 		int n = 0;
 		for(auto& surf : getSurfaces()) {
-			texture_data_[n].fmt = surf->getPixelFormat()->getFormat();
-			createTexture(n, texture_data_[n].fmt);
+			texture_data_[n].surface_format = surf->getPixelFormat()->getFormat();
+			createTexture(n);
 			++n;
 		}
 		init();
@@ -85,10 +82,7 @@ namespace KRE
 	OpenGLTexture::OpenGLTexture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
 		: Texture(surfaces, type, mipmap_levels), 
 		  texture_data_(),
-		  is_yuv_planar_(false),
-		  format_(GL_RGBA),
-		  internal_format_(GL_RGBA),
-		  type_(GL_UNSIGNED_BYTE)
+		  is_yuv_planar_(false)
 	{
 		int max_tex_units = DisplayDevice::getCurrent()->queryParameteri(DisplayDeviceParameters::MAX_TEXTURE_UNITS);
 		if(max_tex_units > 0) {
@@ -97,55 +91,26 @@ namespace KRE
 		texture_data_.resize(getSurfaces().size());
 		int n = 0;
 		for(auto& surf : surfaces) {
-			texture_data_[n].fmt = surf->getPixelFormat()->getFormat();
-			createTexture(n, texture_data_[n].fmt);
+			texture_data_[n].surface_format = surf->getPixelFormat()->getFormat();
+			createTexture(n);
 			++n;
 		}
 		init();
 	}
 
-	OpenGLTexture::OpenGLTexture(int count,
-		int width, 
-		int height, 
-		PixelFormat::PF fmt, 
-		TextureType type, 
-		unsigned depth)
+	OpenGLTexture::OpenGLTexture(int count, int width, int height, int depth, PixelFormat::PF fmt, TextureType type)
 		: Texture(count, width, height, depth, fmt, type),
 		  texture_data_(),
-		  is_yuv_planar_(false),
-		  format_(GL_RGBA),
-		  internal_format_(GL_RGBA),
-		  type_(GL_UNSIGNED_BYTE)
+		  is_yuv_planar_(false)
 	{
 		int max_tex_units = DisplayDevice::getCurrent()->queryParameteri(DisplayDeviceParameters::MAX_TEXTURE_UNITS);
 		if(max_tex_units > 0) {
 			ASSERT_LOG(count < max_tex_units, "Number of surfaces given exceeds maximum number of texture units for this hardware.");
 		}
 		texture_data_.resize(count);
-		setTextureDimensions(width, height, depth);
 		for(int n = 0; n != count; ++n) {
-			texture_data_[n].fmt = fmt;
-			createTexture(n, fmt);
-		}
-		init();
-	}
-
-	OpenGLTexture::OpenGLTexture(const SurfacePtr& surf, SurfacePtr palette)
-		: Texture(surf, palette),
-		  texture_data_(),
-		  is_yuv_planar_(false),
-		  format_(GL_RGBA),
-		  internal_format_(GL_RGBA),
-		  type_(GL_UNSIGNED_BYTE)
-	{
-		ASSERT_LOG(surf != nullptr, "Surface was null.");
-		texture_data_.resize(1);
-		texture_data_[0].fmt = surf->getPixelFormat()->getFormat();
-		createTexture(0, texture_data_[0].fmt);
-		if(palette) {
-			texture_data_.resize(2);
-			texture_data_[1].fmt = palette->getPixelFormat()->getFormat();
-			createTexture(1, texture_data_[1].fmt);
+			texture_data_[n].surface_format = fmt;
+			createTexture(n);
 		}
 		init();
 	}
@@ -154,30 +119,32 @@ namespace KRE
 	{
 	}
 
-	void OpenGLTexture::update(int x, unsigned width, void* pixels)
+	void OpenGLTexture::update(int x, int width, void* pixels)
 	{
+		auto& td = texture_data_[0];
 		ASSERT_LOG(is_yuv_planar_ == false, "1D Texture Update function called on YUV planar format.");
-		glBindTexture(GetGLTextureType(getType()), *texture_data_[0].id);
+		glBindTexture(GetGLTextureType(getType()), *td.id);
 		ASSERT_LOG(getType() == TextureType::TEXTURE_1D, "Tried to do 1D texture update on non-1D texture");
 		if(getUnpackAlignment() != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
 		}
-		glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, format_, type_, pixels);
+		glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, td.format, td.type, pixels);
 	}
 
 	// Add a 2D update function which has single stride, but doesn't support planar YUV.
 
-	void OpenGLTexture::update(int x, int y, unsigned width, unsigned height, const int* stride, const void* pixels)
+	void OpenGLTexture::update(int x, int y, int width, int height, const int* stride, const void* pixels)
 	{
 		ASSERT_LOG(false, "XXX: void OpenGLTexture::update(int x, int y, unsigned width, unsigned height, const int* stride, const void* pixels)");
 	}
 
 	// Stride is the width of the image surface *in pixels*
-	void OpenGLTexture::update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, const void* pixels)
+	void OpenGLTexture::update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels)
 	{
 		int num_textures = is_yuv_planar_ ? 2 : 0;
 		for(int n = num_textures; n >= 0; --n) {
-			glBindTexture(GetGLTextureType(getType()), *texture_data_[n].id);
+			auto& td = texture_data_[n];
+			glBindTexture(GetGLTextureType(getType()), *td.id);
 			if(stride.size() > size_t(n)) {
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, stride[n]);
 			}
@@ -188,10 +155,10 @@ namespace KRE
 				case TextureType::TEXTURE_1D:
 					LOG_WARN("Running 2D texture update on 1D texture.");
 					ASSERT_LOG(is_yuv_planar_ == false, "Update of 1D Texture in YUV planar mode.");
-					glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, format_, type_, pixels);
+					glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, td.format, td.type, pixels);
 					break;
 				case TextureType::TEXTURE_2D:
-					glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, n>0?width/2:width, n>0?height/2:height, format_, type_, pixels);
+					glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, n>0?width/2:width, n>0?height/2:height, td.format, td.type, pixels);
 					break;
 				case TextureType::TEXTURE_3D:
 					ASSERT_LOG(false, "Tried to do 2D texture update on 3D texture");
@@ -209,24 +176,25 @@ namespace KRE
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
 
-	void OpenGLTexture::update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels)
+	void OpenGLTexture::update(int x, int y, int z, int width, int height, int depth, void* pixels)
 	{
 		ASSERT_LOG(is_yuv_planar_ == false, "3D Texture Update function called on YUV planar format.");
-		glBindTexture(GetGLTextureType(getType()), *texture_data_[0].id);
+		auto& td = texture_data_[0];
+		glBindTexture(GetGLTextureType(getType()), *td.id);
 		if(getUnpackAlignment() != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
 		}
 		switch(getType()) {
 			case TextureType::TEXTURE_1D:
 				LOG_WARN("Running 2D texture update on 1D texture. You may get unexpected results.");
-				glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, format_, type_, pixels);
+				glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, td.format, td.type, pixels);
 				break;
 			case TextureType::TEXTURE_2D:
 				LOG_WARN("Running 3D texture update on 2D texture. You may get unexpected results.");
-				glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, width, height, format_, type_, pixels);
+				glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, width, height, td.format, td.type, pixels);
 				break;
 			case TextureType::TEXTURE_3D:
-				glTexSubImage3D(GetGLTextureType(getType()), 0, x, y, z, width, height, depth, format_, type_, pixels);
+				glTexSubImage3D(GetGLTextureType(getType()), 0, x, y, z, width, height, depth, td.format, td.type, pixels);
 			case TextureType::TEXTURE_CUBIC:
 				ASSERT_LOG(false, "No support for updating cubic textures yet.");
 		}
@@ -242,170 +210,171 @@ namespace KRE
 		ASSERT_LOG(colors < 256, "Can't convert surface to palettized version. Too many colors in source image: " << colors);
 		LOG_DEBUG("Color count: " << colors);
 		texture_data_.resize(texture_data_.size() + 1);
-		texture_data_.back().fmt = palette->getPixelFormat()->getFormat();
-		createTexture(texture_data_.size()-1, texture_data_.back().fmt);
+		texture_data_.back().surface_format = palette->getPixelFormat()->getFormat();
+		createTexture(texture_data_.size()-1);
 		//iinit();
 	}
 
-	void OpenGLTexture::createTexture(int n, const PixelFormat::PF& fmt)
-	{		
+	void OpenGLTexture::createTexture(int n)
+	{
+		auto& td = texture_data_[n];
 		auto surf = n < static_cast<int>(getSurfaces().size()) ? getSurfaces()[n] : SurfacePtr();
 
 		// Change the format/internalFormat/type depending on the 
 		// data we now about the surface.
 		// XXX these need testing for correctness.
-		switch(fmt) {
+		switch(td.surface_format) {
 			case PixelFormat::PF::PIXELFORMAT_INDEX1LSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX8:
 				texture_data_[n].palette = getSurfaces()[n]->getPalette();
-				format_ = GL_R8;
-				internal_format_ = GL_R8;
-				type_ = GL_UNSIGNED_BYTE;
+				td.format = GL_R8;
+				td.internal_format = GL_R8;
+				td.type = GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB332:
-				format_ = GL_RGB;
-				internal_format_ = GL_R3_G3_B2;
-				type_ = GL_UNSIGNED_BYTE_3_3_2;
+				td.format = GL_RGB;
+				td.internal_format = GL_R3_G3_B2;
+				td.type = GL_UNSIGNED_BYTE_3_3_2;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB444:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB4;
-				type_ = GL_UNSIGNED_SHORT;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB4;
+				td.type = GL_UNSIGNED_SHORT;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB555:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB5;
-				type_ = GL_UNSIGNED_SHORT;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB5;
+				td.type = GL_UNSIGNED_SHORT;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR555:
-				format_ = GL_BGR;
-				internal_format_ = GL_RGB4;
-				type_ = GL_UNSIGNED_SHORT;
+				td.format = GL_BGR;
+				td.internal_format = GL_RGB4;
+				td.type = GL_UNSIGNED_SHORT;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB4444:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA4;
-				type_ =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGBA4;
+				td.type =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGBA4444:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGBA4;
-				type_ =  GL_UNSIGNED_SHORT_4_4_4_4;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGBA4;
+				td.type =  GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ABGR4444:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGBA4;
-				type_ =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGBA4;
+				td.type =  GL_UNSIGNED_SHORT_4_4_4_4_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGRA4444:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA4;
-				type_ =  GL_UNSIGNED_SHORT_4_4_4_4;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGBA4;
+				td.type =  GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB1555:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGB5_A1;
-				type_ =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGB5_A1;
+				td.type =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGBA5551:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGB5_A1;
-				type_ =  GL_UNSIGNED_SHORT_5_5_5_1;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGB5_A1;
+				td.type =  GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ABGR1555:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGB5_A1;
-				type_ =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGB5_A1;
+				td.type =  GL_UNSIGNED_SHORT_1_5_5_5_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGRA5551:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGB5_A1;
-				type_ =  GL_UNSIGNED_SHORT_5_5_5_1;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGB5_A1;
+				td.type =  GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB565:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB;
-				type_ =  GL_UNSIGNED_SHORT_5_6_5;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB;
+				td.type =  GL_UNSIGNED_SHORT_5_6_5;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR565:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB;
-				type_ =  GL_UNSIGNED_SHORT_5_6_5_REV;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB;
+				td.type =  GL_UNSIGNED_SHORT_5_6_5_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB24:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_BYTE;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR24:
-				format_ = GL_BGR;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_BYTE;
+				td.format = GL_BGR;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB888:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_BYTE;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGBX8888:
-				format_ = GL_RGB;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_INT_8_8_8_8;
+				td.format = GL_RGB;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_INT_8_8_8_8;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR888:
-				format_ = GL_BGR;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_BYTE;
+				td.format = GL_BGR;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGRX8888:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGB8;
-				type_ =  GL_UNSIGNED_INT_8_8_8_8;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGB8;
+				td.type =  GL_UNSIGNED_INT_8_8_8_8;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB8888:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGBA8;
+				td.type = GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_XRGB8888:
 				// XX not sure these are correct or not
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGB8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGB8;
+				td.type = GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGBA8888:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGBA8;
+				td.type = GL_UNSIGNED_INT_8_8_8_8;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ABGR8888:
-				format_ = GL_RGBA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8_REV;
+				td.format = GL_RGBA;
+				td.internal_format = GL_RGBA8;
+				td.type = GL_UNSIGNED_INT_8_8_8_8_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGRA8888:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_8_8_8_8;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGBA8;
+				td.type = GL_UNSIGNED_INT_8_8_8_8;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB2101010:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGBA8;
-				type_ = GL_UNSIGNED_INT_2_10_10_10_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGBA8;
+				td.type = GL_UNSIGNED_INT_2_10_10_10_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB101010:
-				format_ = GL_BGRA;
-				internal_format_ = GL_RGB10;
-				type_ = GL_UNSIGNED_INT_2_10_10_10_REV;
+				td.format = GL_BGRA;
+				td.internal_format = GL_RGB10;
+				td.type = GL_UNSIGNED_INT_2_10_10_10_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_YV12:
 			case PixelFormat::PF::PIXELFORMAT_IYUV:
-				format_ = GL_LUMINANCE;
-				internal_format_ = GL_LUMINANCE;
-				type_ = GL_UNSIGNED_BYTE;
+				td.format = GL_LUMINANCE;
+				td.internal_format = GL_LUMINANCE;
+				td.type = GL_UNSIGNED_BYTE;
 				is_yuv_planar_ = true;
 				ASSERT_LOG(getType() == TextureType::TEXTURE_2D, "YUV style pixel format only supported for 2D textures.");
 				break;
@@ -451,28 +420,28 @@ namespace KRE
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
 		}
 
-		const void* pixels = surf != nullptr ? getSurfaces()[n]->pixels() : 0;
+		const void* pixels = surf != nullptr ? surf->pixels() : 0;
 		switch(getType()) {
 			case TextureType::TEXTURE_1D:
 				if(pixels == nullptr) {
-					glTexImage1D(GetGLTextureType(getType()), 0, internal_format_, w, 0, format_, type_, 0);
+					glTexImage1D(GetGLTextureType(getType()), 0, td.internal_format, w, 0, td.format, td.type, 0);
 				} else {
-					glTexImage1D(GetGLTextureType(getType()), 0, internal_format_, surf->width(), 0, format_, type_, pixels);
+					glTexImage1D(GetGLTextureType(getType()), 0, td.internal_format, surf->width(), 0, td.format, td.type, pixels);
 				}
 				break;
 			case TextureType::TEXTURE_2D:
 				if(pixels == nullptr) {
-					glTexImage2D(GetGLTextureType(getType()), 0, internal_format_, w, h, 0, format_, type_, 0);
+					glTexImage2D(GetGLTextureType(getType()), 0, td.internal_format, w, h, 0, td.format, td.type, 0);
 				} else {
-					glTexImage2D(GetGLTextureType(getType()), 0, internal_format_, surf->width(), surf->height(), 0, format_, type_, pixels);
+					glTexImage2D(GetGLTextureType(getType()), 0, td.internal_format, surf->width(), surf->height(), 0, td.format, td.type, pixels);
 				}
 				break;
 			case TextureType::TEXTURE_3D:
 				// XXX this isn't correct fixme.
 				if(pixels == nullptr) {
-					glTexImage3D(GetGLTextureType(getType()), 0, internal_format_, w, h, d, 0, format_, type_, 0);
+					glTexImage3D(GetGLTextureType(getType()), 0, td.internal_format, w, h, d, 0, td.format, td.type, 0);
 				} else {
-					glTexImage3D(GetGLTextureType(getType()), 0, internal_format_, w, h, d, 0, format_, type_, pixels);
+					glTexImage3D(GetGLTextureType(getType()), 0, td.internal_format, w, h, d, 0, td.format, td.type, pixels);
 				}
 				break;
 			case TextureType::TEXTURE_CUBIC:
@@ -581,7 +550,7 @@ namespace KRE
 
 		// Re-create the texture
 		for(int n = 0; n != num_tex; ++n) {
-			createTexture(n, texture_data_[n].fmt);
+			createTexture(n);
 		}
 		init();
 	}

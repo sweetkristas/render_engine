@@ -125,7 +125,7 @@ struct SimpleTextureHolder : public KRE::Blittable
 	SimpleTextureHolder(const std::string& filename) {
 		using namespace KRE;
 		setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
+		auto tex = Texture::createTexture(filename, TextureType::TEXTURE_2D, 4);
 		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
@@ -138,7 +138,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 		: KRE::SceneObject("FreeTextureHolder") 
 	{
 		using namespace KRE;
-		auto tex = DisplayDevice::createTexture(surface, TextureType::TEXTURE_2D);
+		auto tex = Texture::createTexture(surface);
 		//tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		//tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
@@ -155,7 +155,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 		: KRE::SceneObject("FreeTextureHolder") 
 	{
 		using namespace KRE;
-		auto tex = DisplayDevice::createTexture(filename, TextureType::TEXTURE_2D, 4);
+		auto tex = Texture::createTexture(filename, TextureType::TEXTURE_2D, 4);
 		//tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
 		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
 	auto canvas = Canvas::getInstance();
 	//canvas->setDimensions(800, 600);
 
-	auto canvas_texture = DisplayDevice::createTexture("widgets.png");
+	auto canvas_texture = Texture::createTexture("widgets.png");
 	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
 
 	// render target test.

@@ -181,7 +181,7 @@ namespace KRE
 
 			} else {
 				int color_planes = getColorPlanes();
-				auto tex = Texture::createTexture2D(color_planes, width(), height(), PixelFormat::PF::PIXELFORMAT_BGRA8888);
+				auto tex = Texture::createTextureArray(color_planes, width(), height(), PixelFormat::PF::PIXELFORMAT_BGRA8888, TextureType::TEXTURE_2D);
 				tex->setSourceRect(rect(0, 0, width(), height()));
 				setTexture(tex);
 

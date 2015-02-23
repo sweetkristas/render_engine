@@ -33,16 +33,8 @@ namespace KRE
 	{
 	public:
 		explicit OpenGLTexture(const variant& node, const std::vector<SurfacePtr>& surfaces);
-		explicit OpenGLTexture(const std::vector<SurfacePtr>& surfaces, 
-			TextureType type=TextureType::TEXTURE_2D, 
-			int mipmap_levels=0);
-		explicit OpenGLTexture(int count,
-			int width, 
-			int height, 			
-			PixelFormat::PF fmt, 
-			TextureType type=TextureType::TEXTURE_2D,
-			unsigned depth=0);
-		explicit OpenGLTexture(const SurfacePtr& surf, SurfacePtr palette);
+		explicit OpenGLTexture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels);
+		explicit OpenGLTexture(int count, int width, int height, int depth, PixelFormat::PF fmt, TextureType type);
 		virtual ~OpenGLTexture();
 
 		void bind() override;
@@ -50,17 +42,17 @@ namespace KRE
 		void init() override;
 		unsigned id(int n) override;
 
-		void update(int x, unsigned width, void* pixels) override;
-		void update(int x, int y, unsigned width, unsigned height, const int* stride, const void* pixels) override;
-		void update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, const void* pixels) override;
-		void update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) override;
+		void update(int x, int width, void* pixels) override;
+		void update(int x, int y, int width, int height, const int* stride, const void* pixels) override;
+		void update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels) override;
+		void update(int x, int y, int z, int width, int height, int depth, void* pixels) override;
 
 		const unsigned char* colorAt(int x, int y) const override;
 
 		TexturePtr clone() override;
 		static void handleClearTextures();
 	private:
-		void createTexture(int n, const PixelFormat::PF& fmt);
+		void createTexture(int n);
 		void rebuild() override;
 		void handleAddPalette(const SurfacePtr& palette) override;
 
@@ -72,17 +64,25 @@ namespace KRE
 		// Whether to store the textures in a registry, with ref-counting.
 		// or what we do here.
 		struct TextureData {
+			TextureData() 
+				: id(), 
+				  surface_format(PixelFormat::PF::PIXELFORMAT_UNKNOWN), 
+				  palette(), 
+				  format(GL_RGBA), 
+				  internal_format(GL_RGBA), 
+				  type(GL_UNSIGNED_BYTE) 
+			{
+			}
 			std::shared_ptr<GLuint> id;
-			PixelFormat::PF fmt;
+			PixelFormat::PF surface_format;
 			std::vector<Color> palette;
+			GLenum format;
+			GLenum internal_format;
+			GLenum type;
 		};
 		std::vector<TextureData> texture_data_;
 
 		// Set for YUV style textures;
 		bool is_yuv_planar_;
-
-		GLenum format_;
-		GLenum internal_format_;
-		GLenum type_;
 	};
 }

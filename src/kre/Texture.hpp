@@ -95,44 +95,33 @@ namespace KRE
 		virtual void bind() = 0;
 		virtual unsigned id(int n = 0) = 0;
 
-		virtual void update(int x, unsigned width, void* pixels) = 0;
+		virtual void update(int x, int width, void* pixels) = 0;
 		// Less safe version for updating a multi-texture.
-		virtual void update(int x, int y, unsigned width, unsigned height, const int* stride, const void* pixels) = 0;
-		virtual void update(int x, int y, unsigned width, unsigned height, const std::vector<unsigned>& stride, const void* pixels) = 0;
-		virtual void update(int x, int y, int z, unsigned width, unsigned height, unsigned depth, void* pixels) = 0;
+		virtual void update(int x, int y, int width, int height, const int* stride, const void* pixels) = 0;
+		virtual void update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels) = 0;
+		virtual void update(int x, int y, int z, int width, int height, int depth, void* pixels) = 0;
 
 		static void rebuildAll();
 		static void clearTextures();
 
-		// XXX Need to add a pixel filter function, so when we load the surface we apply the filter.
-		static TexturePtr createTexture(const std::string& filename,
-			TextureType type=TextureType::TEXTURE_2D, 
-			int mipmap_levels=0);
 		static TexturePtr createTexture(const variant& node);
+		static TexturePtr createTexture(const std::string& filename, TextureType type=TextureType::TEXTURE_2D, int mipmap_levels=0);
 		static TexturePtr createTexture(const std::string& filename, const variant& node);
-		static TexturePtr createTexture(const SurfacePtr& surface, bool cache);
-		static TexturePtr createTexture(const SurfacePtr& surface, bool cache, const variant& node);
+		static TexturePtr createTexture(const SurfacePtr& surface, const variant& node);
+		static TexturePtr createTexture(const SurfacePtr& surface);
 		
 		static TexturePtr createTexture1D(int width, PixelFormat::PF fmt);
 		static TexturePtr createTexture2D(int width, int height, PixelFormat::PF fmt);
 		static TexturePtr createTexture3D(int width, int height, int depth, PixelFormat::PF fmt);
 
-		static TexturePtr createTexture2D(int count, int width, int height, PixelFormat::PF fmt);
-		static TexturePtr createTexture2D(const std::vector<std::string>& filenames, const variant& node);
-		static TexturePtr createTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache);
-
-		/* Functions for creating a texture that only has a single channel and an associated
-			secondary texture that is used for doing palette look-ups to get the actual color.
-		*/
-		static TexturePtr createPalettizedTexture(const std::string& filename);
-		static TexturePtr createPalettizedTexture(const std::string& filename, const SurfacePtr& palette);
-		static TexturePtr createPalettizedTexture(const SurfacePtr& surf);
-		static TexturePtr createPalettizedTexture(const SurfacePtr& surf, const SurfacePtr& palette);
+		static TexturePtr createTextureArray(int count, int width, int height, PixelFormat::PF fmt, TextureType type);
+		static TexturePtr createTextureArray(const std::vector<SurfacePtr>& surfaces, const variant& node);
 
 		void addPalette(const SurfacePtr& palette);
 
 		const SurfacePtr& getFrontSurface() const { return surfaces_.front(); }
-		std::vector<SurfacePtr> getSurfaces() const { return surfaces_; }
+		std::vector<SurfacePtr>& getSurfaces() { return surfaces_; }
+		const std::vector<SurfacePtr>& getSurfaces() const { return surfaces_; }
 
 		int getUnpackAlignment() const { return unpack_alignment_; }
 		void setUnpackAlignment(int align);
@@ -166,6 +155,8 @@ namespace KRE
 		const rectf& getSourceRectNormalised() const { return src_rect_norm_; }
 		const rect& getSourceRect() const { return src_rect_; }
 
+		bool isPaletteized() const { return is_paletteized_; }
+
 		virtual TexturePtr clone() = 0;
 	protected:
 		explicit Texture(const variant& node, const std::vector<SurfacePtr>& surfaces);
@@ -178,9 +169,6 @@ namespace KRE
 			int depth,
 			PixelFormat::PF fmt, 
 			TextureType type);
-		// Constrcutor to create paletteized texture from a file name and optional surface.
-		explicit Texture(const SurfacePtr& surf, const SurfacePtr& palette);
-		void setTextureDimensions(int w, int h, int d=0);
 	private:
 		virtual void rebuild() = 0;
 		virtual void handleAddPalette(const SurfacePtr& palette) = 0;
@@ -209,5 +197,7 @@ namespace KRE
 
 		rect src_rect_;
 		rectf src_rect_norm_;
+
+		bool is_paletteized_;
 	};
 }

@@ -25,6 +25,8 @@
 #pragma comment(lib, "glu32")
 #pragma comment(lib, "glew32")
 
+#include <numeric>
+
 #include <GL/glew.h>
 
 #include "asserts.hpp"
@@ -121,14 +123,12 @@ namespace KRE
 			for(int n = 0; n != extension_count; ++n) {
 				std::string ext(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, n)));
 				extensions_.emplace(ext);
-				LOG_INFO("Extensions: " << ext);
 			}
 		} else {
 			std::string exts(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
 			if(glGetError() == GL_NONE) {
 				for(auto& ext : Util::split(exts, " ")) {
 					extensions_.emplace(ext);
-					LOG_INFO("Extensions: " << ext);
 				}
 			} else {
 				LOG_ERROR("Couldn't get the GL extension list. Extension count=" << extension_count);
@@ -140,20 +140,30 @@ namespace KRE
 		npot_textures_ = extensions_.find("ARB_texture_non_power_of_two") != extensions_.end();
 
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units_);
-		err = glGetError();
-		LOG_ERROR("Failed query for GL_MAX_TEXTURE_IMAGE_UNITS: 0x" << std::hex << err);
+		if((err = glGetError()) != GL_NONE) {
+			LOG_ERROR("Failed query for GL_MAX_TEXTURE_IMAGE_UNITS: 0x" << std::hex << err);
+		}
+		glGetIntegerv(GL_MINOR_VERSION, &minor_version_);
+		glGetIntegerv(GL_MAJOR_VERSION, &major_version_);
+		if((err = glGetError()) != GL_NONE) {
+			const char* version_str = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+			std::stringstream ss(version_str);
+			float vers;
+			ss >> vers;
+			float integral;
+			minor_version_ = static_cast<int>(std::modf(vers, &integral) * 100.0f);
+			major_version_ = static_cast<int>(integral);
+		}
 	}
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
 	{
-		glGetIntegerv(GL_MINOR_VERSION, &minor_version_);
-		glGetIntegerv(GL_MAJOR_VERSION, &major_version_);
-		if(glGetError() != GL_NONE) {
+		if(minor_version_ == 0 && major_version_ == 0) {
 			// fall-back to old glGetStrings method.
 			const char* version_str = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-			std::cerr << "OpenGL version: " << version_str << std::endl;
+			LOG_INFO("OpenGL version: " << version_str);
 		} else {
-			std::cerr << "OpenGL version: " << major_version_ << "." << minor_version_ << std::endl;
+			LOG_INFO("OpenGL version: " << major_version_ << "." << minor_version_);
 		}
 		
 		if(max_texture_units_ > 0) {
@@ -161,6 +171,20 @@ namespace KRE
 		} else {
 			LOG_INFO("Maximum texture units: <<unknown>>" );
 		}
+		
+		const int max_line_width = 101;
+		std::vector<std::string> lines;
+		for(auto& ext : extensions_) {
+			if(lines.empty()) {
+				lines.emplace_back(std::string());
+			}
+			if(ext.size() + lines.back().size() + 1 > max_line_width) {
+				lines.emplace_back("\n" + ext);
+			} else {
+				lines.back() += (lines.back().empty() ? "" : " ") + ext;
+			}
+		}
+		LOG_INFO("OpenGL Extensions: \n" << std::accumulate(lines.begin(), lines.end(), std::string()));
 	}
 
 	int DisplayDeviceOpenGL::queryParameteri(DisplayDeviceParameters param)
@@ -327,11 +351,6 @@ namespace KRE
 		return ScissorPtr(scissor);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const variant& node) 
-	{
-		return std::make_shared<OpenGLTexture>(node, std::vector<SurfacePtr>());
-	}
-
 	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, const variant& node)
 	{
 		std::vector<SurfacePtr> surfaces;
@@ -347,51 +366,29 @@ namespace KRE
 		return std::make_shared<OpenGLTexture>(surfaces, type, mipmap_levels);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture1D(unsigned width, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture1D(int width, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, 0, fmt, TextureType::TEXTURE_1D);
+		return std::make_shared<OpenGLTexture>(1, width, 0, 0, fmt, TextureType::TEXTURE_1D);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(unsigned width, unsigned height, PixelFormat::PF fmt, TextureType type)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(int width, int height, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, height, fmt, TextureType::TEXTURE_2D);
+		return std::make_shared<OpenGLTexture>(1, width, height, 0, fmt, TextureType::TEXTURE_2D);
 	}
 	
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture3D(unsigned width, unsigned height, unsigned depth, PixelFormat::PF fmt)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTexture3D(int width, int height, int depth, PixelFormat::PF fmt)
 	{
-		return std::make_shared<OpenGLTexture>(1, width, height, fmt, TextureType::TEXTURE_3D, depth);
+		return std::make_shared<OpenGLTexture>(1, width, height, depth, fmt, TextureType::TEXTURE_3D);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const std::string& filename, TextureType type, int mipmap_levels)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTextureArray(int count, int width, int height, PixelFormat::PF fmt, TextureType type)
 	{
-		auto surface = Surface::create(filename);		
-		std::vector<SurfacePtr> surfaces(1, surface);
-		return std::make_shared<OpenGLTexture>(surfaces, type, mipmap_levels);
+		return std::make_shared<OpenGLTexture>(count, width, height, 0, fmt, type);
 	}
 
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture(const SurfacePtr& surface, const SurfacePtr& palette)
+	TexturePtr DisplayDeviceOpenGL::handleCreateTextureArray(const std::vector<SurfacePtr>& surfaces, const variant& node)
 	{
-		return std::make_shared<OpenGLTexture>(surface, palette);
-	}
-
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(int count, int width, int height, PixelFormat::PF fmt)
-	{
-		return std::make_shared<OpenGLTexture>(count, width, height, fmt, TextureType::TEXTURE_2D);
-	}
-
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<std::string>& filenames, const variant& node)
-	{
-		std::vector<SurfacePtr> surfaces;
-		surfaces.reserve(filenames.size());
-		for(auto& fn : filenames) {
-			surfaces.emplace_back(Surface::create(fn));
-		}
 		return std::make_shared<OpenGLTexture>(node, surfaces);
-	}
-
-	TexturePtr DisplayDeviceOpenGL::handleCreateTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache)
-	{
-		return std::make_shared<OpenGLTexture>(surfaces, TextureType::TEXTURE_2D);
 	}
 
 	RenderTargetPtr DisplayDeviceOpenGL::handleCreateRenderTarget(size_t width, size_t height, 

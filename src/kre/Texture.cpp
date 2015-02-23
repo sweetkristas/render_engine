@@ -50,12 +50,17 @@ namespace KRE
 		  depth_(0),
 		  unpack_alignment_(4),
 		  src_rect_(),
-		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f)
+		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
+		  is_paletteized_(false)
 	{
 		if(surfaces_.size() == 0 && node.is_string()) {
 			surfaces_.emplace_back(Surface::create(node.as_string()));
 		} else if(surfaces_.size() == 0 && node.has_key("image") && node["image"].is_string()) {
 			surfaces_.emplace_back(Surface::create(node["image"].as_string()));
+		} else if(surfaces_.size() == 0 && node.has_key("images") && node["images"].is_list()) {
+			for(auto s : node["images"].as_list_string()) {
+				surfaces_.emplace_back(Surface::create(s));
+			}
 		}
 		ASSERT_LOG(surfaces_.size() > 0, "Error no surface.");
 		surface_width_ = surfaces_.front()->width();
@@ -182,7 +187,8 @@ namespace KRE
 		  depth_(0),
 		  unpack_alignment_(4),
 		  src_rect_(),
-		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f)
+		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
+		  is_paletteized_(false)
 	{
 		surface_width_ = surfaces.front()->width();
 		surface_height_ = surfaces.front()->height();
@@ -210,30 +216,12 @@ namespace KRE
 		  depth_(depth),
 		  unpack_alignment_(4),
 		  src_rect_(),
-		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f)
+		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
+		  is_paletteized_(false)
 	{
 		internalInit();
 	}
 
-	Texture::Texture(const SurfacePtr& surf, const SurfacePtr& palette)
-		: type_(TextureType::TEXTURE_2D), 
-		  mipmaps_(0), 
-		  max_anisotropy_(1),
-		  lod_bias_(0.0f),
-		  surface_width_(surf->width()),
-		  surface_height_(surf->height()),
-		  width_(0),
-		  height_(0),
-		  depth_(0),
-		  unpack_alignment_(4),
-		  src_rect_(),
-		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f)
-	{
-		surfaces_.emplace_back(surf);
-		surfaces_.emplace_back(palette);
-		internalInit();	
-	}
-	
 	Texture::~Texture()
 	{
 	}
@@ -253,11 +241,11 @@ namespace KRE
 		if(!DisplayDevice::checkForFeature(DisplayDeviceCapabilties::NPOT_TEXTURES)) {
 			width_ = next_power_of_two(surface_width_);
 			height_ = next_power_of_two(surface_height_);
-			depth_ = 0;
+			depth_ = type_ == TextureType::TEXTURE_3D || type_ == TextureType::TEXTURE_CUBIC ? surfaces_.size() : 0;
 		} else {
 			width_ = surface_width_;
 			height_ = surface_height_;
-			depth_ = 0;
+			depth_ = type_ == TextureType::TEXTURE_3D || type_ == TextureType::TEXTURE_CUBIC ? surfaces_.size() : 0;
 		}
 
 		setSourceRect(rect(0, 0, surface_width_, surface_height_));
@@ -302,13 +290,6 @@ namespace KRE
 		ASSERT_LOG(false, "Texture::rebuildAll()");
 	}
 
-	void Texture::setTextureDimensions(int w, int h, int d)
-	{
-		width_ = w;
-		height_ = h;
-		depth_ = d;
-	}
-
 	void Texture::setUnpackAlignment(int align)
 	{
 		ASSERT_LOG(align == 1 || align == 2 || align == 4 || align == 8, 
@@ -333,48 +314,34 @@ namespace KRE
 
 	void Texture::addPalette(const SurfacePtr& palette)
 	{
+		is_paletteized_ = true;
 		surfaces_.emplace_back(palette);
 		handleAddPalette(palette);
 	}
 
 	TexturePtr Texture::createTexture(const variant& node)
 	{
-		return DisplayDevice::createTexture(nullptr, true, node);
+		return DisplayDevice::createTexture(nullptr, node);
+	}
+
+	TexturePtr Texture::createTexture(const std::string& filename, const variant& node)
+	{
+		return DisplayDevice::createTexture(Surface::create(filename), node);
 	}
 
 	TexturePtr Texture::createTexture(const std::string& filename, TextureType type, int mipmap_levels)
 	{
-		return DisplayDevice::createTexture(filename, type, mipmap_levels);
+		return DisplayDevice::createTexture(Surface::create(filename), type, mipmap_levels);
 	}
 
-	TexturePtr Texture::createTexture(const SurfacePtr& surface, bool cache)
+	TexturePtr Texture::createTexture(const SurfacePtr& surface)
 	{
-		return DisplayDevice::createTexture(surface, cache, variant());
+		return DisplayDevice::createTexture(surface, variant());
 	}
 
-	TexturePtr Texture::createTexture(const SurfacePtr& surface, bool cache, const variant& node)
+	TexturePtr Texture::createTexture(const SurfacePtr& surface, const variant& node)
 	{
-		return DisplayDevice::createTexture(surface, cache, node);
-	}
-
-	TexturePtr Texture::createPalettizedTexture(const std::string& filename)
-	{
-		return DisplayDevice::createTexture(Surface::create(filename), SurfacePtr());
-	}
-
-	TexturePtr Texture::createPalettizedTexture(const std::string& filename, const SurfacePtr& palette)
-	{
-		return DisplayDevice::createTexture(Surface::create(filename), palette);
-	}
-
-	TexturePtr Texture::createPalettizedTexture(const SurfacePtr& surf)
-	{
-		return DisplayDevice::createTexture(surf, SurfacePtr());
-	}
-
-	TexturePtr Texture::createPalettizedTexture(const SurfacePtr& surf, const SurfacePtr& palette)
-	{
-		return DisplayDevice::createTexture(surf, palette);
+		return DisplayDevice::createTexture(surface, node);
 	}
 
 	TexturePtr Texture::createTexture1D(int width, PixelFormat::PF fmt)
@@ -392,19 +359,14 @@ namespace KRE
 		return DisplayDevice::createTexture3D(width, height, depth, fmt);
 	}
 
-	TexturePtr Texture::createTexture2D(int count, int width, int height, PixelFormat::PF fmt)
+	TexturePtr Texture::createTextureArray(int count, int width, int height, PixelFormat::PF fmt, TextureType type)
 	{
-		return DisplayDevice::createTexture2D(count, width, height, fmt);
+		return DisplayDevice::createTextureArray(count, width, height, fmt, type);
 	}
 
-	TexturePtr Texture::createTexture2D(const std::vector<std::string>& filenames, const variant& node)
+	TexturePtr Texture::createTextureArray(const std::vector<SurfacePtr>& surfaces, const variant& node)
 	{
-		return DisplayDevice::createTexture2D(filenames, node);
-	}
-
-	TexturePtr Texture::createTexture2D(const std::vector<SurfacePtr>& surfaces, bool cache)
-	{
-		return DisplayDevice::createTexture2D(surfaces, cache);
+		return DisplayDevice::createTextureArray(surfaces, node);
 	}
 
 	void Texture::clearTextures()
