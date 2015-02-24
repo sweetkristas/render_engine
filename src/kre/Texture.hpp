@@ -95,11 +95,12 @@ namespace KRE
 		virtual void bind() = 0;
 		virtual unsigned id(int n = 0) = 0;
 
-		virtual void update(int x, int width, void* pixels) = 0;
+		virtual void update(int n, int x, int width, void* pixels) = 0;
 		// Less safe version for updating a multi-texture.
-		virtual void update(int x, int y, int width, int height, const int* stride, const void* pixels) = 0;
-		virtual void update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels) = 0;
-		virtual void update(int x, int y, int z, int width, int height, int depth, void* pixels) = 0;
+		virtual void update(int n, int x, int y, int width, int height, const void* pixels) = 0;
+		virtual void update2D(int n, int x, int y, int width, int height, int stride, const void* pixels) = 0;
+		virtual void updateYUV(int x, int y, int width, int height, const std::vector<int>& stride, const void* pixels) = 0;
+		virtual void update(int n, int x, int y, int z, int width, int height, int depth, void* pixels) = 0;
 
 		static void rebuildAll();
 		static void clearTextures();
@@ -156,6 +157,8 @@ namespace KRE
 		const rect& getSourceRect() const { return src_rect_; }
 
 		bool isPaletteized() const { return is_paletteized_; }
+		void setPalette(int n) { palette_ = n; }
+		int getPalette() const { return palette_; }
 
 		virtual TexturePtr clone() = 0;
 	protected:
@@ -199,5 +202,6 @@ namespace KRE
 		rectf src_rect_norm_;
 
 		bool is_paletteized_;
+		int palette_;
 	};
 }

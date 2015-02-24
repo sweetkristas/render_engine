@@ -264,6 +264,27 @@ namespace KRE
 		
 		if(r->getTexture()) {
 			r->getTexture()->bind();
+			if(r->getTexture()->isPaletteized()) {
+				bool enable = true;
+				static auto upm = shader->getUniformIterator("palette_map");
+				if(upm != shader->uniformsIteratorEnd()) {
+					shader->setUniformValue(upm, 1);
+				} else {
+					enable = false;
+				}
+				static auto u_palette = shader->getUniformIterator("palette");
+				if(u_palette != shader->uniformsIteratorEnd()) {
+					shader->setUniformValue(u_palette, 0.0f/r->getTexture()->surfaceWidth());
+				} else {
+					enable = false;
+				}
+				if(enable) {
+					static auto u_enable_palette_lookup = shader->getUniformIterator("enable_palette_lookup");
+					if(u_enable_palette_lookup != shader->uniformsIteratorEnd()) {
+						shader->setUniformValue(u_enable_palette_lookup, 1);
+					}
+				}
+			}
 		}
 
 		if(r->getRenderTarget()) {

@@ -880,19 +880,11 @@ namespace KRE
 		void* dst_pixels = new uint8_t[dst_size];
 
 		int dst_bpp = dst->getPixelFormat()->bytesPerPixel();
-		//int pixels_modified = 0;
 		for(auto col : *this) {
 			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + col.y * dst->rowPitch() + col.x * dst_bpp;
-			//int r = col.red, g = col.green, b = col.blue, a = col.alpha;
 			convert(col.red, col.green, col.blue, col.alpha);
-			//if(r != col.red || g != col.green || b != col.blue || a != col.alpha) {
-			//	++pixels_modified;
-			//}
 			dst->getPixelFormat()->encodeRGBA(dst_pixel_ptr, col.red, col.green, col.blue, col.alpha);
 		}
-		//if(pixels_modified) {
-		//	LOG_DEBUG("handleConvert: " << pixels_modified << " pixels changed.");
-		//}
 		dst->writePixels(dst_pixels, dst_size);
 		delete[] static_cast<uint8_t*>(dst_pixels);
 		return dst;

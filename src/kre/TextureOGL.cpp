@@ -29,6 +29,8 @@ namespace KRE
 {
 	namespace
 	{
+		const int maximum_palette_variations = 32;
+
 		GLenum GetGLAddressMode(Texture::AddressMode am)
 		{
 			switch(am) {
@@ -119,33 +121,63 @@ namespace KRE
 	{
 	}
 
-	void OpenGLTexture::update(int x, int width, void* pixels)
+	void OpenGLTexture::update(int n, int x, int width, void* pixels)
 	{
-		auto& td = texture_data_[0];
-		ASSERT_LOG(is_yuv_planar_ == false, "1D Texture Update function called on YUV planar format.");
+		auto& td = texture_data_[n];
+		ASSERT_LOG(is_yuv_planar_ == false, "Use updateYUV to update a YUV texture.");
 		glBindTexture(GetGLTextureType(getType()), *td.id);
 		ASSERT_LOG(getType() == TextureType::TEXTURE_1D, "Tried to do 1D texture update on non-1D texture");
 		if(getUnpackAlignment() != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
 		}
 		glTexSubImage1D(GetGLTextureType(getType()), 0, x, width, td.format, td.type, pixels);
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
 	// Add a 2D update function which has single stride, but doesn't support planar YUV.
-
-	void OpenGLTexture::update(int x, int y, int width, int height, const int* stride, const void* pixels)
+	void OpenGLTexture::update2D(int n, int x, int y, int width, int height, int stride, const void* pixels)
 	{
-		ASSERT_LOG(false, "XXX: void OpenGLTexture::update(int x, int y, unsigned width, unsigned height, const int* stride, const void* pixels)");
+		ASSERT_LOG(is_yuv_planar_ == false, "Use updateYUV to update a YUV texture.");
+		auto& td = texture_data_[n];
+		glBindTexture(GetGLTextureType(getType()), *td.id);
+		ASSERT_LOG(getType() == TextureType::TEXTURE_2D, "Tried to do 2D texture update on non-2D texture: " << static_cast<int>(getType()));
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
+		}
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
+		glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, width, height, td.format, td.type, pixels);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
+	}
+
+	void OpenGLTexture::update(int n, int x, int y, int width, int height, const void* pixels)
+	{
+		ASSERT_LOG(is_yuv_planar_ == false, "Use updateYUV to update a YUV texture.");
+		auto& td = texture_data_[n];
+		glBindTexture(GetGLTextureType(getType()), *td.id);
+		ASSERT_LOG(getType() == TextureType::TEXTURE_2D, "Tried to do 2D texture update on non-2D texture: " << static_cast<int>(getType()));
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
+		}
+		glTexSubImage2D(GetGLTextureType(getType()), 0, x, y, width, height, td.format, td.type, pixels);
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
 	// Stride is the width of the image surface *in pixels*
-	void OpenGLTexture::update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels)
+	void OpenGLTexture::updateYUV(int x, int y, int width, int height, const std::vector<int>& stride, const void* pixels)
 	{
+		ASSERT_LOG(is_yuv_planar_, "updateYUV called on non YUV planar texture.");
 		int num_textures = is_yuv_planar_ ? 2 : 0;
 		for(int n = num_textures; n >= 0; --n) {
 			auto& td = texture_data_[n];
 			glBindTexture(GetGLTextureType(getType()), *td.id);
-			if(stride.size() > size_t(n)) {
+			if(static_cast<int>(stride.size()) > n) {
 				glPixelStorei(GL_UNPACK_ROW_LENGTH, stride[n]);
 			}
 			if(getUnpackAlignment() != 4) {
@@ -173,13 +205,15 @@ namespace KRE
 		if(!stride.empty()) {
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		}
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
-	void OpenGLTexture::update(int x, int y, int z, int width, int height, int depth, void* pixels)
+	void OpenGLTexture::update(int n, int x, int y, int z, int width, int height, int depth, void* pixels)
 	{
 		ASSERT_LOG(is_yuv_planar_ == false, "3D Texture Update function called on YUV planar format.");
-		auto& td = texture_data_[0];
+		auto& td = texture_data_[n];
 		glBindTexture(GetGLTextureType(getType()), *td.id);
 		if(getUnpackAlignment() != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment());
@@ -201,18 +235,122 @@ namespace KRE
 		if(getMipMapLevels() > 0 && getType() > TextureType::TEXTURE_1D) {
 			glGenerateMipmap(GetGLTextureType(getType()));
 		}
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
 	void OpenGLTexture::handleAddPalette(const SurfacePtr& palette)
 	{
-		int colors = getFrontSurface()->getColorCount(ColorCountFlags::IGNORE_ALPHA_VARIATIONS);
-		ASSERT_LOG(colors < 256, "Can't convert surface to palettized version. Too many colors in source image: " << colors);
-		LOG_DEBUG("Color count: " << colors);
-		texture_data_.resize(texture_data_.size() + 1);
-		texture_data_.back().surface_format = palette->getPixelFormat()->getFormat();
-		createTexture(texture_data_.size()-1);
-		//iinit();
+		ASSERT_LOG(is_yuv_planar_ == false, "Can't create a palette for a YUV surface.");
+
+		if(PixelFormat::isIndexedFormat(getFrontSurface()->getPixelFormat()->getFormat())) {
+			// XXX is already an indexed format.
+		} else {
+			auto histogram = getFrontSurface()->getColorHistogram();
+			int num_colors = histogram.size();
+			ASSERT_LOG(num_colors < 256, "Can't convert surface to palettized version. Too many colors in source image: " << num_colors);
+			LOG_DEBUG("Color count: " << num_colors);
+
+			// Create palette from existing surface
+			//LOG_DEBUG("Texture color values:");
+			for(auto& hd : histogram) {
+				// We're subverting the histogram data to store the index to the color, so we can use
+				// it for easy index look up when we traverse the surface next.
+				hd.second = texture_data_[0].palette.size();
+				texture_data_[0].palette.emplace_back(hd.first);
+				//std::cerr << (texture_data_[0].palette.size()-1) << " : " << texture_data_[0].palette.back() << "\n";
+			}
+
+			// Create a new indexed surface.
+			auto surf = Surface::create(surfaceWidth(), surfaceHeight(), PixelFormat::PF::PIXELFORMAT_INDEX8);
+
+			std::vector<uint8_t> new_pixels;
+			new_pixels.resize(surf->rowPitch() * surf->height());
+			for(auto px : *getFrontSurface()) {
+				Color color(px.red, px.green, px.blue, px.alpha);
+				auto it = histogram.find(color);
+				ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong.");
+				new_pixels[px.x + px.y * surf->rowPitch()] = static_cast<uint8_t>(it->second);
+			}
+			surf->writePixels(&new_pixels[0], new_pixels.size());
+
+			// save old palette
+			auto old_palette = std::move(texture_data_[0].palette);
+
+			// Reset the existing data so we can re-create it.
+			texture_data_[0] = TextureData();
+			texture_data_[0].surface_format = PixelFormat::PF::PIXELFORMAT_INDEX8;
+			texture_data_[0].color_index_map = std::move(histogram);
+			texture_data_[0].palette = std::move(old_palette);
+			createTexture(0);
+
+			// Set the surface to our new one.
+			getSurfaces()[0] = surf;
+		}
+
+		SurfacePtr new_palette_surface;
+		if(texture_data_.size() > 1) {
+			// Already have a palette texture we can use.
+			ASSERT_LOG(texture_data_[0].palette_row_index + 1 < maximum_palette_variations, "Only support a maximum of " << maximum_palette_variations << " palettes per texture.");
+			new_palette_surface = getSurfaces()[1];
+			ASSERT_LOG(new_palette_surface != nullptr, "There was no palette surface found, when there should have been.");
+		} else {
+			texture_data_.resize(2);
+			// We create a surface with <maximum_palette_variations> rows, this allows for a maximum of <maximum_palette_variations> palettes.
+			new_palette_surface = Surface::create(texture_data_[0].palette.size(), maximum_palette_variations, PixelFormat::PF::PIXELFORMAT_BGRA8888);
+			getSurfaces().emplace_back(new_palette_surface);
+			texture_data_[1].surface_format = PixelFormat::PF::PIXELFORMAT_BGRA8888;
+			createTexture(1);
+
+			// XXX need to add the original data as row 0 here.
+		}
+
+		const int palette_width = texture_data_[0].palette.size();
+		// Create altered pixel data and update the surface/texture.
+		std::vector<glm::u8vec4> new_pixels;
+		new_pixels.reserve(palette_width);
+		// Set the new pixel data same as current data.
+		for(auto color : texture_data_[0].palette) {
+			new_pixels.emplace_back(color.as_u8vec4(ColorByteOrder::BGRA));
+		}
+		if(palette->width() > palette->height()) {
+			for(int x = 0; x != palette->width(); ++x) {
+				Color normal_color = palette->getColorAt(x, 0);
+				Color mapped_color = palette->getColorAt(x, 1);
+
+				auto it = texture_data_[0].color_index_map.find(normal_color);
+				if(it != texture_data_[0].color_index_map.end()) {
+					// Found the color in the color map
+					new_pixels[it->second] = mapped_color.as_u8vec4(ColorByteOrder::BGRA);
+				}
+			}
+		} else {
+			int colors_mapped = 0;
+			//LOG_DEBUG("Palette color values:");
+			for(int y = 0; y != palette->height(); ++y) {
+				Color normal_color = palette->getColorAt(0, y);
+				Color mapped_color = palette->getColorAt(1, y);
+				//std::cerr << normal_color << " : " << mapped_color << "\n";
+
+				auto it = texture_data_[0].color_index_map.find(normal_color);
+				if(it != texture_data_[0].color_index_map.end()) {
+					// Found the color in the color map
+					new_pixels[it->second] = mapped_color.as_u8vec4(ColorByteOrder::BGRA);
+					++colors_mapped;
+				}
+			}
+			LOG_DEBUG("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
+		}
+
+		// write altered pixel data to texture.
+		update(1, 0, texture_data_[0].palette_row_index, palette_width, 1, &new_pixels[0]);
+		// write altered pixel data to surface.
+		unsigned char* px = reinterpret_cast<unsigned char*>(new_palette_surface->pixelsWriteable());
+		memcpy(&px[texture_data_[0].palette_row_index * new_palette_surface->rowPitch()], &new_pixels[0], new_pixels.size() * sizeof(glm::u8vec4));
+
+		// Update the palette row index so it points to the next free location.
+		++texture_data_[0].palette_row_index;
 	}
 
 	void OpenGLTexture::createTexture(int n)
@@ -229,9 +367,11 @@ namespace KRE
 			case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX8:
-				texture_data_[n].palette = getSurfaces()[n]->getPalette();
-				td.format = GL_R8;
-				td.internal_format = GL_R8;
+				if(texture_data_[n].palette.size() == 0) {
+					texture_data_[n].palette = getSurfaces()[n]->getPalette();
+				}
+				td.format = GL_LUMINANCE;
+				td.internal_format = GL_LUMINANCE;
 				td.type = GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB332:

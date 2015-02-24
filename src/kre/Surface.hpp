@@ -29,6 +29,7 @@
 #include <functional>
 #include <memory>
 #include <tuple>
+#include <unordered_map>
 
 #include "geometry.hpp"
 #include "PixelFormat.hpp"
@@ -186,6 +187,7 @@ namespace KRE
 		SurfacePtr convert(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);
 		void convertInPlace(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);
 
+		std::unordered_map<Color, int, Color> getColorHistogram(ColorCountFlags flags=ColorCountFlags::NONE);
 		unsigned getColorCount(ColorCountFlags flags=ColorCountFlags::NONE);
 
 		virtual const std::vector<Color>& getPalette() = 0;
@@ -226,6 +228,8 @@ namespace KRE
 
 		SurfaceFlags getFlags() const { return flags_; }
 		virtual SurfacePtr runGlobalAlphaFilter() = 0;
+
+		virtual Color getColorAt(int x, int y) const;
 
 		virtual const unsigned char* colorAt(int x, int y) const { return nullptr; }
 		bool isAlpha(unsigned x, unsigned y) const;

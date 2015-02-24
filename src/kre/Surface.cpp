@@ -217,11 +217,42 @@ namespace KRE
 		}		
 	}
 
+	Color Surface::getColorAt(int x, int y) const
+	{
+		int r, g, b, a;
+		const int bpp = pf_->bytesPerPixel();
+		const unsigned char* pix = reinterpret_cast<const unsigned char*>(pixels());
+		const unsigned char* p = &pix[x * bpp + y * rowPitch()];
+		switch(bpp) {
+			case 1: pf_->getRGBA(*p, r, g, b, a); break;
+			case 2: pf_->getRGBA(*reinterpret_cast<const unsigned short*>(p), r, g, b, a); break;
+			case 3: pf_->getRGBA(*reinterpret_cast<const unsigned long*>(p), r, g, b, a); break;
+			case 4: pf_->getRGBA(*reinterpret_cast<const unsigned long*>(p), r, g, b, a); break;
+		}
+		return Color(r, g, b, a);
+	}
+
+	std::unordered_map<Color, int, Color> Surface::getColorHistogram(ColorCountFlags flags)
+	{
+		std::unordered_map<Color, int, Color> res;
+		for(auto px : *this) {
+			Color color(px.red, px.green, px.blue, (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : px.alpha));
+			auto it = res.find(color);
+			if(it == res.end()) {
+				res[color] = 1;
+			} else {
+				it->second += 1;
+			}
+		}
+		return res;
+	}
+
 	// Actually creates a histogram of colors.
 	// Could be used for other things.
 	unsigned Surface::getColorCount(ColorCountFlags flags)
 	{
-		const unsigned char* pix = reinterpret_cast<const unsigned char*>(pixels());
+		return getColorHistogram(flags).size();
+		/*const unsigned char* pix = reinterpret_cast<const unsigned char*>(pixels());
 		const int bpp = pf_->bytesPerPixel();
 		std::unordered_map<uint32_t,uint32_t> color_list;
 		for(int y = 0; y < height(); ++y) {
@@ -244,7 +275,7 @@ namespace KRE
 			}
 			pix += rowPitch();
 		}
-		return color_list.size();
+		return color_list.size();*/
 	}
 
 	namespace 

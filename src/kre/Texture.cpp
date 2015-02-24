@@ -51,7 +51,8 @@ namespace KRE
 		  unpack_alignment_(4),
 		  src_rect_(),
 		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
-		  is_paletteized_(false)
+		  is_paletteized_(false),
+		  palette_(0)
 	{
 		if(surfaces_.size() == 0 && node.is_string()) {
 			surfaces_.emplace_back(Surface::create(node.as_string()));
@@ -188,7 +189,8 @@ namespace KRE
 		  unpack_alignment_(4),
 		  src_rect_(),
 		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
-		  is_paletteized_(false)
+		  is_paletteized_(false),
+		  palette_(0)
 	{
 		surface_width_ = surfaces.front()->width();
 		surface_height_ = surfaces.front()->height();
@@ -217,7 +219,8 @@ namespace KRE
 		  unpack_alignment_(4),
 		  src_rect_(),
 		  src_rect_norm_(0.0f, 0.0f, 1.0f, 1.0f),
-		  is_paletteized_(false)
+		  is_paletteized_(false),
+		  palette_(0)
 	{
 		internalInit();
 	}
@@ -315,7 +318,6 @@ namespace KRE
 	void Texture::addPalette(const SurfacePtr& palette)
 	{
 		is_paletteized_ = true;
-		surfaces_.emplace_back(palette);
 		handleAddPalette(palette);
 	}
 

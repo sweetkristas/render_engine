@@ -67,15 +67,15 @@ namespace KRE
 		float blue() const { return color_[2]; }
 		float alpha() const { return color_[3]; }
 
-		int ri() const { return static_cast<int>(255*color_[0]); }
-		int gi() const { return static_cast<int>(255*color_[1]); }
-		int bi() const { return static_cast<int>(255*color_[2]); }
-		int ai() const { return static_cast<int>(255*color_[3]); }
+		int ri() const { return icolor_.r; }
+		int gi() const { return icolor_.g; }
+		int bi() const { return icolor_.b; }
+		int ai() const { return icolor_.a; }
 
-		int r_int() const { return static_cast<int>(255*color_[0]); }
-		int g_int() const { return static_cast<int>(255*color_[1]); }
-		int b_int() const { return static_cast<int>(255*color_[2]); }
-		int a_int() const { return static_cast<int>(255*color_[3]); }
+		int r_int() const { return icolor_.r; }
+		int g_int() const { return icolor_.g; }
+		int b_int() const { return icolor_.b; }
+		int a_int() const { return icolor_.a; }
 
 		void setRed(int a);
 		void setRed(float a);
@@ -97,6 +97,14 @@ namespace KRE
 			return (r_int() << 24) | (b_int() << 16) | (b_int() << 8) | a_int();
 		}
 
+		bool operator==(const Color& rhs) const {
+			return asRGBA() == rhs.asRGBA();
+		}
+
+		std::size_t operator()(const Color& color) const {
+			return asRGBA();
+		}
+
 		glm::u8vec4 as_u8vec4(ColorByteOrder order=ColorByteOrder::RGBA) const {
 			switch(order) {
 			case ColorByteOrder::BGRA: return glm::u8vec4(b_int(), g_int(), r_int(), a_int());
@@ -114,7 +122,7 @@ namespace KRE
 			case ColorByteOrder::ABGR: return glm::value_ptr(glm::vec4(color_[3], color_[2], color_[1], color_[0]));
 			default: break;
 			}
-			return color_;
+			return glm::value_ptr(color_);
 		}
 
 		glm::u8vec4 to_hsv() const;
@@ -286,7 +294,10 @@ namespace KRE
 			"|{r:int|decimal,g:int|decimal,b:int|decimal,a:int|decimal|null}"; }
 		static std::string getDefineFieldType() { return "[int,int,int,int]"; }
 	private:
-		float color_[4];
+		void convert_to_icolor();
+		void convert_to_color();
+		glm::u8vec4 icolor_;
+		glm::vec4 color_;
 	};
 
 	std::ostream& operator<<(std::ostream& os, const Color& c);
@@ -296,14 +307,9 @@ namespace KRE
 		return lhs.asARGB() < rhs.asARGB();
 	}
 
-	inline bool operator==(const Color& lhs, const Color& rhs)
-	{
-		return lhs.asARGB() == rhs.asARGB();
-	}
-
 	inline bool operator!=(const Color& lhs, const Color& rhs)
 	{
-		return !operator==(lhs, rhs);
+		return !(lhs == rhs);
 	}
 
 	Color operator*(const Color& lhs, const Color& rhs);

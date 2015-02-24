@@ -25,6 +25,8 @@
 
 #include <GL/glew.h>
 
+#include <unordered_map>
+
 #include "Texture.hpp"
 
 namespace KRE
@@ -42,10 +44,11 @@ namespace KRE
 		void init() override;
 		unsigned id(int n) override;
 
-		void update(int x, int width, void* pixels) override;
-		void update(int x, int y, int width, int height, const int* stride, const void* pixels) override;
-		void update(int x, int y, int width, int height, const std::vector<unsigned>& stride, const void* pixels) override;
-		void update(int x, int y, int z, int width, int height, int depth, void* pixels) override;
+		void update(int n, int x, int width, void* pixels) override;
+		void update(int n, int x, int y, int width, int height, const void* pixels) override;
+		void update2D(int n, int x, int y, int width, int height, int stride, const void* pixels) override;
+		void updateYUV(int x, int y, int width, int height, const std::vector<int>& stride, const void* pixels) override;
+		void update(int n, int x, int y, int z, int width, int height, int depth, void* pixels) override;
 
 		const unsigned char* colorAt(int x, int y) const override;
 
@@ -68,17 +71,21 @@ namespace KRE
 				: id(), 
 				  surface_format(PixelFormat::PF::PIXELFORMAT_UNKNOWN), 
 				  palette(), 
+				  color_index_map(),
 				  format(GL_RGBA), 
 				  internal_format(GL_RGBA), 
-				  type(GL_UNSIGNED_BYTE) 
+				  type(GL_UNSIGNED_BYTE),
+				  palette_row_index(0)
 			{
 			}
 			std::shared_ptr<GLuint> id;
 			PixelFormat::PF surface_format;
 			std::vector<Color> palette;
+			std::unordered_map<Color, int, Color> color_index_map;
 			GLenum format;
 			GLenum internal_format;
 			GLenum type;
+			int palette_row_index;
 		};
 		std::vector<TextureData> texture_data_;
 

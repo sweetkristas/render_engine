@@ -623,8 +623,7 @@ namespace KRE
 
 		void CairoContext::preRender(const WindowManagerPtr& wnd) 
 		{
-			std::vector<unsigned> stride (1, cairo_image_surface_get_width(surface_));
-			tex_->update(0, 0, width(), height(), stride, cairo_image_surface_get_data(surface_));
+			tex_->update2D(0, 0, 0, width(), height(), cairo_image_surface_get_width(surface_), cairo_image_surface_get_data(surface_));
 		}
 
 		void CairoContext::PathExtents(double& x1, double& y1, double& x2, double& y2) 

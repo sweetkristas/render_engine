@@ -49,12 +49,21 @@ namespace KRE
 				"}\n";
 			const char* const default_fs =
 				"uniform sampler2D u_tex_map;\n"
+				"uniform sampler2D u_palette_map;\n"
+				"uniform bool u_enable_palette_lookup;\n"
+				"uniform float u_palette;\n"
 				"varying vec2 v_texcoord;\n"
 				"uniform bool u_discard;\n"
 				"uniform vec4 u_color;\n"
 				"void main()\n"
 				"{\n"
-				"    vec4 color = texture2D(u_tex_map, v_texcoord);\n"
+				"    vec4 color;\n"
+				"    if(u_enable_palette_lookup) {\n"
+				"        float index = texture2D(u_tex_map, v_texcoord).r;\n"
+				"        color = texture2D(u_palette_map, vec2(index, u_palette));\n"
+				"    } else {\n"
+				"        color = texture2D(u_tex_map, v_texcoord);\n"
+				"    }\n"
 				"    if(u_discard && color[3] == 0.0) {\n"
 				"        discard;\n"
 				"    } else {\n"
@@ -68,6 +77,9 @@ namespace KRE
 				{"color", "u_color"},
 				{"discard", "u_discard"},
 				{"tex_map", "u_tex_map"},
+				{"palette", "u_palette"},
+				{"palette_map", "u_palette_map"},
+				{"enable_palette_lookup", "u_enable_palette_lookup"},
 				{"tex_map0", "u_tex_map"},
 				{"", ""},
 			};
