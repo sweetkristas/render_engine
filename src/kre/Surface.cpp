@@ -323,9 +323,21 @@ namespace KRE
 		  x_(0),
 		  y_(0),
 		  index_(0),
-		  pixels_(nullptr)
+		  pixels_(nullptr),
+		  is_index_format_(false),
+		  index_format_increment_(0)
+
 	{
 		pixels_ = reinterpret_cast<const unsigned char*>(surface_->pixels());
+
+		auto pf = surface_->getPixelFormat();
+		if(pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4LSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4MSB) {
+			is_index_format_ = true;
+			index_format_increment_ = (pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB || pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB) ? 8 : 2;
+		}
 	}
 
 	SurfaceIterator::SurfaceIterator()
@@ -333,7 +345,9 @@ namespace KRE
 		  x_(-1),
 		  y_(-1),
 		  index_(0),
-		  pixels_(nullptr)
+		  pixels_(nullptr),
+		  is_index_format_(false),
+		  index_format_increment_(0)
 	{
 	}
 
@@ -343,7 +357,7 @@ namespace KRE
 		SurfaceLock lck(surface_);
 		SimpleColor res;
 		int offs = y_ * surface_->rowPitch() + x_ * surface_->getPixelFormat()->bytesPerPixel();
-		std::tie(offs, index_incr_) = surface_->getPixelFormat()->extractRGBA(&pixels_[offs], index_, res.red, res.green, res.blue, res.alpha);
+		surface_->getPixelFormat()->extractRGBA(&pixels_[offs], index_, res.red, res.green, res.blue, res.alpha);
 		res.x = x_;
 		res.y = y_;
 		return res;
@@ -356,9 +370,13 @@ namespace KRE
 
 	void SurfaceIterator::increment() 
 	{
-		if(index_incr_ != 0) {
-			index_ = index_incr_;
-		} else {
+		bool do_xy_inc = true;
+		if(is_index_format_) {
+			index_ = (index_ + index_format_increment_) % 8;
+			do_xy_inc = index_ == 0;
+		} 
+
+		if(do_xy_inc) {
 			if(++x_ >= surface_->width()) {
 				if(++y_ >= surface_->height()) {
 					// indicate we reached the end of the surface.
@@ -373,26 +391,43 @@ namespace KRE
 
 	void SurfaceIterator::decrement() 
 	{
-		if(--x_ <= 0) {
-			if(--y_ <= 0) {
-				y_ = x_ = 0;
-			} else {
-				x_ = surface_->width() - 1;
+		bool do_xy_dec = true;
+		if(is_index_format_) {
+			index_ = (index_ - index_format_increment_) % 8;
+			do_xy_dec = index_ == 0;
+		} 
+
+		if(do_xy_dec) {
+			if(--x_ <= 0) {
+				if(--y_ <= 0) {
+					y_ = x_ = 0;
+				} else {
+					x_ = surface_->width() - 1;
+				}
 			}
 		}
 	}
 
 	void SurfaceIterator::advance(std::ptrdiff_t n) 
 	{
-		x_ += n;
-		while(x_ >= surface_->width()) {
-			if(++y_ >= surface_->height()) {
-				// indicate we reached the end of the surface.
-				y_ = x_ = -1;
-				break;
-			} else {
-				x_ -= surface_->width();
-			}			
+		bool do_xy_inc = true;
+		if(is_index_format_) {
+			index_ = (index_ + index_format_increment_ * n) % 8;
+			n /= index_format_increment_;
+			do_xy_inc = n != 0;
+		} 
+
+		if(do_xy_inc) {
+			x_ += n;
+			while(x_ >= surface_->width()) {
+				if(++y_ >= surface_->height()) {
+					// indicate we reached the end of the surface.
+					y_ = x_ = -1;
+					break;
+				} else {
+					x_ -= surface_->width();
+				}			
+			}
 		}
 	}
 
@@ -437,4 +472,44 @@ namespace KRE
 		return alpha_map_.end(); 
 	}
 
+	void Surface::iterateOverSurface(surface_iterator_fn fn)
+	{
+		iterateOverSurface(0, 0, width(), height(), fn);
+	}
+
+	void Surface::iterateOverSurface(rect r, surface_iterator_fn fn)
+	{
+		iterateOverSurface(r.x(), r.y(), r.h(), r.w(), fn);
+	}
+
+	void Surface::iterateOverSurface(int sx, int sy, int sw, int sh, surface_iterator_fn iterator_fn)
+	{
+		SurfaceLock lck(shared_from_this());
+		auto pf = getPixelFormat();
+		if(pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4LSB 
+			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4MSB) {
+			int cnt = (pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB || pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB) ? 8 : 2;
+			for(int y = sy; y != sh; ++y) {
+				for(int x = sx; x != sw; ++x) {
+					for(int n = 0; n != cnt; ++n) {
+						int red = 0, green = 0, blue = 0, alpha = 0;
+						const uint8_t* px = &reinterpret_cast<const uint8_t*>(pixels())[x * bytesPerPixel() + y * rowPitch()];
+						pf->extractRGBA(px, n, red, green, blue, alpha);
+						iterator_fn(x, y, red, green, blue, alpha);
+					}
+				}
+			}
+		} else {
+			for(int y = sy; y != sh; ++y) {
+				for(int x = sx; x != sw; ++x) {
+					int red = 0, green = 0, blue = 0, alpha = 0;
+					const uint8_t* px = &reinterpret_cast<const uint8_t*>(pixels())[x * bytesPerPixel() + y * rowPitch()];
+					pf->extractRGBA(px, 0, red, green, blue, alpha);
+					iterator_fn(x, y, red, green, blue, alpha);
+				}
+			}
+		}
+	}
 }

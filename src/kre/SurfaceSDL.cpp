@@ -661,10 +661,9 @@ namespace KRE
 		return surf->runGlobalAlphaFilter();
 	}
 
-	std::tuple<int,int> SDLPixelFormat::extractRGBA(const void* pixels, int ndx, int& red, int& green, int& blue, int& alpha)
+	void SDLPixelFormat::extractRGBA(const void* pixels, int ndx, int& red, int& green, int& blue, int& alpha)
 	{
 		auto fmt = getFormat();
-		int pixel_shift_return = bytesPerPixel();
 		red = 0;
 		green = 0;
 		blue = 0;
@@ -679,12 +678,6 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
-				if(ndx == 7) {
-					ndx = 0;
-				} else {
-					pixel_shift_return = 0;
-					++ndx;
-				}
 				break;
 			}
             case PixelFormat::PF::PIXELFORMAT_INDEX1MSB: {
@@ -696,12 +689,6 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
-				if(ndx == 7) {
-					ndx = 0;
-				} else {
-					pixel_shift_return = 0;
-					++ndx;
-				}
 				break;
 			}
             case PixelFormat::PF::PIXELFORMAT_INDEX4LSB: {
@@ -713,12 +700,6 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
-				if(ndx == 4) {
-					ndx = 0;
-				} else {
-					pixel_shift_return = 0;
-					ndx = 4;
-				}
 				break;
 			}
 			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB: {
@@ -730,12 +711,6 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
-				if(ndx == 4) {
-					ndx = 0;
-				} else {
-					pixel_shift_return = 0;
-					ndx = 4;
-				}
 				break;
 			}
             case PixelFormat::PF::PIXELFORMAT_INDEX8: {
@@ -748,7 +723,6 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
-				pixel_shift_return = bytesPerPixel();
 				break;
 			}
 
@@ -817,7 +791,6 @@ namespace KRE
 			default:
 				ASSERT_LOG(false, "unsupported pixel format value for conversion.");
 		}
-		return std::make_tuple(pixel_shift_return, ndx);
 	}
 
 	void SDLPixelFormat::encodeRGBA(void* pixels, int red, int green, int blue, int alpha)

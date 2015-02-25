@@ -113,8 +113,9 @@ namespace KRE
 		int x_;
 		int y_;
 		int index_;
-		mutable int index_incr_;
 		const unsigned char* pixels_;
+		bool is_index_format_;
+		int index_format_increment_;
 	};
 
 	inline bool operator&(SurfaceFlags lhs, SurfaceFlags rhs) {
@@ -127,6 +128,8 @@ namespace KRE
 	
 	//typedef std::unordered_map<Color, int, Color> color_histogram_type;
 	typedef std::map<Color, int> color_histogram_type;
+
+	typedef std::function<void(int,int,int,int,int,int)> surface_iterator_fn;
 
 	class Surface : public std::enable_shared_from_this<Surface>
 	{
@@ -143,11 +146,17 @@ namespace KRE
 		virtual int width() const = 0;
 		virtual int height() const = 0;
 		virtual int rowPitch() const = 0;
+		virtual int bytesPerPixel() const = 0;
+		virtual int bitsPerPixel() const = 0;
 
 		void init();
 
 		iterator begin() { return iterator(shared_from_this()); }
 		iterator end() { return iterator(); }
+
+		void iterateOverSurface(surface_iterator_fn fn);
+		void iterateOverSurface(rect r, surface_iterator_fn fn);
+		void iterateOverSurface(int x, int y, int w, int h, surface_iterator_fn fn);
 
 		virtual void blit(SurfacePtr src, const rect& src_rect) = 0;
 		virtual void blitTo(SurfacePtr src, const rect& src_rect, const rect& dst_rect) = 0;

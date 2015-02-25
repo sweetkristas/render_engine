@@ -225,39 +225,28 @@ void set_alpha_masks()
 	});
 }
 
-namespace 
+void timed_surface_iterator_tests(const std::string& filename)
 {
-	struct rgb
+	using namespace KRE;
+	auto surf = Surface::create(filename);
+	// test1 surface iterator
 	{
-		uint8_t r, g, b;
-	};
-
-	rgb hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v)
-	{
-		rgb out;
-		uint8_t region, remainder, p, q, t;
-
-		if(s == 0) {
-			out.r = out.g = out.b = v;
-		} else {
-			region = h / 43;
-			remainder = (h - (region * 43)) * 6; 
-
-			p = (v * (255 - s)) >> 8;
-			q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-			t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
-
-			switch(region)
-			{
-				case 0:  out.r = v; out.g = t; out.b = p; break;
-				case 1:  out.r = q; out.g = v; out.b = p; break;
-				case 2:  out.r = p; out.g = v; out.b = t; break;
-				case 3:  out.r = p; out.g = q; out.b = v; break;
-				case 4:  out.r = t; out.g = p; out.b = v; break;
-				default: out.r = v; out.g = p; out.b = q; break;
-			}
+		std::vector<Color> cvec;
+		std::string s = "SurfaceIterator test - " + filename;
+		profile::manager pman(s.c_str());
+		for(auto px : *surf) {
+			cvec.emplace_back(px.red, px.green, px.blue, px.alpha);
 		}
-		return out;
+	}
+	
+	// test2
+	{
+		std::vector<Color> cvec;
+		std::string s = "Surface::iterateOverSurface - " + filename;
+		profile::manager pman(s.c_str());
+		surf->iterateOverSurface([&cvec](int x, int y, int r, int g, int b, int a){
+			cvec.emplace_back(r, g, b, a);
+		});
 	}
 }
 
@@ -422,6 +411,9 @@ int main(int argc, char *argv[])
 		rt1->preRender(main_wnd);
 		canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));//(neww, newh);
 	}
+
+	timed_surface_iterator_tests("noise2kx2k.png");
+	timed_surface_iterator_tests("index_test1.png");
 
 
 	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");

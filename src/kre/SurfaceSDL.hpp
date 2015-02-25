@@ -84,7 +84,7 @@ namespace KRE
 
 		void getRGBA(uint32_t pix, int& r, int& g, int& b, int& a) override;
 
-		std::tuple<int,int> extractRGBA(const void* pixels, int ndx, int& red, int& green, int& blue, int& alpha) override;
+		void extractRGBA(const void* pixels, int ndx, int& red, int& green, int& blue, int& alpha) override;
 		void encodeRGBA(void* pixels, int red, int green, int blue, int alpha) override; 
 
 		bool hasPalette() const override;
@@ -139,6 +139,16 @@ namespace KRE
 		int rowPitch() const override {
 			ASSERT_LOG(surface_ != nullptr, "surface_ is null");
 			return surface_->pitch;
+		}
+		int bytesPerPixel() const override {
+			ASSERT_LOG(surface_ != nullptr, "surface_ is null");
+			ASSERT_LOG(surface_->format != nullptr, "surface_->format is null");
+			return surface_->format->BytesPerPixel;
+		}
+		int bitsPerPixel() const override {
+			ASSERT_LOG(surface_ != nullptr, "surface_ is null");
+			ASSERT_LOG(surface_->format != nullptr, "surface_->format is null");
+			return surface_->format->BitsPerPixel;
 		}
 
 		virtual bool hasData() const override {
