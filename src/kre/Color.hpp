@@ -112,7 +112,7 @@ namespace KRE
 			case ColorByteOrder::ABGR: return glm::u8vec4(a_int(), b_int(), g_int(), r_int());
 			default: break;
 			}
-			return glm::u8vec4(r_int(), g_int(), b_int(), a_int());
+			return icolor_;
 		}
 
 		const float* asFloatVector(ColorByteOrder order=ColorByteOrder::RGBA) const {

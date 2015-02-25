@@ -63,6 +63,7 @@ namespace KRE
 		ShaderProgramPtr getShaderProgram(const std::string& name) override;
 		ShaderProgramPtr getShaderProgram(const variant& node) override;
 		ShaderProgramPtr getDefaultShader() override;
+		void setUniformsForTexture(const ShaderProgramPtr& shader, const TexturePtr& tex) const override;
 
 		BlendEquationImplBasePtr getBlendEquationImpl() override;
 

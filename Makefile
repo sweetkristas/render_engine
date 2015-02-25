@@ -22,7 +22,7 @@
 #                     found in PATH), this option has no effect.
 #
 
-OPTIMIZE=yes
+OPTIMIZE?=yes
 CCACHE?=ccache
 USE_CCACHE?=$(shell which $(CCACHE) 2>&1 > /dev/null && echo yes)
 ifneq ($(USE_CCACHE),yes)
@@ -113,7 +113,7 @@ $(BUILD_DIR):
 	@mkdir -p $@
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) render_engine
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call cc-command,$(bdir))))
 

@@ -260,7 +260,7 @@ namespace KRE
 		address_mode_[1] = v;
 		address_mode_[2] = w;
 		border_color_ = bc;
-		init();
+		init(0);
 	}
 
 	void Texture::setAddressModes(const Texture::AddressMode uvw[3], const Color& bc)
@@ -269,7 +269,7 @@ namespace KRE
 			address_mode_[n] = uvw[n];
 		}
 		border_color_ = bc;
-		init();
+		init(0);
 	}
 
 	void Texture::setFiltering(Texture::Filtering min, Texture::Filtering max, Texture::Filtering mip)
@@ -277,7 +277,7 @@ namespace KRE
 		filtering_[0] = min;
 		filtering_[1] = max;
 		filtering_[2] = mip;
-		init();
+		init(0);
 	}
 
 	void Texture::setFiltering(const Texture::Filtering f[3])
@@ -285,7 +285,7 @@ namespace KRE
 		for(int n = 0; n < 3; ++n) {
 			filtering_[n] = f[n];
 		}
-		init();
+		init(0);
 	}
 
 	void Texture::rebuildAll()

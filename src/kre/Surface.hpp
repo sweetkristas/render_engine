@@ -27,6 +27,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <tuple>
 #include <unordered_map>
@@ -123,6 +124,9 @@ namespace KRE
 	inline SurfaceFlags operator|(SurfaceFlags lhs, SurfaceFlags rhs) {
 		return static_cast<SurfaceFlags>(static_cast<int>(lhs) | static_cast<int>(rhs));
 	}
+	
+	//typedef std::unordered_map<Color, int, Color> color_histogram_type;
+	typedef std::map<Color, int> color_histogram_type;
 
 	class Surface : public std::enable_shared_from_this<Surface>
 	{
@@ -187,7 +191,7 @@ namespace KRE
 		SurfacePtr convert(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);
 		void convertInPlace(PixelFormat::PF fmt, SurfaceConvertFn convert=nullptr);
 
-		std::unordered_map<Color, int, Color> getColorHistogram(ColorCountFlags flags=ColorCountFlags::NONE);
+		color_histogram_type getColorHistogram(ColorCountFlags flags=ColorCountFlags::NONE);
 		unsigned getColorCount(ColorCountFlags flags=ColorCountFlags::NONE);
 
 		virtual const std::vector<Color>& getPalette() = 0;

@@ -275,11 +275,24 @@ int main(int argc, char *argv[])
 
 	WindowManagerPtr main_wnd = WindowManager::createInstance("SDL", "opengl");
 	main_wnd->enableVsync(true);
-	main_wnd->createWindow(800,600);
+	int neww = 800, newh = 600;
+	if(!main_wnd->autoWindowSize(neww, newh)) {
+		LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
+	}
+	LOG_DEBUG("Creating window of size: " << neww << "x" << newh);
+	main_wnd->createWindow(neww, newh);
+	const float aspect_ratio = static_cast<float>(neww) / newh;
 
-#ifdef linux
+	std::map<std::string, std::string> font_paths;
+#if defined(__linux__)
+	LOG_DEBUG("setting image file filter to 'images/'");
 	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "images/" + fname; });
+
+	font_paths["FreeSans.ttf"] = "data/fonts/FreeSans.ttf";
+#else
+	font_paths["FreeSans.ttf"] = "FreeSans.ttf";
 #endif
+	Font::setAvailableFonts(font_paths);
 
 	auto surf = Surface::create("test_image.png");
 	for(auto col : *surf) {
@@ -292,14 +305,14 @@ int main(int argc, char *argv[])
 	SceneGraphPtr scene = SceneGraph::create("main");
 	SceneNodePtr root = scene->getRootNode();
 	root->setNodeName("root_node");
-	auto scenecam = std::make_shared<Camera>("cam0", 0, 800, 0, 600);
+	auto scenecam = std::make_shared<Camera>("cam0", 0, neww, 0, newh);
 	scenecam->attachFrustum(std::make_shared<Frustum>());
 	root->attachCamera(scenecam);
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
 	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
 	root->attachLight(0, sunlight);
 
-	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, 800, 0, 600));
+	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, neww, 0, newh));
 	
 	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
@@ -328,7 +341,12 @@ int main(int argc, char *argv[])
 	cairo_canvas->setColor(1.0f,1.0f,1.0f,1.0f);
 	root->attachObject(cairo_canvas);
 
-	auto psystem = scene->createNode("particle_system_container", json::parse_from_file("psystem1.cfg"));
+#if defined(__linux__)
+	std::string psys_test_file = "data/psystem1.cfg";
+#else
+	std::string psys_test_file = "psystem1.cfg";
+#endif
+	auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
 	auto particle_cam = std::make_shared<Camera>("particle_cam");
 	particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 	psystem->attachCamera(particle_cam);
@@ -342,21 +360,21 @@ int main(int argc, char *argv[])
 
 	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
 	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
-	tex->setPosition(146.0f/2.0f, 600.0f-130.0f);
+	tex->setPosition(146.0f/2.0f, newh-130.0f);
 	tex->setOrder(10);
 	root->attachObject(tex);
 
 	// test cloning
 	auto new_tex = std::make_shared<SimpleTextureHolder>(*tex);
 	new_tex->setOrder(tex->getOrder()+1);
-	new_tex->setPosition(800.0f/2.0f, 600.0f/2.0f);
+	new_tex->setPosition(neww/2.0f, newh/2.0f);
 	root->attachObject(new_tex);
 
 	auto free_surf = Surface::create("editor-tools.png", SurfaceFlags::NO_ALPHA_FILTER);
 	//auto free_tex = std::make_shared<FreeTextureHolder>("editor-tools.png");
 	auto free_tex = std::make_shared<FreeTextureHolder>(free_surf);
 	free_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
-	free_tex->setPosition(800.0f - 256.0f, 0.0f);
+	free_tex->setPosition(neww - 256.0f, 0.0f);
 
 	// Test that cache surfaces and textures is working.
 	std::vector<std::shared_ptr<FreeTextureHolder>> texture_list;		
@@ -366,9 +384,6 @@ int main(int argc, char *argv[])
 		texture_list.emplace_back(tex1);
 	}
 
-	std::map<std::string, std::string> font_paths;
-	font_paths["FreeSans.ttf"] = "FreeSans.ttf";
-	Font::setAvailableFonts(font_paths);
 	auto fnt_surf = Font::getInstance()->renderText("test", Color::colorOrange(), 20, false, "FreeSans.ttf");
 	auto text_tex = std::make_shared<FreeTextureHolder>(fnt_surf);
 	//text_tex->setDrawRect(rect(0, 0, fnt_surf->surfaceWidth(), fnt_surf->surfaceHeight()));
@@ -382,7 +397,7 @@ int main(int argc, char *argv[])
 	float angle_step = 0.5f;
 
 	auto canvas = Canvas::getInstance();
-	//canvas->setDimensions(800, 600);
+	canvas->setDimensions(800, 800/aspect_ratio);
 
 	auto canvas_texture = Texture::createTexture("widgets.png");
 	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
@@ -402,13 +417,20 @@ int main(int argc, char *argv[])
 		canvas->drawSolidCircle(point(150, 150), 20.0f, Color::colorCyan());
 		rt1->setCentre(Blittable::Centre::TOP_LEFT);
 		rt1->preRender(main_wnd);
-		canvas->setDimensions(800, 600);
+		canvas->setDimensions(800, 800/aspect_ratio);//(neww, newh);
 	}
 
-	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
-	palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
-	palette_tex->setPosition(400.0f - palette_tex->getTexture()->surfaceWidth(), 300.0f - palette_tex->getTexture()->surfaceHeight());
-	palette_tex->setScale(2.0f, 2.0f);
+
+	//auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
+	//palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
+	auto palette_tex = std::make_shared<FreeTextureHolder>("checkerboard1.png");
+	palette_tex->getTexture()->addPalette(Surface::create("checkerboard-palette.png"));
+	palette_tex->setPosition(0, 0);
+	auto palette_cam = std::make_shared<Camera>("palette_cam", 0, 800, 0, 800);
+	palette_tex->setCamera(palette_cam);
+	
+	auto rt2 = RenderTarget::create(palette_tex->getTexture()->width(), palette_tex->getTexture()->height());
+	rt2->setCentre(Blittable::Centre::TOP_LEFT);
 
 	SDL_Event e;
 	bool done = false;
@@ -438,8 +460,27 @@ int main(int argc, char *argv[])
 			angle -= 360.0f;
 		}
 
-		palette_tex->preRender(main_wnd);
-		main_wnd->render(palette_tex.get());
+		canvas->blitTexture(rt1->getTexture(), 0.0f, 800-rt1->getTexture()->surfaceWidth(), 0);
+
+		{
+			//RenderTarget::RenderScope render_scope(rt2);
+			//rt2->setClearColor(Color(0,0,0,0));
+			//rt2->clear();
+			palette_tex->preRender(main_wnd);
+			main_wnd->render(palette_tex.get());
+		}
+		//rt2->preRender(main_wnd);
+		//canvas->blitTexture(rt2->getTexture(), 0.0f, 0, 0);
+
+		static int counter_pal = 0;
+		static int pal = 0;
+		if(++counter_pal >= 60*5) {
+			counter_pal = 0;
+			if(++pal >= 2) {
+				pal = 0;
+			}
+			palette_tex->getTexture()->setPalette(pal);
+		}
 
 		/*scene->renderScene(rman);
 		rman->render(main_wnd);
@@ -450,14 +491,13 @@ int main(int argc, char *argv[])
 		text_tex->preRender(main_wnd);
 		main_wnd->render(text_tex.get());*/
 
-		//canvas->drawSolidCircle(pointf(0.0f, 0.0f), 150.0f, Color::colorGold());
-		//canvas->drawHollowCircle(pointf(800.0f, 0.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
+		//canvas->drawSolidCircle(point(canvas->width()/2, canvas->height()/2), 50.0f, Color::colorGold());
+		//canvas->drawHollowCircle(pointf(400.0f, 400.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
 
 		//std::vector<glm::u8vec4> circle_colors;
 		//generate_color_wheel(60, &circle_colors, Color(0,0,0,0), 0.1f, 0.1f);
 		//canvas->drawSolidCircle(point(400, 300), 150.0f, circle_colors);
 
-		//canvas->blitTexture(rt1->getTexture(), 0.0f, 0, 300);
 
 		/*{
 			Canvas::ModelManager mm(0, 0, 10.0f, 1.0f);

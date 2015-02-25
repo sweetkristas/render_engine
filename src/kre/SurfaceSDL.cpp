@@ -372,6 +372,7 @@ namespace KRE
 	{
 		pf_ = SDL_AllocFormat(pf);
 		ASSERT_LOG(pf_ != nullptr, "SDLPixelFormat constructor passed a null pixel format: " << SDL_GetError());
+		//SDL_SetPixelFormatPalette(pf_, SDL_AllocPalette(ncols));
 	}
 
 	SDLPixelFormat::~SDLPixelFormat()
@@ -732,10 +733,11 @@ namespace KRE
 				break;
 			}
             case PixelFormat::PF::PIXELFORMAT_INDEX8: {
-				ASSERT_LOG(pf_->palette != nullptr, "Index type has no palette.");
+				auto palette = pf_->palette;
+				ASSERT_LOG(palette != nullptr, "Index type has no palette.");
 				uint8_t px = *static_cast<const uint8_t*>(pixels);
-				ASSERT_LOG(px < pf_->palette->ncolors, "Index into palette invalid. " << px << " >= " << pf_->palette->ncolors);
-				auto color = pf_->palette->colors[px];
+				ASSERT_LOG(px < palette->ncolors, "Index into palette invalid. " << px << " >= " << palette->ncolors);
+				auto color = palette->colors[px];
 				red = color.r;
 				green = color.g;
 				blue = color.b;

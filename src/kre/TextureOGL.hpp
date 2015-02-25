@@ -25,8 +25,6 @@
 
 #include <GL/glew.h>
 
-#include <unordered_map>
-
 #include "Texture.hpp"
 
 namespace KRE
@@ -41,7 +39,7 @@ namespace KRE
 
 		void bind() override;
 
-		void init() override;
+		void init(int n) override;
 		unsigned id(int n) override;
 
 		void update(int n, int x, int width, void* pixels) override;
@@ -56,6 +54,7 @@ namespace KRE
 		static void handleClearTextures();
 	private:
 		void createTexture(int n);
+		void updatePaletteRow(SurfacePtr new_palette_surface, int palette_width, const std::vector<glm::u8vec4>& pixels);
 		void rebuild() override;
 		void handleAddPalette(const SurfacePtr& palette) override;
 
@@ -81,7 +80,7 @@ namespace KRE
 			std::shared_ptr<GLuint> id;
 			PixelFormat::PF surface_format;
 			std::vector<Color> palette;
-			std::unordered_map<Color, int, Color> color_index_map;
+			color_histogram_type color_index_map;
 			GLenum format;
 			GLenum internal_format;
 			GLenum type;

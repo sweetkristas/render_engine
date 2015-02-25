@@ -82,14 +82,13 @@ namespace KRE
 		glm::mat4 mvp = mvp_ * model * getModelMatrix();
 		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
 		shader->makeActive();
-		texture->bind();
+		DisplayDevice::getCurrent()->setUniformsForTexture(shader, texture);
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 		if(color != KRE::Color::colorWhite()) {
 			shader->setUniformValue(shader->getColorUniform(), (color*getColor()).asFloatVector());
 		} else {
 			shader->setUniformValue(shader->getColorUniform(), getColor().asFloatVector());
 		}
-		shader->setUniformValue(shader->getTexMapUniform(), 0);
 		// XXX the following line are only temporary, obviously.
 		//shader->SetUniformValue(shader->GetUniformIterator("discard"), 0);
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
@@ -109,14 +108,13 @@ namespace KRE
 		glm::mat4 mvp = mvp_ * model * getModelMatrix();
 		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
 		shader->makeActive();
-		tex->bind();
+		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 		if(color != KRE::Color::colorWhite()) {
 			shader->setUniformValue(shader->getColorUniform(), (color*getColor()).asFloatVector());
 		} else {
 			shader->setUniformValue(shader->getColorUniform(), getColor().asFloatVector());
 		}
-		shader->setUniformValue(shader->getTexMapUniform(), 0);
 		// XXX the following line are only temporary, obviously.
 		//shader->SetUniformValue(shader->GetUniformIterator("discard"), 0);
 		glEnableVertexAttribArray(shader->getVertexAttribute()->second.location);
@@ -417,7 +415,7 @@ namespace KRE
 
 		try {
 			static auto screen_dim = shader->getUniformIterator("screen_dimensions");
-			shader->setUniformValue(screen_dim, glm::value_ptr(glm::vec2(width(), height())));
+			shader->setUniformValue(screen_dim, glm::value_ptr(glm::vec2(getWindow()->width(), getWindow()->height())));
 		} catch(ShaderUniformError&) {
 		}
 		try {

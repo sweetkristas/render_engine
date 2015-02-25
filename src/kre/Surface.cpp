@@ -22,7 +22,6 @@
 */
 
 #include <tuple>
-#include <unordered_map>
 
 #include "Surface.hpp"
 
@@ -232,9 +231,9 @@ namespace KRE
 		return Color(r, g, b, a);
 	}
 
-	std::unordered_map<Color, int, Color> Surface::getColorHistogram(ColorCountFlags flags)
+	color_histogram_type Surface::getColorHistogram(ColorCountFlags flags)
 	{
-		std::unordered_map<Color, int, Color> res;
+		color_histogram_type res;
 		for(auto px : *this) {
 			Color color(px.red, px.green, px.blue, (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : px.alpha));
 			auto it = res.find(color);

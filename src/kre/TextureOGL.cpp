@@ -22,6 +22,7 @@
 */
 
 #include "asserts.hpp"
+#include "profile_timer.hpp"
 #include "DisplayDevice.hpp"
 #include "TextureOGL.hpp"
 
@@ -76,9 +77,9 @@ namespace KRE
 		for(auto& surf : getSurfaces()) {
 			texture_data_[n].surface_format = surf->getPixelFormat()->getFormat();
 			createTexture(n);
+			init(n);
 			++n;
 		}
-		init();
 	}
 
 	OpenGLTexture::OpenGLTexture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
@@ -95,9 +96,9 @@ namespace KRE
 		for(auto& surf : surfaces) {
 			texture_data_[n].surface_format = surf->getPixelFormat()->getFormat();
 			createTexture(n);
+			init(n);
 			++n;
 		}
-		init();
 	}
 
 	OpenGLTexture::OpenGLTexture(int count, int width, int height, int depth, PixelFormat::PF fmt, TextureType type)
@@ -113,8 +114,8 @@ namespace KRE
 		for(int n = 0; n != count; ++n) {
 			texture_data_[n].surface_format = fmt;
 			createTexture(n);
+			init(n);
 		}
-		init();
 	}
 
 	OpenGLTexture::~OpenGLTexture()
@@ -240,12 +241,34 @@ namespace KRE
 		}
 	}
 
+	void OpenGLTexture::updatePaletteRow(SurfacePtr new_palette_surface, int palette_width, const std::vector<glm::u8vec4>& pixels)
+	{
+		// write altered pixel data to texture.
+		update(1, 0, texture_data_[0].palette_row_index, palette_width, 1, &pixels[0]);
+		// write altered pixel data to surface.
+		unsigned char* px = reinterpret_cast<unsigned char*>(new_palette_surface->pixelsWriteable());
+		memcpy(&px[texture_data_[0].palette_row_index * new_palette_surface->rowPitch()], &pixels[0], pixels.size() * sizeof(glm::u8vec4));
+
+		// Update the palette row index so it points to the next free location.
+		++texture_data_[0].palette_row_index;
+	}
+
 	void OpenGLTexture::handleAddPalette(const SurfacePtr& palette)
 	{
+		profile::manager pman("handleAddPalette");
 		ASSERT_LOG(is_yuv_planar_ == false, "Can't create a palette for a YUV surface.");
 
 		if(PixelFormat::isIndexedFormat(getFrontSurface()->getPixelFormat()->getFormat())) {
-			// XXX is already an indexed format.
+			ASSERT_LOG(false, "XXXXXXXXXXXXXXXXXXXX TEST");
+			// Is already an indexed format.
+			// Which means that texture_data_[0].palette should be already valid.
+			// Need to create the mapping from color value to index though. 
+			const int num_colors = texture_data_[0].palette.size();
+			ASSERT_LOG(num_colors > 0, "Indexed data format but no palette present. createTexture() probably not called.");
+			for(int n = 0; n != num_colors; ++n) {
+				texture_data_[0].color_index_map[texture_data_[0].palette[n]] = n;
+			}
+			// XXX the indexes may need to be scaled by 255*index/(num_colors-1)
 		} else {
 			auto histogram = getFrontSurface()->getColorHistogram();
 			int num_colors = histogram.size();
@@ -254,6 +277,7 @@ namespace KRE
 
 			// Create palette from existing surface
 			//LOG_DEBUG("Texture color values:");
+			texture_data_[0].palette.reserve(num_colors);
 			for(auto& hd : histogram) {
 				// We're subverting the histogram data to store the index to the color, so we can use
 				// it for easy index look up when we traverse the surface next.
@@ -263,33 +287,36 @@ namespace KRE
 			}
 
 			// Create a new indexed surface.
-			auto surf = Surface::create(surfaceWidth(), surfaceHeight(), PixelFormat::PF::PIXELFORMAT_INDEX8);
+			int sw = surfaceWidth();
+			int sh = surfaceHeight();
+			auto surf = Surface::create(sw, sh, PixelFormat::PF::PIXELFORMAT_INDEX8);
 
 			std::vector<uint8_t> new_pixels;
-			new_pixels.resize(surf->rowPitch() * surf->height());
+			new_pixels.resize(sw * sh);
 			for(auto px : *getFrontSurface()) {
-				Color color(px.red, px.green, px.blue, px.alpha);
-				auto it = histogram.find(color);
+				auto it = histogram.find(Color(px.red, px.green, px.blue, px.alpha));
 				ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong.");
-				new_pixels[px.x + px.y * surf->rowPitch()] = static_cast<uint8_t>(it->second);
+				new_pixels[px.x + px.y * sw] = static_cast<uint8_t>((255 * it->second) / (num_colors - 1));
 			}
 			surf->writePixels(&new_pixels[0], new_pixels.size());
 
 			// save old palette
 			auto old_palette = std::move(texture_data_[0].palette);
 
+			// Set the surface to our new one.
+			getSurfaces()[0] = surf;
 			// Reset the existing data so we can re-create it.
 			texture_data_[0] = TextureData();
 			texture_data_[0].surface_format = PixelFormat::PF::PIXELFORMAT_INDEX8;
 			texture_data_[0].color_index_map = std::move(histogram);
 			texture_data_[0].palette = std::move(old_palette);
 			createTexture(0);
-
-			// Set the surface to our new one.
-			getSurfaces()[0] = surf;
+			init(0);
 		}
 
 		SurfacePtr new_palette_surface;
+		const int palette_width = texture_data_[0].palette.size();
+
 		if(texture_data_.size() > 1) {
 			// Already have a palette texture we can use.
 			ASSERT_LOG(texture_data_[0].palette_row_index + 1 < maximum_palette_variations, "Only support a maximum of " << maximum_palette_variations << " palettes per texture.");
@@ -298,21 +325,27 @@ namespace KRE
 		} else {
 			texture_data_.resize(2);
 			// We create a surface with <maximum_palette_variations> rows, this allows for a maximum of <maximum_palette_variations> palettes.
-			new_palette_surface = Surface::create(texture_data_[0].palette.size(), maximum_palette_variations, PixelFormat::PF::PIXELFORMAT_BGRA8888);
+			new_palette_surface = Surface::create(texture_data_[0].palette.size(), maximum_palette_variations, PixelFormat::PF::PIXELFORMAT_RGBA8888);
 			getSurfaces().emplace_back(new_palette_surface);
-			texture_data_[1].surface_format = PixelFormat::PF::PIXELFORMAT_BGRA8888;
+			texture_data_[1].surface_format = new_palette_surface->getPixelFormat()->getFormat();
 			createTexture(1);
+			init(1);
 
-			// XXX need to add the original data as row 0 here.
+			// Add the original data as row 0 here.
+			std::vector<glm::u8vec4> new_pixels;
+			new_pixels.reserve(palette_width);
+			for(auto& color : texture_data_[0].palette) {
+				new_pixels.emplace_back(color.as_u8vec4());
+			}
+			updatePaletteRow(new_palette_surface, palette_width, new_pixels);
 		}
 
-		const int palette_width = texture_data_[0].palette.size();
 		// Create altered pixel data and update the surface/texture.
 		std::vector<glm::u8vec4> new_pixels;
 		new_pixels.reserve(palette_width);
 		// Set the new pixel data same as current data.
 		for(auto color : texture_data_[0].palette) {
-			new_pixels.emplace_back(color.as_u8vec4(ColorByteOrder::BGRA));
+			new_pixels.emplace_back(color.as_u8vec4());
 		}
 		if(palette->width() > palette->height()) {
 			for(int x = 0; x != palette->width(); ++x) {
@@ -322,7 +355,7 @@ namespace KRE
 				auto it = texture_data_[0].color_index_map.find(normal_color);
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
-					new_pixels[it->second] = mapped_color.as_u8vec4(ColorByteOrder::BGRA);
+					new_pixels[it->second] = mapped_color.as_u8vec4();
 				}
 			}
 		} else {
@@ -336,21 +369,14 @@ namespace KRE
 				auto it = texture_data_[0].color_index_map.find(normal_color);
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
-					new_pixels[it->second] = mapped_color.as_u8vec4(ColorByteOrder::BGRA);
+					new_pixels[it->second] = mapped_color.as_u8vec4();
 					++colors_mapped;
 				}
 			}
 			LOG_DEBUG("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
 		}
 
-		// write altered pixel data to texture.
-		update(1, 0, texture_data_[0].palette_row_index, palette_width, 1, &new_pixels[0]);
-		// write altered pixel data to surface.
-		unsigned char* px = reinterpret_cast<unsigned char*>(new_palette_surface->pixelsWriteable());
-		memcpy(&px[texture_data_[0].palette_row_index * new_palette_surface->rowPitch()], &new_pixels[0], new_pixels.size() * sizeof(glm::u8vec4));
-
-		// Update the palette row index so it points to the next free location.
-		++texture_data_[0].palette_row_index;
+		updatePaletteRow(new_palette_surface, palette_width, new_pixels);
 	}
 
 	void OpenGLTexture::createTexture(int n)
@@ -366,12 +392,15 @@ namespace KRE
 			case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
 			case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
+				ASSERT_LOG(false, "Need to deal with a transform for indexed 1-bit and 4-bit surfaces.");
+				break;
 			case PixelFormat::PF::PIXELFORMAT_INDEX8:
 				if(texture_data_[n].palette.size() == 0) {
 					texture_data_[n].palette = getSurfaces()[n]->getPalette();
+					ASSERT_LOG(false, "Need to create a palette surface for 8-bit native index formats. Or translate to RGBA.");
 				}
-				td.format = GL_LUMINANCE;
-				td.internal_format = GL_LUMINANCE;
+				td.format = GL_RED;
+				td.internal_format = GL_RGBA;
 				td.type = GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB332:
@@ -391,7 +420,7 @@ namespace KRE
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR555:
 				td.format = GL_BGR;
-				td.internal_format = GL_RGB4;
+				td.internal_format = GL_RGB5;
 				td.type = GL_UNSIGNED_SHORT;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB4444:
@@ -460,9 +489,9 @@ namespace KRE
 				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGBX8888:
-				td.format = GL_RGB;
+				td.format = GL_RGBA;
 				td.internal_format = GL_RGB8;
-				td.type =  GL_UNSIGNED_INT_8_8_8_8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGR888:
 				td.format = GL_BGR;
@@ -472,7 +501,7 @@ namespace KRE
 			case PixelFormat::PF::PIXELFORMAT_BGRX8888:
 				td.format = GL_BGRA;
 				td.internal_format = GL_RGB8;
-				td.type =  GL_UNSIGNED_INT_8_8_8_8;
+				td.type =  GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB8888:
 				td.format = GL_BGRA;
@@ -488,7 +517,7 @@ namespace KRE
 			case PixelFormat::PF::PIXELFORMAT_RGBA8888:
 				td.format = GL_RGBA;
 				td.internal_format = GL_RGBA8;
-				td.type = GL_UNSIGNED_INT_8_8_8_8;
+				td.type = GL_UNSIGNED_BYTE;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ABGR8888:
 				td.format = GL_RGBA;
@@ -497,12 +526,12 @@ namespace KRE
 				break;
 			case PixelFormat::PF::PIXELFORMAT_BGRA8888:
 				td.format = GL_BGRA;
-				td.internal_format = GL_RGBA8;
-				td.type = GL_UNSIGNED_INT_8_8_8_8;
+				td.internal_format = GL_RGBA;
+				td.type = GL_UNSIGNED_BYTE;//GL_UNSIGNED_INT_8_8_8_8;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_ARGB2101010:
 				td.format = GL_BGRA;
-				td.internal_format = GL_RGBA8;
+				td.internal_format = GL_RGB10_A2;
 				td.type = GL_UNSIGNED_INT_2_10_10_10_REV;
 				break;
 			case PixelFormat::PF::PIXELFORMAT_RGB101010:
@@ -545,12 +574,12 @@ namespace KRE
 		GLuint new_id;
 		glGenTextures(1, &new_id);
 		auto id_ptr = std::shared_ptr<GLuint>(new GLuint(new_id), [](GLuint* id) { glDeleteTextures(1, id); delete id; });
-		texture_data_[n].id = id_ptr;
+		td.id = id_ptr;
 		if(surf) {
 			get_id_cache()[surf] = id_ptr;
 		}
 
-		glBindTexture(GetGLTextureType(getType()), *texture_data_[n].id);
+		glBindTexture(GetGLTextureType(getType()), *td.id);
 
 		unsigned w = is_yuv_planar_ && n>0 ? width()/2 : width();
 		unsigned h = is_yuv_planar_ && n>0 ? height()/2 : height();
@@ -588,80 +617,82 @@ namespace KRE
 				// If we are using a cubic texture 		
 				ASSERT_LOG(false, "Implement texturing of cubic texture target");
 		}
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+		if(getUnpackAlignment() != 4) {
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
-	void OpenGLTexture::init()
+	void OpenGLTexture::init(int n)
 	{
+		auto& td = texture_data_[n];
 		GLenum type = GetGLTextureType(getType());
 
-		for(auto& td : texture_data_) {
-			glBindTexture(type, *td.id);
+		glBindTexture(type, *td.id);
 
-			glTexParameteri(type, GL_TEXTURE_WRAP_S, GetGLAddressMode(getAddressModeU()));
-			if(getAddressModeU() == AddressMode::BORDER) {
+		glTexParameteri(type, GL_TEXTURE_WRAP_S, GetGLAddressMode(getAddressModeU()));
+		if(getAddressModeU() == AddressMode::BORDER) {
+			glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, getBorderColor().asFloatVector());
+		}
+		if(getType() > TextureType::TEXTURE_1D) {
+			glTexParameteri(type, GL_TEXTURE_WRAP_T, GetGLAddressMode(getAddressModeV()));
+			if(getAddressModeV() == AddressMode::BORDER) {
 				glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, getBorderColor().asFloatVector());
 			}
-			if(getType() > TextureType::TEXTURE_1D) {
-				glTexParameteri(type, GL_TEXTURE_WRAP_T, GetGLAddressMode(getAddressModeV()));
-				if(getAddressModeV() == AddressMode::BORDER) {
-					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, getBorderColor().asFloatVector());
-				}
+		}
+		if(getType() > TextureType::TEXTURE_2D) {
+			glTexParameteri(type, GL_TEXTURE_WRAP_R, GetGLAddressMode(getAddressModeW()));
+			if(getAddressModeW() == AddressMode::BORDER) {
+				glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, getBorderColor().asFloatVector());
 			}
-			if(getType() > TextureType::TEXTURE_2D) {
-				glTexParameteri(type, GL_TEXTURE_WRAP_R, GetGLAddressMode(getAddressModeW()));
-				if(getAddressModeW() == AddressMode::BORDER) {
-					glTexParameterfv(type, GL_TEXTURE_BORDER_COLOR, getBorderColor().asFloatVector());
-				}
-			}
+		}
 
-			if(getLodBias() > 1e-14 || getLodBias() < -1e-14) {
-				glTexParameterf(type, GL_TEXTURE_LOD_BIAS, getLodBias());
-			}
-			if(getMipMapLevels() > 0) {
-				glTexParameteri(type, GL_TEXTURE_BASE_LEVEL, 0);
-				glTexParameteri(type, GL_TEXTURE_MAX_LEVEL, getMipMapLevels());
-			}
+		if(getLodBias() > 1e-14 || getLodBias() < -1e-14) {
+			glTexParameterf(type, GL_TEXTURE_LOD_BIAS, getLodBias());
+		}
+		if(getMipMapLevels() > 0) {
+			glTexParameteri(type, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(type, GL_TEXTURE_MAX_LEVEL, getMipMapLevels());
+		}
 
-			if(getMipMapLevels() > 0 && getType() > TextureType::TEXTURE_1D) {
-				// XXX for OGL >= 1.4 < 3 use: glTexParameteri(type, GL_GENERATE_MIPMAP, GL_TRUE)
-				// XXX for OGL < 1.4 manually generate them with glTexImage2D
-				// OGL >= 3 use glGenerateMipmap(type);
-				glGenerateMipmap(type);
+		if(getMipMapLevels() > 0 && getType() > TextureType::TEXTURE_1D) {
+			// XXX for OGL >= 1.4 < 3 use: glTexParameteri(type, GL_GENERATE_MIPMAP, GL_TRUE)
+			// XXX for OGL < 1.4 manually generate them with glTexImage2D
+			// OGL >= 3 use glGenerateMipmap(type);
+			glGenerateMipmap(type);
+		}
+
+		ASSERT_LOG(getFilteringMin() != Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
+		ASSERT_LOG(getFilteringMax() != Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
+		ASSERT_LOG(getFilteringMip() != Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
+
+		if(getFilteringMin() == Filtering::POINT) {
+			switch(getFilteringMip()) {
+				case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST); break;
+				case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
+				case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
+				case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
 			}
-
-			ASSERT_LOG(getFilteringMin() != Filtering::NONE, "'none' is not a valid choice for the minifying filter.");
-			ASSERT_LOG(getFilteringMax() != Filtering::NONE, "'none' is not a valid choice for the maxifying filter.");
-			ASSERT_LOG(getFilteringMip() != Filtering::ANISOTROPIC, "'anisotropic' is not a valid choice for the mip filter.");
-
-			if(getFilteringMin() == Filtering::POINT) {
-				switch(getFilteringMip()) {
-					case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST); break;
-					case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); break;
-					case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); break;
-					case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
-				}
-			} else if(getFilteringMin() == Filtering::LINEAR || getFilteringMin() == Filtering::ANISOTROPIC) {
-				switch(getFilteringMip()) {
-					case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR); break;
-					case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); break;
-					case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
-					case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
-				}
+		} else if(getFilteringMin() == Filtering::LINEAR || getFilteringMin() == Filtering::ANISOTROPIC) {
+			switch(getFilteringMip()) {
+				case Filtering::NONE: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR); break;
+				case Filtering::POINT: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); break;
+				case Filtering::LINEAR: glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); break;
+				case Filtering::ANISOTROPIC: ASSERT_LOG(false, "ANISOTROPIC invalid"); break;
 			}
+		}
 
-			if(getFilteringMax() == Filtering::POINT) {
-				glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			} else {
-				glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			}
+		if(getFilteringMax() == Filtering::POINT) {
+			glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		} else {
+			glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
 
-			if(getFilteringMax() == Filtering::ANISOTROPIC || getFilteringMin() == Filtering::ANISOTROPIC) {
-				if(GL_EXT_texture_filter_anisotropic) {
-					float largest_anisotropy;
-					glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_anisotropy);
-					glTexParameterf(type, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_anisotropy > getMaxAnisotropy() ? getMaxAnisotropy() : largest_anisotropy);
-				}
+		if(getFilteringMax() == Filtering::ANISOTROPIC || getFilteringMin() == Filtering::ANISOTROPIC) {
+			if(GL_EXT_texture_filter_anisotropic) {
+				float largest_anisotropy;
+				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &largest_anisotropy);
+				glTexParameterf(type, GL_TEXTURE_MAX_ANISOTROPY_EXT, largest_anisotropy > getMaxAnisotropy() ? getMaxAnisotropy() : largest_anisotropy);
 			}
 		}
 	}
@@ -670,7 +701,7 @@ namespace KRE
 	{
 		int n = texture_data_.size()-1;
 		for(auto it = texture_data_.rbegin(); it != texture_data_.rend(); ++it) {
-			glActiveTexture(GL_TEXTURE0 + n++);
+			glActiveTexture(GL_TEXTURE0 + n--);
 			glBindTexture(GetGLTextureType(getType()), *it->id);
 		}
 	}
@@ -691,8 +722,8 @@ namespace KRE
 		// Re-create the texture
 		for(int n = 0; n != num_tex; ++n) {
 			createTexture(n);
+			init(n);
 		}
-		init();
 	}
 
 	const unsigned char* OpenGLTexture::colorAt(int x, int y) const 

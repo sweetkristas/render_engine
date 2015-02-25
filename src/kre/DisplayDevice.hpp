@@ -145,6 +145,8 @@ namespace KRE
 		virtual ShaderProgramPtr getShaderProgram(const std::string& name) = 0;
 		virtual ShaderProgramPtr getShaderProgram(const variant& node) = 0;
 		virtual ShaderProgramPtr getDefaultShader() = 0;
+		// special handling for setting internal uniforms before blitting a texture.
+		virtual void setUniformsForTexture(const ShaderProgramPtr& shader, const TexturePtr& tex) const = 0;
 
 		virtual int queryParameteri(DisplayDeviceParameters param) = 0;
 

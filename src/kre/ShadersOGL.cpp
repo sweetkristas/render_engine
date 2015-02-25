@@ -57,12 +57,9 @@ namespace KRE
 				"uniform vec4 u_color;\n"
 				"void main()\n"
 				"{\n"
-				"    vec4 color;\n"
+				"    vec4 color = texture2D(u_tex_map, v_texcoord);\n"
 				"    if(u_enable_palette_lookup) {\n"
-				"        float index = texture2D(u_tex_map, v_texcoord).r;\n"
-				"        color = texture2D(u_palette_map, vec2(index, u_palette));\n"
-				"    } else {\n"
-				"        color = texture2D(u_tex_map, v_texcoord);\n"
+				"        color = texture2D(u_palette_map, vec2(color.r, u_palette));\n"
 				"    }\n"
 				"    if(u_discard && color[3] == 0.0) {\n"
 				"        discard;\n"
@@ -457,12 +454,12 @@ namespace KRE
 			}
 			auto alt_name_it = attribute_alternate_name_map_.find(attr);
 			if(alt_name_it == attribute_alternate_name_map_.end()) {
-				//LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
+				LOG_WARN("Attribute '" << attr << "' not found in alternate names list and is not a name defined in the shader: " << name_);
 				return GLint(-1);
 			}
 			it = attribs_.find(alt_name_it->second);
 			if(it == attribs_.end()) {
-				//LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
+				LOG_WARN("Attribute \"" << alt_name_it->second << "\" not found in list, looked up from symbol " << attr << " in shader: " << name_);
 				return GLint(-1);
 			}
 			return it->second.location;
@@ -729,7 +726,7 @@ namespace KRE
 		void ShaderProgram::setUniformValue(ConstActivesMapIterator it, const GLfloat* value)
 		{
 			if(it == uniforms_.end()) {
-				LOG_WARN("Tried to set value for invalid uniform iterator.");
+				//LOG_WARN("Tried to set value for invalid uniform iterator.");
 				return;
 			}
 			const Actives& u = it->second;

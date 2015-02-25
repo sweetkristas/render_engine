@@ -262,31 +262,6 @@ namespace KRE
 			}
 		}
 		
-		if(r->getTexture()) {
-			r->getTexture()->bind();
-			if(r->getTexture()->isPaletteized()) {
-				bool enable = true;
-				static auto upm = shader->getUniformIterator("palette_map");
-				if(upm != shader->uniformsIteratorEnd()) {
-					shader->setUniformValue(upm, 1);
-				} else {
-					enable = false;
-				}
-				static auto u_palette = shader->getUniformIterator("palette");
-				if(u_palette != shader->uniformsIteratorEnd()) {
-					shader->setUniformValue(u_palette, 0.0f/r->getTexture()->surfaceWidth());
-				} else {
-					enable = false;
-				}
-				if(enable) {
-					static auto u_enable_palette_lookup = shader->getUniformIterator("enable_palette_lookup");
-					if(u_enable_palette_lookup != shader->uniformsIteratorEnd()) {
-						shader->setUniformValue(u_enable_palette_lookup, 1);
-					}
-				}
-			}
-		}
-
 		if(r->getRenderTarget()) {
 			r->getRenderTarget()->apply();
 		}
@@ -304,11 +279,7 @@ namespace KRE
 			}
 		}
 
-		// XXX The material may need to set more texture uniforms for multi-texture -- need to do that here.
-		// Or maybe it should be done through the uniform block and override this somehow.
-		if(shader->getTexMapUniform() != shader->uniformsIteratorEnd()) {
-			shader->setUniformValue(shader->getTexMapUniform(), 0);
-		}
+		setUniformsForTexture(r->getShader(), r->getTexture());
 
 		// Loop through uniform render variables and set them.
 		/*for(auto& urv : r->UniformRenderVariables()) {
@@ -627,4 +598,45 @@ namespace KRE
 		// XXX Add more effects here as and if needed.
 		return EffectPtr();
 	}
+
+	void DisplayDeviceOpenGL::setUniformsForTexture(const ShaderProgramPtr& shaderp, const TexturePtr& tex) const
+	{
+		if(tex) {
+			// XXX work out removing this dynamic_pointer_cast.
+			auto shader = std::dynamic_pointer_cast<OpenGL::ShaderProgram>(shaderp);
+			ASSERT_LOG(shader != nullptr, "Failed to cast shader to the type required(OpenGL::ShaderProgram).");
+
+			// XXX The material may need to set more texture uniforms for multi-texture -- need to do that here.
+			// Or maybe it should be done through the uniform block and override this somehow.
+			if(shader->getTexMapUniform() != shader->uniformsIteratorEnd()) {
+				shader->setUniformValue(shader->getTexMapUniform(), 0);
+			}
+
+			tex->bind();
+			static auto u_enable_palette_lookup = shader->getUniformIterator("enable_palette_lookup");
+
+			bool enable_palette = tex->isPaletteized();
+			if(enable_palette) {
+				static auto upm = shader->getUniformIterator("palette_map");
+				if(upm != shader->uniformsIteratorEnd()) {
+					shader->setUniformValue(upm, 1);
+				} else {
+					enable_palette = false;
+				}
+				static auto u_palette = shader->getUniformIterator("palette");
+				if(u_palette != shader->uniformsIteratorEnd()) {
+					const float palette_sel = static_cast<float>(tex->getPalette()) / static_cast<float>(tex->surfaceHeight() - 1);
+					shader->setUniformValue(u_palette, palette_sel); 
+					LOG_DEBUG("setting u_palette to: " << palette_sel);
+				} else {
+					enable_palette = false;
+				}
+			}
+
+			if(u_enable_palette_lookup != shader->uniformsIteratorEnd()) {
+				shader->setUniformValue(u_enable_palette_lookup, enable_palette);
+			}
+		}
+	}
 }
+

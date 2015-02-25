@@ -91,7 +91,7 @@ namespace KRE
 		int surfaceWidth() const { return surface_width_; }
 		int surfaceHeight() const { return surface_height_; }
 
-		virtual void init() = 0;
+		virtual void init(int n) = 0;
 		virtual void bind() = 0;
 		virtual unsigned id(int n = 0) = 0;
 
