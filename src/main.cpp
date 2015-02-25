@@ -290,7 +290,10 @@ int main(int argc, char *argv[])
 
 	font_paths["FreeSans.ttf"] = "data/fonts/FreeSans.ttf";
 #else
-	font_paths["FreeSans.ttf"] = "FreeSans.ttf";
+	LOG_DEBUG("setting image file filter to '../images/'");
+	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "../images/" + fname; });
+
+	font_paths["FreeSans.ttf"] = "../data/fonts/FreeSans.ttf";
 #endif
 	Font::setAvailableFonts(font_paths);
 
@@ -344,7 +347,7 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
 	std::string psys_test_file = "data/psystem1.cfg";
 #else
-	std::string psys_test_file = "psystem1.cfg";
+	std::string psys_test_file = "../data/psystem1.cfg";
 #endif
 	auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
 	auto particle_cam = std::make_shared<Camera>("particle_cam");

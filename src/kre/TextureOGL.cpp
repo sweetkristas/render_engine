@@ -723,8 +723,8 @@ namespace KRE
 	void OpenGLTexture::bind() 
 	{
 		int n = texture_data_.size()-1;
-		for(auto it = texture_data_.rbegin(); it != texture_data_.rend(); ++it) {
-			glActiveTexture(GL_TEXTURE0 + n--);
+		for(auto it = texture_data_.rbegin(); it != texture_data_.rend(); ++it, --n) {
+			glActiveTexture(GL_TEXTURE0 + n);
 			glBindTexture(GetGLTextureType(getType(n)), *it->id);
 		}
 	}

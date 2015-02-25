@@ -105,6 +105,7 @@ namespace KRE
 		texture_params_.reserve(surfaces.size());
 		for(auto s : surfaces) {
 			texture_params_.emplace_back(TextureParams());
+			texture_params_.back().surface = s;
 			texture_params_.back().surface_width = s->width();
 			texture_params_.back().surface_height = s->height();
 			texture_params_.back().type = type;
