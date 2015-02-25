@@ -411,6 +411,7 @@ namespace KRE
 		case PixelFormat::PF::PIXELFORMAT_INDEX1MSB:
 		case PixelFormat::PF::PIXELFORMAT_INDEX4LSB:
 		case PixelFormat::PF::PIXELFORMAT_INDEX4MSB:
+		case PixelFormat::PF::PIXELFORMAT_INDEX8:
 			return true;
 		default: break;
 		}

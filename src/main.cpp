@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
 	float angle_step = 0.5f;
 
 	auto canvas = Canvas::getInstance();
-	canvas->setDimensions(800, 800/aspect_ratio);
+	canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));
 
 	auto canvas_texture = Texture::createTexture("widgets.png");
 	canvas_texture->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
@@ -420,14 +420,14 @@ int main(int argc, char *argv[])
 		canvas->drawSolidCircle(point(150, 150), 20.0f, Color::colorCyan());
 		rt1->setCentre(Blittable::Centre::TOP_LEFT);
 		rt1->preRender(main_wnd);
-		canvas->setDimensions(800, 800/aspect_ratio);//(neww, newh);
+		canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));//(neww, newh);
 	}
 
 
 	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
 	test1->setPosition(0,512);
 	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
-	//palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
+	palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
 	palette_tex->getTexture()->addPalette(Surface::create("cave_mossy.png"));
 	
 	//auto test1 = std::make_shared<FreeTextureHolder>("sand.png");

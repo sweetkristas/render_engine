@@ -259,16 +259,16 @@ namespace KRE
 		ASSERT_LOG(is_yuv_planar_ == false, "Can't create a palette for a YUV surface.");
 
 		if(PixelFormat::isIndexedFormat(getFrontSurface()->getPixelFormat()->getFormat())) {
-			ASSERT_LOG(false, "XXXXXXXXXXXXXXXXXXXX TEST");
 			// Is already an indexed format.
 			// Which means that texture_data_[0].palette should be already valid.
-			// Need to create the mapping from color value to index though. 
 			const int num_colors = texture_data_[0].palette.size();
 			ASSERT_LOG(num_colors > 0, "Indexed data format but no palette present. createTexture() probably not called.");
-			for(int n = 0; n != num_colors; ++n) {
-				texture_data_[0].color_index_map[texture_data_[0].palette[n]] = n;
+			if(texture_data_[0].color_index_map.empty()) {
+				ASSERT_LOG(static_cast<int>(texture_data_.size()) == 1, "programmer bug");
+				for(int n = 0; n != num_colors; ++n) {
+					texture_data_[0].color_index_map[texture_data_[0].palette[n]] = n;
+				}
 			}
-			// XXX the indexes may need to be scaled by 255*index/(num_colors-1)
 		} else {
 			LOG_DEBUG("Surface type before adding palette: " << static_cast<int>(getFrontSurface()->getPixelFormat()->getFormat()));
 			auto histogram = getFrontSurface()->getColorHistogram();
