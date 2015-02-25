@@ -625,11 +625,17 @@ namespace KRE
 				}
 				static auto u_palette = shader->getUniformIterator("palette");
 				if(u_palette != shader->uniformsIteratorEnd()) {
-					// XXX It would be much preferable to be able to call tex->getMaxPalettes();
-					// than getSurfaces()[1]->height() which may be error prone.
-					const float palette_sel = static_cast<float>(tex->getPalette()) / static_cast<float>(tex->getSurfaces()[1]->height() - 1);
+					// XXX replace tex->getSurfaces()[1]->height() with tex->getNormalizedCoordH(1, 1);
+					float h = static_cast<float>(tex->getSurfaces()[1]->height() - 1);
+					const float palette_sel = static_cast<float>(tex->getPalette()) / h;
 					shader->setUniformValue(u_palette, palette_sel); 
-					//LOG_DEBUG("setting u_palette to: " << palette_sel);
+				} else {
+					enable_palette = false;
+				}
+				static auto u_palette_width = shader->getUniformIterator("u_palette_width");
+				if(u_palette_width != shader->uniformsIteratorEnd()) {
+					// XXX this needs adjusted for pot texture width.
+					shader->setUniformValue(u_palette_width, static_cast<float>(tex->getSurfaces()[1]->width()));
 				} else {
 					enable_palette = false;
 				}

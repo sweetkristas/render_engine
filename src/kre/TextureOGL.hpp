@@ -57,6 +57,7 @@ namespace KRE
 		void updatePaletteRow(SurfacePtr new_palette_surface, int palette_width, const std::vector<glm::u8vec4>& pixels);
 		void rebuild() override;
 		void handleAddPalette(const SurfacePtr& palette) override;
+		void handleInit(int n);
 
 		// For YUV family textures we need two more texture id's
 		// since we hold them in seperate textures.

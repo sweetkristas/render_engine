@@ -337,7 +337,7 @@ namespace KRE
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
 			tex_ = Texture::createTexture2D(w, h, pffmt);
-			tex_->setAddressModes(Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
+			tex_->setAddressModes(-1, Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
 			setTexture(tex_);
 
 			auto as = DisplayDevice::createAttributeSet();

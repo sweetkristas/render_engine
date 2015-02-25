@@ -52,6 +52,7 @@ namespace KRE
 				"uniform sampler2D u_palette_map;\n"
 				"uniform bool u_enable_palette_lookup;\n"
 				"uniform float u_palette;\n"
+				"uniform float u_palette_width;\n"
 				"varying vec2 v_texcoord;\n"
 				"uniform bool u_discard;\n"
 				"uniform vec4 u_color;\n"
@@ -59,7 +60,8 @@ namespace KRE
 				"{\n"
 				"    vec4 color = texture2D(u_tex_map, v_texcoord);\n"
 				"    if(u_enable_palette_lookup) {\n"
-				"        color = texture2D(u_palette_map, vec2(color.r, u_palette));\n"
+				// XXX replace the 15.0 below with the number of colors in the row
+				"        color = texture2D(u_palette_map, vec2(255.0 * color.r / (u_palette_width-0.5), u_palette));\n"
 				"    }\n"
 				"    if(u_discard && color[3] == 0.0) {\n"
 				"        discard;\n"
@@ -75,6 +77,7 @@ namespace KRE
 				{"discard", "u_discard"},
 				{"tex_map", "u_tex_map"},
 				{"palette", "u_palette"},
+				{"palette_width", "u_palette_width"},
 				{"palette_map", "u_palette_map"},
 				{"enable_palette_lookup", "u_enable_palette_lookup"},
 				{"tex_map0", "u_tex_map"},

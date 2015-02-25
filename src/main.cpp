@@ -126,8 +126,8 @@ struct SimpleTextureHolder : public KRE::Blittable
 		using namespace KRE;
 		setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		auto tex = Texture::createTexture(filename, TextureType::TEXTURE_2D, 4);
-		tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
-		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		tex->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		tex->setAddressModes(-1, Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
 	}
 };
@@ -157,7 +157,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 		using namespace KRE;
 		auto tex = Texture::createTexture(filename, TextureType::TEXTURE_2D, 4);
 		//tex->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
-		tex->setAddressModes(Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
+		tex->setAddressModes(-1, Texture::AddressMode::BORDER, Texture::AddressMode::BORDER);
 		setTexture(tex);
 		init();
 	}
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
 	canvas->setDimensions(800, 800/aspect_ratio);
 
 	auto canvas_texture = Texture::createTexture("widgets.png");
-	canvas_texture->setFiltering(Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
+	canvas_texture->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
 
 	// render target test.
 	auto rt1 = RenderTarget::create(300, 300);
@@ -421,16 +421,16 @@ int main(int argc, char *argv[])
 	}
 
 
-	//auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
-	//test1->setPosition(0,512);
-	//auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
-	//palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
-	//palette_tex->getTexture()->addPalette(Surface::create("cave_mossy.png"));
-	
-	auto test1 = std::make_shared<FreeTextureHolder>("sand.png");
+	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
 	test1->setPosition(0,512);
-	auto palette_tex = std::make_shared<FreeTextureHolder>("sand.png");
-	palette_tex->getTexture()->addPalette(Surface::create("seaside_stormy.png"));
+	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
+	//palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
+	palette_tex->getTexture()->addPalette(Surface::create("cave_mossy.png"));
+	
+	//auto test1 = std::make_shared<FreeTextureHolder>("sand.png");
+	//test1->setPosition(0,512);
+	//auto palette_tex = std::make_shared<FreeTextureHolder>("sand.png");
+	//palette_tex->getTexture()->addPalette(Surface::create("seaside_stormy.png"));
 
 	palette_tex->getTexture()->setPalette(0);
 	//auto palette_tex = std::make_shared<FreeTextureHolder>("checkerboard1.png");
@@ -490,7 +490,7 @@ int main(int argc, char *argv[])
 		static int pal = 0;
 		if(++counter_pal >= 60*2) {
 			counter_pal = 0;
-			if(++pal >= 2) {
+			if(++pal >= palette_tex->getTexture()->getMaxPalettes()) {
 				pal = 0;
 			}
 			palette_tex->getTexture()->setPalette(pal);
