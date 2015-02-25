@@ -88,6 +88,7 @@ namespace KRE
 		void encodeRGBA(void* pixels, int red, int green, int blue, int alpha) override; 
 
 		bool hasPalette() const override;
+		SDL_PixelFormat* get() { return pf_; }
 	private:
 		SDL_PixelFormat* pf_;
 		SDLPixelFormat(const SDLPixelFormat&);

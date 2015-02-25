@@ -106,6 +106,7 @@ namespace KRE
 		
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
+		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(int width, 
@@ -123,6 +124,7 @@ namespace KRE
 		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
+		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(const std::string& filename)
@@ -224,6 +226,10 @@ namespace KRE
 			for(int n = 0; n != p->ncolors; ++n) {
 				palette_[n] = Color(p->colors[n].r, p->colors[n].g, p->colors[n].b, p->colors[n].a);
 			}
+
+			auto pf = std::dynamic_pointer_cast<SDLPixelFormat>(getPixelFormat());
+			ASSERT_LOG(pf != nullptr, "Couldn't cast pixelformat -- this is an error.");
+			SDL_SetPixelFormatPalette(pf->get(), surface_->format->palette);
 		}
 	}
 
