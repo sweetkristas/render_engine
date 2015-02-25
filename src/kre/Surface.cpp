@@ -238,6 +238,7 @@ namespace KRE
 			Color color(px.red, px.green, px.blue, (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : px.alpha));
 			auto it = res.find(color);
 			if(it == res.end()) {
+				LOG_DEBUG("Adding color: " << px.red << "," << px.green << "," << px.blue);
 				res[color] = 1;
 			} else {
 				it->second += 1;

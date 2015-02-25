@@ -294,10 +294,10 @@ int main(int argc, char *argv[])
 #endif
 	Font::setAvailableFonts(font_paths);
 
-	auto surf = Surface::create("test_image.png");
+	/*auto surf = Surface::create("test_image.png");
 	for(auto col : *surf) {
 		LOG_DEBUG(col.red << "," << col.green << "," << col.blue << "," << col.alpha);
-	}
+	}*/
 	
 	set_alpha_masks();	
 
@@ -421,16 +421,27 @@ int main(int argc, char *argv[])
 	}
 
 
+	//auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
+	//test1->setPosition(0,512);
 	//auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
 	//palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
-	auto palette_tex = std::make_shared<FreeTextureHolder>("checkerboard1.png");
-	palette_tex->getTexture()->addPalette(Surface::create("checkerboard-palette.png"));
+	//palette_tex->getTexture()->addPalette(Surface::create("cave_mossy.png"));
+	
+	auto test1 = std::make_shared<FreeTextureHolder>("sand.png");
+	test1->setPosition(0,512);
+	auto palette_tex = std::make_shared<FreeTextureHolder>("sand.png");
+	palette_tex->getTexture()->addPalette(Surface::create("seaside_stormy.png"));
+
+	palette_tex->getTexture()->setPalette(0);
+	//auto palette_tex = std::make_shared<FreeTextureHolder>("checkerboard1.png");
+	//palette_tex->getTexture()->addPalette(Surface::create("checkerboard-palette.png"));
 	palette_tex->setPosition(0, 0);
 	auto palette_cam = std::make_shared<Camera>("palette_cam", 0, 800, 0, 800);
 	palette_tex->setCamera(palette_cam);
+	test1->setCamera(palette_cam);
 	
-	auto rt2 = RenderTarget::create(palette_tex->getTexture()->width(), palette_tex->getTexture()->height());
-	rt2->setCentre(Blittable::Centre::TOP_LEFT);
+	//auto rt2 = RenderTarget::create(palette_tex->getTexture()->width(), palette_tex->getTexture()->height());
+	//rt2->setCentre(Blittable::Centre::TOP_LEFT);
 
 	SDL_Event e;
 	bool done = false;
@@ -468,13 +479,16 @@ int main(int argc, char *argv[])
 			//rt2->clear();
 			palette_tex->preRender(main_wnd);
 			main_wnd->render(palette_tex.get());
+
+			test1->preRender(main_wnd);
+			main_wnd->render(test1.get());
 		}
 		//rt2->preRender(main_wnd);
 		//canvas->blitTexture(rt2->getTexture(), 0.0f, 0, 0);
 
 		static int counter_pal = 0;
 		static int pal = 0;
-		if(++counter_pal >= 60*5) {
+		if(++counter_pal >= 60*2) {
 			counter_pal = 0;
 			if(++pal >= 2) {
 				pal = 0;

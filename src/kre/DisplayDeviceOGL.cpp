@@ -625,9 +625,11 @@ namespace KRE
 				}
 				static auto u_palette = shader->getUniformIterator("palette");
 				if(u_palette != shader->uniformsIteratorEnd()) {
-					const float palette_sel = static_cast<float>(tex->getPalette()) / static_cast<float>(tex->surfaceHeight() - 1);
+					// XXX It would be much preferable to be able to call tex->getMaxPalettes();
+					// than getSurfaces()[1]->height() which may be error prone.
+					const float palette_sel = static_cast<float>(tex->getPalette()) / static_cast<float>(tex->getSurfaces()[1]->height() - 1);
 					shader->setUniformValue(u_palette, palette_sel); 
-					LOG_DEBUG("setting u_palette to: " << palette_sel);
+					//LOG_DEBUG("setting u_palette to: " << palette_sel);
 				} else {
 					enable_palette = false;
 				}

@@ -270,20 +270,23 @@ namespace KRE
 			}
 			// XXX the indexes may need to be scaled by 255*index/(num_colors-1)
 		} else {
+			LOG_DEBUG("Surface type before adding palette: " << static_cast<int>(getFrontSurface()->getPixelFormat()->getFormat()));
 			auto histogram = getFrontSurface()->getColorHistogram();
 			int num_colors = histogram.size();
 			ASSERT_LOG(num_colors < 256, "Can't convert surface to palettized version. Too many colors in source image: " << num_colors);
 			LOG_DEBUG("Color count: " << num_colors);
 
 			// Create palette from existing surface
-			//LOG_DEBUG("Texture color values:");
+			LOG_DEBUG("Texture color values:");
 			texture_data_[0].palette.reserve(num_colors);
+			int nn = 0;
 			for(auto& hd : histogram) {
 				// We're subverting the histogram data to store the index to the color, so we can use
 				// it for easy index look up when we traverse the surface next.
 				hd.second = texture_data_[0].palette.size();
 				texture_data_[0].palette.emplace_back(hd.first);
 				//std::cerr << (texture_data_[0].palette.size()-1) << " : " << texture_data_[0].palette.back() << "\n";
+				std::cerr << "    " << hd.first << " : " << hd.second << "\n";
 			}
 
 			// Create a new indexed surface.
@@ -352,6 +355,10 @@ namespace KRE
 				Color normal_color = palette->getColorAt(x, 0);
 				Color mapped_color = palette->getColorAt(x, 1);
 
+				if(normal_color.ai() == 0) {
+					continue;
+				}
+
 				auto it = texture_data_[0].color_index_map.find(normal_color);
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
@@ -360,11 +367,15 @@ namespace KRE
 			}
 		} else {
 			int colors_mapped = 0;
-			//LOG_DEBUG("Palette color values:");
+			LOG_DEBUG("Palette color values:");
 			for(int y = 0; y != palette->height(); ++y) {
 				Color normal_color = palette->getColorAt(0, y);
 				Color mapped_color = palette->getColorAt(1, y);
-				//std::cerr << normal_color << " : " << mapped_color << "\n";
+				std::cerr << "    " << normal_color << " : " << mapped_color << "\n";
+
+				if(normal_color.ai() == 0) {
+					continue;
+				}
 
 				auto it = texture_data_[0].color_index_map.find(normal_color);
 				if(it != texture_data_[0].color_index_map.end()) {

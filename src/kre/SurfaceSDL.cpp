@@ -209,7 +209,7 @@ namespace KRE
 		if(filter_fn && !(getFlags() & SurfaceFlags::NO_ALPHA_FILTER)) {
 			return handleConvert(PixelFormat::PF::PIXELFORMAT_ARGB8888, [&filter_fn](int& r, int& g, int& b, int& a) {
 				if(filter_fn(r, g, b)) {
-					a = 0;
+					r = g = b = a = 0;
 				}
 			});	
 		}
@@ -766,11 +766,26 @@ namespace KRE
             case PixelFormat::PF::PIXELFORMAT_BGRA5551:
             case PixelFormat::PF::PIXELFORMAT_RGB565:
             case PixelFormat::PF::PIXELFORMAT_BGR565:
+				ASSERT_LOG(false, "Deal with extractRGB with format: " << static_cast<int>(fmt));
+				break;
             case PixelFormat::PF::PIXELFORMAT_RGB24:
             case PixelFormat::PF::PIXELFORMAT_BGR24:
             case PixelFormat::PF::PIXELFORMAT_RGB888:
+            case PixelFormat::PF::PIXELFORMAT_BGR888: {
+				const uint8_t* pix = reinterpret_cast<const uint8_t*>(pixels);
+				const uint32_t px = pix[0] | (pix[1] << 8) | (pix[2] << 16);
+				if(hasRedChannel()) {
+					red = (px & getRedMask()) >> getRedShift();
+				}
+				if(hasGreenChannel()) {
+					green = (px & getGreenMask()) >> getGreenShift();
+				}
+				if(hasBlueChannel()) {
+					blue = (px & getBlueMask()) >> getBlueShift();
+				}
+				break;
+			}
             case PixelFormat::PF::PIXELFORMAT_RGBX8888:
-            case PixelFormat::PF::PIXELFORMAT_BGR888:
             case PixelFormat::PF::PIXELFORMAT_BGRX8888:
             case PixelFormat::PF::PIXELFORMAT_ARGB8888:
 			case PixelFormat::PF::PIXELFORMAT_XRGB8888:
@@ -778,18 +793,18 @@ namespace KRE
             case PixelFormat::PF::PIXELFORMAT_ABGR8888:
             case PixelFormat::PF::PIXELFORMAT_BGRA8888:
             case PixelFormat::PF::PIXELFORMAT_ARGB2101010: {
-				const uint32_t* px = static_cast<const uint32_t*>(pixels);
+				const uint32_t px = *static_cast<const uint32_t*>(pixels);
 				if(hasRedChannel()) {
-					red = (*px) & getRedMask() >> getRedShift();
+					red = (px & getRedMask()) >> getRedShift();
 				}
 				if(hasGreenChannel()) {
-					green = ((*px) & getGreenMask()) >> getGreenShift();
+					green = (px & getGreenMask()) >> getGreenShift();
 				}
 				if(hasBlueChannel()) {
-					blue = ((*px) & getBlueMask()) >> getBlueShift();
+					blue = (px & getBlueMask()) >> getBlueShift();
 				}
 				if(hasAlphaChannel()) {
-					alpha = ((*px) & getAlphaMask()) >> getAlphaShift();
+					alpha = (px & getAlphaMask()) >> getAlphaShift();
 				}
 				break;
 			}
