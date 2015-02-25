@@ -142,8 +142,8 @@ namespace KRE
 	void Texture::initFromVariant(texture_params_iterator tp, const variant& node)
 	{
 		internalInit(tp);
-		if(node.has_key("type")) {
-			const std::string& type = node["type"].as_string();
+		if(node.has_key("image_type")) {
+			const std::string& type = node["image_type"].as_string();
 			if(type == "1d") {
 				tp->type = TextureType::TEXTURE_1D;
 			} else if(type == "2d") {
