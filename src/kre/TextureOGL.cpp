@@ -288,12 +288,14 @@ namespace KRE
 
 				auto it = td.color_index_map.find(color);
 				if(it == td.color_index_map.end()) {
-					td.color_index_map[color] = td.palette.size();
+					const int index = td.palette.size();
+					td.color_index_map[color] = index;
+					new_pixels[x + y * sw] = static_cast<uint8_t>(index);
 					td.palette.emplace_back(color);
+				} else {
+					new_pixels[x + y * sw] = static_cast<uint8_t>(it->second);
 				}
 				ASSERT_LOG(td.palette.size() < 256, "Can't convert surface to palettized version. Too many colors in source image > 256");
-															 
-				new_pixels[x + y * sw] = static_cast<uint8_t>(it->second);
 			});
 			surf->writePixels(&new_pixels[0], new_pixels.size());
 
