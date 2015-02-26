@@ -26,6 +26,11 @@
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 namespace
 {	
 	struct vertex_color
@@ -240,6 +245,10 @@ struct water_distort_uniforms
 
 int main(int argc, char *argv[])
 {
+#ifdef _MSC_VER
+	SetProcessDPIAware();
+#endif
+
 	std::list<double> smoothed_time;
 	double cumulative_time = 0.0;
 	int cnt = 0;
@@ -250,7 +259,10 @@ int main(int argc, char *argv[])
 
 	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 
-	WindowManagerPtr main_wnd = WindowManager::createInstance("SDL", "opengl");
+	HintMapContainer hints;
+	hints.setHint("renderer", "opengl");
+	hints.setHint("dpi_aware", "true");
+	WindowManagerPtr main_wnd = WindowManager::create("SDL", hints);
 	main_wnd->enableVsync(true);
 	int neww = 800, newh = 600;
 	if(!main_wnd->autoWindowSize(neww, newh)) {
@@ -264,7 +276,7 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
 	LOG_DEBUG("setting image file filter to 'images/'");
 	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "images/" + fname; });
-
+	
 	font_paths["FreeSans.ttf"] = "data/fonts/FreeSans.ttf";
 #else
 	LOG_DEBUG("setting image file filter to '../images/'");
@@ -280,7 +292,7 @@ int main(int argc, char *argv[])
 	}*/
 	
 	set_alpha_masks();	
-
+	
 	// XXX should a scenegraph be created from a specific window? It'd solve a couple of issues
 	SceneGraphPtr scene = SceneGraph::create("main");
 	SceneNodePtr root = scene->getRootNode();
@@ -443,6 +455,7 @@ int main(int argc, char *argv[])
 	wd_mapping["u_water_area"] = offsetof(water_distort_uniforms, water_area);
 	water_uniforms.setMapping(&wd_mapping);
 	auto water_tex = SimpleTextureHolder("checkerboard1.png");
+	water_tex.setPosition(neww/2, newh/2);
 	water_tex.setShader(water_shader);
 	water_tex.addUniformBuffer(std::move(water_uniforms));
 

@@ -41,6 +41,15 @@ namespace KRE
 		return no_hint_list;
 	}
 
+	const std::string& HintMapContainer::findFirstHint(const std::string& name, const std::string& default) const
+	{
+		auto it = hints_.find(name);
+		if(it != hints_.end()) {
+			return it->second.front();
+		}
+		return default;
+	}
+
 	void HintMapContainer::setHint(const std::string& hint_name, const std::string& hint)
 	{
 		HintList hint_list(1,hint);
