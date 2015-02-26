@@ -175,9 +175,11 @@ namespace KRE
 		std::fill(alpha_map_.begin(), alpha_map_.end(), false);
 
 		if(getPixelFormat()->hasAlphaChannel()) {
-			for(auto col : *this) {
-				alpha_map_[col.x+col.y*width()] = col.alpha == 0;
-			}
+			int w = width();
+			auto& am = alpha_map_;
+			iterateOverSurface([&am, w](int x, int y, int r, int g, int b, int a) {
+				am[x + y * w] = a == 0;
+			});
 		}
 	}
 
@@ -304,119 +306,6 @@ namespace KRE
 	void Surface::clearAlphaFilter()
 	{
 		alpha_filter_fn = nullptr;
-	}
-
-	SurfaceIterator::SurfaceIterator(SurfacePtr surface) 
-		: surface_(surface),
-		  x_(0),
-		  y_(0),
-		  index_(0),
-		  pixels_(nullptr),
-		  is_index_format_(false),
-		  index_format_increment_(0)
-
-	{
-		pixels_ = reinterpret_cast<const unsigned char*>(surface_->pixels());
-
-		auto pf = surface_->getPixelFormat();
-		if(pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB 
-			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB 
-			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4LSB 
-			|| pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX4MSB) {
-			is_index_format_ = true;
-			index_format_increment_ = (pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1LSB || pf->getFormat() == PixelFormat::PF::PIXELFORMAT_INDEX1MSB) ? 8 : 2;
-		}
-	}
-
-	SurfaceIterator::SurfaceIterator()
-		: surface_(nullptr),
-		  x_(-1),
-		  y_(-1),
-		  index_(0),
-		  pixels_(nullptr),
-		  is_index_format_(false),
-		  index_format_increment_(0)
-	{
-	}
-
-
-	SimpleColor SurfaceIterator::dereference() const 
-	{
-		SurfaceLock lck(surface_);
-		SimpleColor res;
-		int offs = y_ * surface_->rowPitch() + x_ * surface_->getPixelFormat()->bytesPerPixel();
-		surface_->getPixelFormat()->extractRGBA(&pixels_[offs], index_, res.red, res.green, res.blue, res.alpha);
-		res.x = x_;
-		res.y = y_;
-		return res;
-	}
-
-	bool SurfaceIterator::equal(SurfaceIterator const& other) const 
-	{
-		return x_ == other.x_ && y_ == other.y_;
-	}
-
-	void SurfaceIterator::increment() 
-	{
-		bool do_xy_inc = true;
-		if(is_index_format_) {
-			index_ = (index_ + index_format_increment_) % 8;
-			do_xy_inc = index_ == 0;
-		} 
-
-		if(do_xy_inc) {
-			if(++x_ >= surface_->width()) {
-				if(++y_ >= surface_->height()) {
-					// indicate we reached the end of the surface.
-					y_ = x_ = -1;
-				} else {
-					// reset x to start new row.
-					x_ = 0;
-				}
-			}
-		}
-	}
-
-	void SurfaceIterator::decrement() 
-	{
-		bool do_xy_dec = true;
-		if(is_index_format_) {
-			index_ = (index_ - index_format_increment_) % 8;
-			do_xy_dec = index_ == 0;
-		} 
-
-		if(do_xy_dec) {
-			if(--x_ <= 0) {
-				if(--y_ <= 0) {
-					y_ = x_ = 0;
-				} else {
-					x_ = surface_->width() - 1;
-				}
-			}
-		}
-	}
-
-	void SurfaceIterator::advance(std::ptrdiff_t n) 
-	{
-		bool do_xy_inc = true;
-		if(is_index_format_) {
-			index_ = (index_ + index_format_increment_ * n) % 8;
-			n /= index_format_increment_;
-			do_xy_inc = n != 0;
-		} 
-
-		if(do_xy_inc) {
-			x_ += n;
-			while(x_ >= surface_->width()) {
-				if(++y_ >= surface_->height()) {
-					// indicate we reached the end of the surface.
-					y_ = x_ = -1;
-					break;
-				} else {
-					x_ -= surface_->width();
-				}			
-			}
-		}
 	}
 
 	PixelFormat::PixelFormat()

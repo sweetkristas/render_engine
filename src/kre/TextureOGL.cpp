@@ -270,25 +270,6 @@ namespace KRE
 				}
 			}
 		} else {
-			LOG_DEBUG("Surface type before adding palette: " << static_cast<int>(getFrontSurface()->getPixelFormat()->getFormat()));
-			auto histogram = getFrontSurface()->getColorHistogram();
-			int num_colors = histogram.size();
-			ASSERT_LOG(num_colors < 256, "Can't convert surface to palettized version. Too many colors in source image: " << num_colors);
-			LOG_DEBUG("Color count: " << num_colors);
-
-			// Create palette from existing surface
-			LOG_DEBUG("Texture color values:");
-			texture_data_[0].palette.reserve(num_colors);
-			int nn = 0;
-			for(auto& hd : histogram) {
-				// We're subverting the histogram data to store the index to the color, so we can use
-				// it for easy index look up when we traverse the surface next.
-				hd.second = texture_data_[0].palette.size();
-				texture_data_[0].palette.emplace_back(hd.first);
-				//std::cerr << (texture_data_[0].palette.size()-1) << " : " << texture_data_[0].palette.back() << "\n";
-				std::cerr << "    " << hd.first << " : " << hd.second << "\n";
-			}
-
 			// Create a new indexed surface.
 			int sw = surfaceWidth();
 			int sh = surfaceHeight();
@@ -296,25 +277,31 @@ namespace KRE
 
 			std::vector<uint8_t> new_pixels;
 			new_pixels.resize(sw * sh);
-			//for(auto px : *getFrontSurface()) {
-			//	auto it = histogram.find(Color(px.red, px.green, px.blue, px.alpha));
-			//	ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong.");
-			//	new_pixels[px.x + px.y * sw] = static_cast<uint8_t>(it->second);//static_cast<uint8_t>((255 * it->second) / (num_colors));
-			//}
-			getSurface(0)->iterateOverSurface([&new_pixels, &sw, &histogram](int x, int y, int r, int g, int b, int a){
+
+			auto& td = texture_data_[0];
+			td.palette.clear();
+			getSurface(0)->iterateOverSurface([&new_pixels, &sw, &td](int x, int y, int r, int g, int b, int a){
 				color_histogram_type::key_type color = (static_cast<uint32_t>(r) << 24)
 					| (static_cast<uint32_t>(g) << 16)
 					| (static_cast<uint32_t>(b) << 8)
 					| (static_cast<uint32_t>(a));
+
+				auto it = td.color_index_map.find(color);
+				if(it == td.color_index_map.end()) {
+					td.color_index_map[color] = td.palette.size();
+					td.palette.emplace_back(color);
+				}
+				ASSERT_LOG(td.palette.size() < 256, "Can't convert surface to palettized version. Too many colors in source image > 256");
 															 
-				auto it = histogram.find(color);
-				ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong: " << color);
 				new_pixels[x + y * sw] = static_cast<uint8_t>(it->second);
 			});
 			surf->writePixels(&new_pixels[0], new_pixels.size());
 
+			LOG_INFO("handleAddPalette: Color count: " << td.palette.size());
+
 			// save old palette
 			auto old_palette = std::move(texture_data_[0].palette);
+			auto histogram = std::move(texture_data_[0].color_index_map);
 
 			// Set the surface to our new one.
 			replaceSurface(0, surf);
@@ -348,7 +335,6 @@ namespace KRE
 			std::vector<glm::u8vec4> new_pixels;
 			new_pixels.reserve(palette_width);
 			for(auto& color : texture_data_[0].palette) {
-				//new_pixels.emplace_back(color.as_u8vec4());
 				new_pixels.emplace_back((color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 			}
 			updatePaletteRow(new_palette_surface, palette_width, new_pixels);
@@ -359,9 +345,9 @@ namespace KRE
 		new_pixels.reserve(palette_width);
 		// Set the new pixel data same as current data.
 		for(auto color : texture_data_[0].palette) {
-			//new_pixels.emplace_back(color.as_u8vec4());
 			new_pixels.emplace_back((color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 		}
+		int colors_mapped = 0;
 		if(palette->width() > palette->height()) {
 			for(int x = 0; x != palette->width(); ++x) {
 				Color normal_color = palette->getColorAt(x, 0);
@@ -376,21 +362,18 @@ namespace KRE
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
 					new_pixels[it->second] = mapped_color.as_u8vec4();
+					++colors_mapped;
 				}
 			}
 		} else {
-			int colors_mapped = 0;
-			LOG_DEBUG("Palette color values:");
 			for(int y = 0; y != palette->height(); ++y) {
 				Color normal_color = palette->getColorAt(0, y);
 				Color mapped_color = palette->getColorAt(1, y);
-				std::cerr << "    " << normal_color << " : " << mapped_color << "\n";
 
 				if(normal_color.ai() == 0) {
 					continue;
 				}
 
-				//auto it = texture_data_[0].color_index_map.find(normal_color);
 				auto it = texture_data_[0].color_index_map.find(normal_color.asRGBA());
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
@@ -398,8 +381,8 @@ namespace KRE
 					++colors_mapped;
 				}
 			}
-			LOG_DEBUG("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
 		}
+		LOG_INFO("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
 
 		updatePaletteRow(new_palette_surface, palette_width, new_pixels);
 		setMaxPalettes(texture_data_[0].palette_row_index);

@@ -876,11 +876,11 @@ namespace KRE
 		void* dst_pixels = new uint8_t[dst_size];
 
 		int dst_bpp = dst->getPixelFormat()->bytesPerPixel();
-		for(auto col : *this) {
-			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + col.y * dst->rowPitch() + col.x * dst_bpp;
-			convert(col.red, col.green, col.blue, col.alpha);
-			dst->getPixelFormat()->encodeRGBA(dst_pixel_ptr, col.red, col.green, col.blue, col.alpha);
-		}
+		iterateOverSurface([&](int x, int y, int r, int g, int b, int a) {
+			uint8_t* dst_pixel_ptr = static_cast<uint8_t*>(dst_pixels) + y * dst->rowPitch() + x * dst_bpp;
+			convert(r, g, b, a);
+			dst->getPixelFormat()->encodeRGBA(dst_pixel_ptr, r, g, b, a);
+		});
 		dst->writePixels(dst_pixels, dst_size);
 		delete[] static_cast<uint8_t*>(dst_pixels);
 		return dst;

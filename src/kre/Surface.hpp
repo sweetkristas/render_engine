@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include <boost/iterator/iterator_facade.hpp>
-
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -93,31 +91,6 @@ namespace KRE
 		int x, y;
 	};
 
-	class SurfaceIterator;
-
-	class SurfaceIterator : public boost::iterator_facade<SurfaceIterator, SurfacePtr, std::random_access_iterator_tag, SimpleColor>
-	{
-	public:
-		SurfaceIterator();
-		explicit SurfaceIterator(SurfacePtr surface);
-	private:
-		friend class boost::iterator_core_access;
-		
-		SimpleColor dereference() const;
-		bool equal(SurfaceIterator const& other) const;
-		void increment();
-		void decrement();
-		void advance(std::ptrdiff_t n);
-
-		SurfacePtr surface_;
-		int x_;
-		int y_;
-		int index_;
-		const unsigned char* pixels_;
-		bool is_index_format_;
-		int index_format_increment_;
-	};
-
 	inline bool operator&(SurfaceFlags lhs, SurfaceFlags rhs) {
 		return (static_cast<int>(lhs) & static_cast<int>(rhs)) != 0;
 	}
@@ -135,9 +108,6 @@ namespace KRE
 	class Surface : public std::enable_shared_from_this<Surface>
 	{
 	public:
-		typedef SurfaceIterator iterator;
-		typedef const SurfaceIterator const_iterator;
-
 		virtual ~Surface();
 		virtual const void* pixels() const = 0;
 		// This is a potentially dangerous function and significant care must
@@ -151,9 +121,6 @@ namespace KRE
 		virtual int bitsPerPixel() const = 0;
 
 		void init();
-
-		iterator begin() { return iterator(shared_from_this()); }
-		iterator end() { return iterator(); }
 
 		void iterateOverSurface(surface_iterator_fn fn);
 		void iterateOverSurface(rect r, surface_iterator_fn fn);

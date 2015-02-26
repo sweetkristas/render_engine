@@ -206,15 +206,15 @@ private:
 
 void set_alpha_masks()
 {
-	LOG_DEBUG("SETTING ALPHA MASKS");
 	using namespace KRE;
 	std::vector<SimpleColor> alpha_colors;
 
 	auto surf = Surface::create("alpha-colors.png");
-	for(auto col : *surf) {
-		alpha_colors.emplace_back(col.red, col.green, col.blue);
-		LOG_DEBUG("Added alpha color: (" << col.red << "," << col.green << "," << col.blue << ")");	
-	}
+	surf->iterateOverSurface([&alpha_colors](int x, int y, int r, int g, int b, int a) {
+		alpha_colors.emplace_back(r, g, b);
+		LOG_INFO("Added alpha color: (" << r << "," << g << "," << b << ")");	
+	});
+
 	Surface::setAlphaFilter([=](int r, int g, int b) {
 		for(auto& c : alpha_colors) {
 			if(c.red == r && c.green == g && c.blue == b) {
@@ -223,40 +223,6 @@ void set_alpha_masks()
 		}
 		return false;
 	});
-}
-
-void timed_surface_iterator_tests(const std::string& filename)
-{
-	using namespace KRE;
-	auto surf = Surface::create(filename);
-	int colors;
-	// test1 surface iterator
-	{
-		std::vector<Color> cvec;
-		std::string s = "SurfaceIterator test - " + filename;
-		profile::manager pman(s.c_str());
-		for(auto px : *surf) {
-			cvec.emplace_back(px.red, px.green, px.blue, px.alpha);
-		}
-	}
-	
-	// test2
-	{
-		std::vector<Color> cvec;
-		std::string s = "Surface::iterateOverSurface - " + filename;
-		profile::manager pman(s.c_str());
-		surf->iterateOverSurface([&cvec](int x, int y, int r, int g, int b, int a){
-			cvec.emplace_back(r, g, b, a);
-		});
-	}
-
-	// test3
-	{
-		std::string s = "Surface::colorHistogram - " + filename;
-		profile::manager pman(s.c_str());
-		colors = static_cast<int>(surf->getColorHistogram().size());
-	}
-	std::cerr << "Colors counted: " << colors << "\n";
 }
 
 int main(int argc, char *argv[])
@@ -420,10 +386,6 @@ int main(int argc, char *argv[])
 		rt1->preRender(main_wnd);
 		canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));//(neww, newh);
 	}
-
-	timed_surface_iterator_tests("noise2kx2k.png");
-	timed_surface_iterator_tests("index_test1.png");
-
 
 	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
 	test1->setPosition(0,512);
