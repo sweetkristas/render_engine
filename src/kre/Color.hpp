@@ -89,12 +89,18 @@ namespace KRE
 		void setAlpha(int a);
 		void setAlpha(float a);
 
-		unsigned long asARGB() const {
-			return (a_int() << 24) | (r_int() << 16) | (g_int() << 8) | b_int();
+		uint32_t asARGB() const {
+			return (static_cast<uint32_t>(icolor_.a) << 24)
+				| (static_cast<uint32_t>(icolor_.r) << 16)
+				| (static_cast<uint32_t>(icolor_.g) << 8)
+				| (static_cast<uint32_t>(icolor_.b));
 		}
 
-		unsigned long asRGBA() const {
-			return (r_int() << 24) | (b_int() << 16) | (b_int() << 8) | a_int();
+		uint32_t asRGBA() const {
+			return (static_cast<uint32_t>(icolor_.r) << 24)
+				| (static_cast<uint32_t>(icolor_.g) << 16)
+				| (static_cast<uint32_t>(icolor_.b) << 8)
+				| (static_cast<uint32_t>(icolor_.a));
 		}
 
 		bool operator==(const Color& rhs) const {

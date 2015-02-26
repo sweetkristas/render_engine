@@ -229,6 +229,7 @@ void timed_surface_iterator_tests(const std::string& filename)
 {
 	using namespace KRE;
 	auto surf = Surface::create(filename);
+	int colors;
 	// test1 surface iterator
 	{
 		std::vector<Color> cvec;
@@ -248,6 +249,14 @@ void timed_surface_iterator_tests(const std::string& filename)
 			cvec.emplace_back(r, g, b, a);
 		});
 	}
+
+	// test3
+	{
+		std::string s = "Surface::colorHistogram - " + filename;
+		profile::manager pman(s.c_str());
+		colors = static_cast<int>(surf->getColorHistogram().size());
+	}
+	std::cerr << "Colors counted: " << colors << "\n";
 }
 
 int main(int argc, char *argv[])

@@ -296,11 +296,21 @@ namespace KRE
 
 			std::vector<uint8_t> new_pixels;
 			new_pixels.resize(sw * sh);
-			for(auto px : *getFrontSurface()) {
-				auto it = histogram.find(Color(px.red, px.green, px.blue, px.alpha));
-				ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong.");
-				new_pixels[px.x + px.y * sw] = static_cast<uint8_t>(it->second);//static_cast<uint8_t>((255 * it->second) / (num_colors));
-			}
+			//for(auto px : *getFrontSurface()) {
+			//	auto it = histogram.find(Color(px.red, px.green, px.blue, px.alpha));
+			//	ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong.");
+			//	new_pixels[px.x + px.y * sw] = static_cast<uint8_t>(it->second);//static_cast<uint8_t>((255 * it->second) / (num_colors));
+			//}
+			getSurface(0)->iterateOverSurface([&new_pixels, &sw, &histogram](int x, int y, int r, int g, int b, int a){
+				color_histogram_type::key_type color = (static_cast<uint32_t>(r) << 24)
+					| (static_cast<uint32_t>(g) << 16)
+					| (static_cast<uint32_t>(b) << 8)
+					| (static_cast<uint32_t>(a));
+															 
+				auto it = histogram.find(color);
+				ASSERT_LOG(it != histogram.end(), "Couldn't find the color in the surface. Something went terribly wrong: " << color);
+				new_pixels[x + y * sw] = static_cast<uint8_t>(it->second);
+			});
 			surf->writePixels(&new_pixels[0], new_pixels.size());
 
 			// save old palette
@@ -338,7 +348,8 @@ namespace KRE
 			std::vector<glm::u8vec4> new_pixels;
 			new_pixels.reserve(palette_width);
 			for(auto& color : texture_data_[0].palette) {
-				new_pixels.emplace_back(color.as_u8vec4());
+				//new_pixels.emplace_back(color.as_u8vec4());
+				new_pixels.emplace_back((color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 			}
 			updatePaletteRow(new_palette_surface, palette_width, new_pixels);
 		}
@@ -348,7 +359,8 @@ namespace KRE
 		new_pixels.reserve(palette_width);
 		// Set the new pixel data same as current data.
 		for(auto color : texture_data_[0].palette) {
-			new_pixels.emplace_back(color.as_u8vec4());
+			//new_pixels.emplace_back(color.as_u8vec4());
+			new_pixels.emplace_back((color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 		}
 		if(palette->width() > palette->height()) {
 			for(int x = 0; x != palette->width(); ++x) {
@@ -359,7 +371,8 @@ namespace KRE
 					continue;
 				}
 
-				auto it = texture_data_[0].color_index_map.find(normal_color);
+				//auto it = texture_data_[0].color_index_map.find(normal_color);
+				auto it = texture_data_[0].color_index_map.find(normal_color.asRGBA());
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
 					new_pixels[it->second] = mapped_color.as_u8vec4();
@@ -377,7 +390,8 @@ namespace KRE
 					continue;
 				}
 
-				auto it = texture_data_[0].color_index_map.find(normal_color);
+				//auto it = texture_data_[0].color_index_map.find(normal_color);
+				auto it = texture_data_[0].color_index_map.find(normal_color.asRGBA());
 				if(it != texture_data_[0].color_index_map.end()) {
 					// Found the color in the color map
 					new_pixels[it->second] = mapped_color.as_u8vec4();
@@ -408,7 +422,12 @@ namespace KRE
 				break;
 			case PixelFormat::PF::PIXELFORMAT_INDEX8:
 				if(texture_data_[n].palette.size() == 0) {
-					texture_data_[n].palette = getSurfaces()[n]->getPalette();
+					//texture_data_[n].palette = getSurface(n)->getPalette();
+					auto& palette = getSurface(n)->getPalette();
+					texture_data_[n].palette.reserve(palette.size());
+					for(auto& color : palette) {
+						texture_data_[n].palette.emplace_back(color.asRGBA());	
+					}
 					ASSERT_LOG(false, "Need to create a palette surface for 8-bit native index formats. Or translate to RGBA.");
 				}
 				td.format = GL_RED;

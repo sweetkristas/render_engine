@@ -80,7 +80,7 @@ namespace KRE
 			}
 			std::shared_ptr<GLuint> id;
 			PixelFormat::PF surface_format;
-			std::vector<Color> palette;
+			std::vector<color_histogram_type::key_type> palette;
 			color_histogram_type color_index_map;
 			GLenum format;
 			GLenum internal_format;

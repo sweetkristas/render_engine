@@ -127,7 +127,8 @@ namespace KRE
 	}
 	
 	//typedef std::unordered_map<Color, int, Color> color_histogram_type;
-	typedef std::map<Color, int> color_histogram_type;
+	//typedef std::map<Color, int> color_histogram_type;
+	typedef std::map<uint32_t, int> color_histogram_type;
 
 	typedef std::function<void(int,int,int,int,int,int)> surface_iterator_fn;
 

@@ -234,48 +234,36 @@ namespace KRE
 	color_histogram_type Surface::getColorHistogram(ColorCountFlags flags)
 	{
 		color_histogram_type res;
-		for(auto px : *this) {
-			Color color(px.red, px.green, px.blue, (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : px.alpha));
+		iterateOverSurface([&res](int x, int y, int r, int g, int b, int a) {
+			//Color color(r, g, b, a);
+			color_histogram_type::key_type color = (static_cast<uint32_t>(r) << 24)
+				| (static_cast<uint32_t>(g) << 16)
+				| (static_cast<uint32_t>(b) << 8)
+				| (static_cast<uint32_t>(a));
+			//ASSERT_LOG(color >= 18446744072937384447UL, "ugh: " << r << "," << g << "," << b << "," << a);
 			auto it = res.find(color);
 			if(it == res.end()) {
-				LOG_DEBUG("Adding color: " << px.red << "," << px.green << "," << px.blue);
 				res[color] = 1;
 			} else {
 				it->second += 1;
 			}
-		}
+		});
+		//for(auto px : *this) {
+		//	Color color(px.red, px.green, px.blue, (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : px.alpha));
+		//	auto it = res.find(color);
+		//	if(it == res.end()) {
+		//		LOG_DEBUG("Adding color: " << px.red << "," << px.green << "," << px.blue);
+		//		res[color] = 1;
+		//	} else {
+		//		it->second += 1;
+		//	}
+		//}
 		return res;
 	}
 
-	// Actually creates a histogram of colors.
-	// Could be used for other things.
 	unsigned Surface::getColorCount(ColorCountFlags flags)
 	{
 		return getColorHistogram(flags).size();
-		/*const unsigned char* pix = reinterpret_cast<const unsigned char*>(pixels());
-		const int bpp = pf_->bytesPerPixel();
-		std::unordered_map<uint32_t,uint32_t> color_list;
-		for(int y = 0; y < height(); ++y) {
-			for(int x = 0; x < width(); ++x) {
-				const unsigned char* p = pix;
-				int r, g, b, a;
-				switch(bpp) {
-					case 1: pf_->getRGBA(*p, r, g, b, a); break;
-					case 2: pf_->getRGBA(*reinterpret_cast<const unsigned short*>(p), r, g, b, a); break;
-					case 3: pf_->getRGBA(*reinterpret_cast<const unsigned long*>(p), r, g, b, a); break;
-					case 4: pf_->getRGBA(*reinterpret_cast<const unsigned long*>(p), r, g, b, a); break;
-				}
-				uint32_t col = (r << 24) | (g << 16) | (b << 8) | (flags & ColorCountFlags::IGNORE_ALPHA_VARIATIONS ? 255 : a);
-				if(color_list.find(col) == color_list.end()) {
-					color_list[col] = 0;
-				} else {
-					color_list[col]++;
-				}
-				p += bpp;
-			}
-			pix += rowPitch();
-		}
-		return color_list.size();*/
 	}
 
 	namespace 
@@ -513,3 +501,4 @@ namespace KRE
 		}
 	}
 }
+
