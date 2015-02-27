@@ -22,6 +22,7 @@
 #include "SceneNode.hpp"
 #include "Shaders.hpp"
 #include "Surface.hpp"
+#include "UniformBuffer.hpp"
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
@@ -225,6 +226,18 @@ void set_alpha_masks()
 	});
 }
 
+struct water_distort_uniforms
+{
+	unsigned int texture;
+	glm::mat4 mvp;
+	float cycle;
+	glm::vec4 sprite_area;
+	glm::vec4 draw_area;
+	float intensity;
+	glm::vec4 water_area[2];
+};
+
+
 int main(int argc, char *argv[])
 {
 	std::list<double> smoothed_time;
@@ -325,6 +338,13 @@ int main(int argc, char *argv[])
 	//psystem->AttachRenderTarget(rt);
 	//root->AttachObject(rt);
 
+#if defined(__linux__)
+	std::string shader_test_file = "data/shaders.cfg";
+#else
+	std::string shader_test_file = "../data/shaders.cfg";
+#endif
+	ShaderProgram::loadFromVariant(json::parse_from_file(shader_test_file));
+
 	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
 	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
 	tex->setPosition(146.0f/2.0f, newh-130.0f);
@@ -409,6 +429,23 @@ int main(int argc, char *argv[])
 	//auto rt2 = RenderTarget::create(palette_tex->getTexture()->width(), palette_tex->getTexture()->height());
 	//rt2->setCentre(Blittable::Centre::TOP_LEFT);
 
+	// Test code for setting shader uniforms.
+	auto water_shader = ShaderProgram::getProgram("water_distort");
+	water_distort_uniforms wd;
+	uniform_mapping wd_mapping;
+	UniformBuffer<water_distort_uniforms> water_uniforms("anura_uniforms", wd);
+	wd_mapping["u_anura_tex_map"] = offsetof(water_distort_uniforms, texture);
+	wd_mapping["u_anura_mvp_matrix"] = offsetof(water_distort_uniforms, mvp);
+	wd_mapping["u_anura_cycle"] = offsetof(water_distort_uniforms, cycle);
+	wd_mapping["u_anura_sprite_area"] = offsetof(water_distort_uniforms, sprite_area);
+	wd_mapping["u_anura_draw_area"] = offsetof(water_distort_uniforms, draw_area);
+	wd_mapping["u_intensity"] = offsetof(water_distort_uniforms, intensity);
+	wd_mapping["u_water_area"] = offsetof(water_distort_uniforms, water_area);
+	water_uniforms.setMapping(&wd_mapping);
+	auto water_tex = SimpleTextureHolder("checkerboard1.png");
+	water_tex.setShader(water_shader);
+	water_tex.addUniformBuffer(std::move(water_uniforms));
+
 	SDL_Event e;
 	bool done = false;
 	profile::timer timer;
@@ -461,6 +498,9 @@ int main(int argc, char *argv[])
 			}
 			palette_tex->getTexture()->setPalette(pal);
 		}
+
+		water_tex.preRender(main_wnd);
+		main_wnd->render(&water_tex);
 
 		/*scene->renderScene(rman);
 		rman->render(main_wnd);
