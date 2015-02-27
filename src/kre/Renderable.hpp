@@ -82,7 +82,7 @@ namespace KRE
 		//const std::vector<UniformSetPtr>& getUniformSet() const { return uniforms_; }
 		void clearAttributeSets();
 		//void clearUniformSets();
-		void addUniformBuffer(UniformBufferBase& ub);
+		void addUniformBuffer(UniformBufferBase&& ub);
 
 		virtual void preRender(const WindowManagerPtr& wm) {}
 		virtual void postRender(const WindowManagerPtr& wm) {}

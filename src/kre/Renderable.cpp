@@ -237,7 +237,7 @@ namespace KRE
 		}
 	}
 
-	void Renderable::addUniformBuffer(UniformBufferBase& ub)
+	void Renderable::addUniformBuffer(UniformBufferBase&& ub)
 	{
 		uniforms_.emplace_back(std::move(ub));
 		//uniforms_.insert(uniforms_.end(), std::move(ub));

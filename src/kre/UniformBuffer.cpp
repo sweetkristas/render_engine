@@ -21,8 +21,6 @@
 	   distribution.
 */
 
-#pragma once
-
 #include "UniformBuffer.hpp"
 
 namespace KRE

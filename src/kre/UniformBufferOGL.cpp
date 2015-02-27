@@ -21,8 +21,6 @@
 	   distribution.
 */
 
-#pragma once
-
 #include "DisplayDeviceOGL.hpp"
 #include "UniformBufferOGL.hpp"
 
