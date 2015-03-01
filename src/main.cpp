@@ -22,6 +22,7 @@
 #include "SceneNode.hpp"
 #include "Shaders.hpp"
 #include "Surface.hpp"
+#include "TexPack.hpp"
 #include "UniformBuffer.hpp"
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
@@ -243,6 +244,32 @@ struct water_distort_uniforms
 };
 
 
+void texture_packing_test()
+{
+	using namespace KRE;
+	const std::string tile_file1 = "brown-rock1.png";
+	const std::string tile_file2 = "brown-rock1.png";
+	SurfacePtr s1 = Surface::create(tile_file1);
+	SurfacePtr s2 = Surface::create(tile_file2);
+	std::vector<SurfaceAreas> sa;
+	sa.emplace_back(s1);
+	sa.back().addRect(16, 0, 16, 32);
+	sa.back().addRect(32, 0, 16, 32);
+	sa.emplace_back(s2);
+	sa.back().addRect(0, 0, 16, 32);
+	sa.back().addRect(16, 0, 16, 32);
+	sa.back().addRect(0, 32, 16, 32);
+	sa.back().addRect(16, 32, 16, 32);
+	sa.back().addRect(32, 32, 16, 32);
+	sa.back().addRect(48, 32, 16, 32);
+
+	Packer tp(sa, 2048, 2048);
+	for(auto& r : tp) {
+		LOG_DEBUG("New rect: " << r);
+	}
+	// output surface available as tp.getOutputSurface()
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef _MSC_VER
@@ -276,11 +303,13 @@ int main(int argc, char *argv[])
 #if defined(__linux__)
 	LOG_DEBUG("setting image file filter to 'images/'");
 	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "images/" + fname; });
+	Surface::setFileFilter(FileFilterType::SAVE, [](const std::string& fname) { return "images/" + fname; });
 	
 	font_paths["FreeSans.ttf"] = "data/fonts/FreeSans.ttf";
 #else
 	LOG_DEBUG("setting image file filter to '../images/'");
 	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "../images/" + fname; });
+	Surface::setFileFilter(FileFilterType::SAVE, [](const std::string& fname) { return "../images/" + fname; });
 
 	font_paths["FreeSans.ttf"] = "../data/fonts/FreeSans.ttf";
 #endif
@@ -400,6 +429,8 @@ int main(int argc, char *argv[])
 
 	auto canvas_texture = Texture::createTexture("widgets.png");
 	canvas_texture->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
+	
+	texture_packing_test();
 
 	// render target test.
 	auto rt1 = RenderTarget::create(300, 300);
