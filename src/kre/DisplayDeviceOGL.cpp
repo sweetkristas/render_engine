@@ -136,10 +136,10 @@ namespace KRE
 			}
 		}
 
-		seperate_blend_equations_ = extensions_.find("EXT_blend_equation_separate") != extensions_.end();
-		have_render_to_texture_ = extensions_.find("EXT_framebuffer_object") != extensions_.end();
-		npot_textures_ = extensions_.find("ARB_texture_non_power_of_two") != extensions_.end();
-		hardware_uniform_buffers_ = extensions_.find("ARB_uniform_buffer_object") != extensions_.end();
+		seperate_blend_equations_ = extensions_.find("GL_EXT_blend_equation_separate") != extensions_.end();
+		have_render_to_texture_ = extensions_.find("GL_EXT_framebuffer_object") != extensions_.end();
+		npot_textures_ = extensions_.find("GL_ARB_texture_non_power_of_two") != extensions_.end();
+		hardware_uniform_buffers_ = extensions_.find("GL_ARB_uniform_buffer_object") != extensions_.end();
 
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units_);
 		if((err = glGetError()) != GL_NONE) {
@@ -293,7 +293,11 @@ namespace KRE
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
 		for(auto as : r->getAttributeSet()) {
-			ASSERT_LOG(as->getCount() > 0, "No (or negative) number of vertices in attribute set. " << as->getCount());
+			//ASSERT_LOG(as->getCount() > 0, "No (or negative) number of vertices in attribute set. " << as->getCount());
+			if(as->getCount() <= 0) {
+				//LOG_WARN("No (or negative) number of vertices in attribute set. " << as->getCount());
+				continue;
+			}
 			GLenum draw_mode = convert_drawing_mode(as->getDrawMode());
 
 			// apply blend, if any, from attribute set.

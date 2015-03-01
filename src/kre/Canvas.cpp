@@ -128,21 +128,21 @@ namespace KRE
 	{
 		if(model_changed_) {
 			model_changed_ = false;
-			glm::mat4 translation(1.0f);
+			
+			model_matrix_ = glm::mat4(1.0f);
 			if(!get_translation_stack().empty()) {
 				auto& top = get_translation_stack().top();
-				translation = glm::translate(translation, glm::vec3(top, 0.0f));
+				model_matrix_ = glm::translate(model_matrix_, glm::vec3(top, 0.0f));
 			}
-			glm::mat4 rotation(1.0f);
+
 			if(!get_rotation_stack().empty()) {
-				rotation = glm::rotate(rotation, get_rotation_stack().top(), glm::vec3(0.0f, 0.0f, 1.0f));
+				model_matrix_ = glm::rotate(model_matrix_, get_rotation_stack().top(), glm::vec3(0.0f, 0.0f, 1.0f));
 			}
-			glm::mat4 scale(1.0f);
+
 			if(!get_scale_stack().empty()) {
 				auto& top = get_scale_stack().top();
-				scale = glm::scale(scale, glm::vec3(top, 1.0f));
+				model_matrix_ = glm::scale(model_matrix_, glm::vec3(top, 1.0f));
 			}
-			model_matrix_ = translation * rotation * scale;
 		}
 		return model_matrix_;
 	}
@@ -198,16 +198,16 @@ namespace KRE
 	{
 		if(!get_translation_stack().empty()) {
 			auto& top = get_translation_stack().top();
-			top.x = top.y = 0;
+			top.x = top.y = 0.0f;
 			canvas_->model_changed_ = true;
 		}
 		if(!get_rotation_stack().empty()) {
-			get_rotation_stack().top() = 0;
+			get_rotation_stack().top() = 0.0f;
 			canvas_->model_changed_ = true;
 		}
 		if(!get_scale_stack().empty()) {
 			auto& top = get_scale_stack().top();
-			top.x = top.y = 0;
+			top.x = top.y = 1.0f;
 			canvas_->model_changed_ = true;
 		}
 	}

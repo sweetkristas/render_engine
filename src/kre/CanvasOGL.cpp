@@ -78,8 +78,13 @@ namespace KRE
 			vx2, vy2,
 		};
 
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vx2)/2.0f,-(vy1+vy2)/2.0f,0.0f));
-		glm::mat4 mvp = mvp_ * model * getModelMatrix();
+		glm::mat4 mvp;
+		if(std::abs(rotation) > FLT_EPSILON) {
+			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vx2)/2.0f,-(vy1+vy2)/2.0f,0.0f));
+			mvp = mvp_ * model * getModelMatrix();
+		} else {
+			mvp = mvp_ * getModelMatrix();
+		}
 		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
 		shader->makeActive();
 		shader->setUniformsForTexture(texture);
@@ -297,11 +302,12 @@ namespace KRE
 		// This draws an aliased line -- consider making this a nicer unaliased line.
 		glm::mat4 mvp = mvp_ * getModelMatrix();
 
-		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
+		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("attr_color_shader");
 		shader->makeActive();
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 
-		shader->setUniformValue(shader->getLineWidthUniform(), line_width);
+		/// XXX FIXME no line_width in attr_color_shader
+		//shader->setUniformValue(shader->getLineWidthUniform(), line_width);
 		shader->setUniformValue(shader->getColorUniform(), glm::value_ptr(glm::vec4(1.0f)));
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glEnableVertexAttribArray(shader->getColorAttribute());

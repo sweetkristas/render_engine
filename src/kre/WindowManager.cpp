@@ -179,9 +179,10 @@ namespace KRE
 				ASSERT_LOG(context_ != nullptr, "Failed to GL Context: " << SDL_GetError());
 			}
 
-			display_->setClearColor(clear_color_);
 			display_->init(width_, height_);
 			display_->printDeviceInfo();
+
+			display_->setClearColor(clear_color_);
 			display_->clear(ClearFlags::ALL);
 			swap();
 		}

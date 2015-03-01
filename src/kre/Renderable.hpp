@@ -106,6 +106,6 @@ namespace KRE
 		ShaderProgramPtr shader_;
 
 		std::vector<AttributeSetPtr> attributes_;
-		std::vector<UniformBufferBase> uniforms_;
+		//std::vector<UniformBufferBase> uniforms_;
 	};
 }

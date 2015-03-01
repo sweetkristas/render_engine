@@ -306,6 +306,34 @@ namespace KRE
 				{"", ""},
 			};
 
+			const char* const point_shader_vs = 
+				"uniform mat4 u_mvp_matrix;\n"
+				"uniform float u_point_size;\n"
+				"attribute vec2 a_position;\n"
+				"void main()\n"
+				"{\n"
+				"    gl_PointSize = u_point_size;\n"
+				"    gl_Position = u_mvp_matrix * vec4(a_position,0.0,1.0);\n"
+				"}\n";
+			const char* const point_shader_fs = 
+				"uniform vec4 u_color;\n"
+				"void main()\n"
+				"{\n"
+				"    gl_FragColor = u_color;\n"
+				"}\n";
+			const uniform_mapping point_shader_uniform_mapping[] = 
+			{
+				{"mvp_matrix", "u_mvp_matrix"},
+				{"color", "u_color"},
+				{"point_size", "u_point_size"},
+				{"", ""},
+			};
+			const attribute_mapping point_shader_attribute_mapping[] = 
+			{
+				{"position", "a_position"},
+				{"", ""},
+			};
+
 			const struct {
 				const char* shader_name;
 				const char* vertex_shader_name;
@@ -322,6 +350,7 @@ namespace KRE
 				{ "attr_color_shader", "attr_color_vs", attr_color_vs, "attr_color_fs", attr_color_fs, attr_color_uniform_mapping, attr_color_attribue_mapping },
 				{ "vtc_shader", "vtc_vs", vtc_vs, "vtc_fs", vtc_fs, vtc_uniform_mapping, vtc_attribue_mapping },
 				{ "circle", "circle_vs", circle_vs, "circle_fs", circle_fs, circle_uniform_mapping, circle_attribue_mapping },
+				{ "point_shader", "point_shader_vs", point_shader_vs, "point_shader_fs", point_shader_fs, point_shader_uniform_mapping, point_shader_attribute_mapping },
 			};
 
 			typedef std::map<std::string, ShaderProgramPtr> shader_factory_map;
@@ -396,7 +425,7 @@ namespace KRE
 			ASSERT_LOG(glCreateShader != nullptr, "Something bad happened with Glew shader not initialised.");
 			shader_ = glCreateShader(type_);
 			if(shader_ == 0) {
-				std::cerr << "Enable to create shader." << std::endl;
+				LOG_ERROR("Unable to create shader: " << name());
 				return false;
 			}
 			const char* shader_code = code.c_str();
@@ -411,7 +440,7 @@ namespace KRE
 					info_log.resize(info_len);
 					glGetShaderInfoLog(shader_, info_log.capacity(), nullptr, &info_log[0]);
 					std::string s(info_log.begin(), info_log.end());
-					std::cerr << "Error compiling shader: " << s << std::endl;
+					LOG_ERROR("Error compiling shader(" << name() << "): " << s);
 				}
 				glDeleteShader(shader_);
 				shader_ = 0;
@@ -517,7 +546,7 @@ namespace KRE
 					info_log.resize(info_len);
 					glGetProgramInfoLog(object_, info_log.capacity(), nullptr, &info_log[0]);
 					std::string s(info_log.begin(), info_log.end());
-					std::cerr << "Error linking object: " << s << std::endl;
+					LOG_ERROR("Error linking object: " << s);
 				}
 				glDeleteProgram(object_);
 				object_ = 0;
