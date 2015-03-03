@@ -39,8 +39,19 @@ variant::variant(int64_t n)
 
 }
 
+variant::variant(int n)
+	: type_(VARIANT_TYPE_INTEGER), i_(n), f_(0.0f), b_(false)
+{
+
+}
+
 variant::variant(float f)
 	: type_(VARIANT_TYPE_FLOAT), i_(0), f_(f), b_(false)
+{
+}
+
+variant::variant(double f)
+	: type_(VARIANT_TYPE_FLOAT), i_(0), f_(static_cast<float>(f)), b_(false)
 {
 }
 
@@ -63,6 +74,12 @@ variant::variant(std::vector<variant>* list)
 	: type_(VARIANT_TYPE_LIST), i_(0), f_(0.0f), b_(false)
 {
 	l_.swap(*list);
+}
+
+variant::variant(variant_map* vmap)
+	: type_(VARIANT_TYPE_MAP), i_(0), f_(0), b_(false)
+{
+	m_.swap(*vmap);
 }
 
 variant variant::from_bool(bool b)
@@ -144,6 +161,26 @@ std::string variant::as_string() const
 	}
 	ASSERT_LOG(false, "as_string() type conversion error from " << type_as_string() << " to string");
 	return "";
+}
+
+std::string variant::as_string_default(const std::string& s) const
+{
+	switch(type()) {
+	case VARIANT_TYPE_STRING:
+		return s_;
+	case VARIANT_TYPE_INTEGER: {
+		std::stringstream s;
+		s << i_;
+		return s.str();
+	}
+	case VARIANT_TYPE_FLOAT: {
+		std::stringstream s;
+		s << f_;
+		return s.str();
+	}
+	default: break;
+	}
+	return s;
 }
 
 float variant::as_float() const
@@ -313,7 +350,10 @@ bool variant::has_key(const variant& v) const
 
 bool variant::has_key(const std::string& key) const
 {
-	ASSERT_LOG(type() == VARIANT_TYPE_MAP, "Tried to index variant that isn't a map, was: " << type_as_string());
+	//ASSERT_LOG(type() == VARIANT_TYPE_MAP, "Tried to index variant that isn't a map, was: " << type_as_string());
+	if(type() != VARIANT_TYPE_MAP) {
+		return false;
+	}
 	return m_.find(variant(key)) != m_.end() ? true : false;
 }
 
@@ -486,6 +526,18 @@ std::vector<std::string> variant::as_list_string() const
 	return result;
 }
 
+std::vector<int> variant::as_list_int() const
+{
+	std::vector<int> result;
+	ASSERT_LOG(type_ == VARIANT_TYPE_LIST, "as_list_int: variant must be a list.");
+	result.reserve(l_.size());
+	for(auto& el : l_) {
+		ASSERT_LOG(el.is_numeric(), "as_list_int: Each element in list must be an integer");
+		result.emplace_back(el.as_int32());
+	}
+	return result;
+}
+
 std::ostream& operator<<(std::ostream& os, const variant& n)
 {
 	n.write_json(os);
@@ -566,4 +618,9 @@ variant vec4_to_variant(const glm::vec4& v)
 	result.push_back(variant(float(v.z)));
 	result.push_back(variant(float(v.w)));
 	return variant(&result);
+}
+
+std::string variant::to_debug_string() const
+{
+	return write_json(true, 0);
 }

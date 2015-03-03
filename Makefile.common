@@ -6,55 +6,55 @@
 # Game engine
 objects = \
 	src/AttributeSet.o \
-    src/blittable.o \
-	src/camera_object.o \
-	src/canvas.o \
+    src/Blittable.o \
+	src/CameraObject.o \
+	src/Canvas.o \
 	src/Color.o \
 	src/DisplayDevice.o \
 	src/filesystem.o \
-	src/frustum.o \
+	src/Frustum.o \
 	src/json.o \
 	src/LightObject.o \
 	src/logger.o \
 	src/main.o \
 	src/Material.o \
-	src/particle_system_affectors.o \
-	src/particle_system.o \
-	src/particle_system_emitters.o \
-	src/particle_system_observers.o \
-	src/particle_system_parameters.o \
-	src/renderable.o \
+	src/ParticleSystemAffectors.o \
+	src/ParticleSystem.o \
+	src/ParticleSystemEmitters.o \
+	src/ParticleSystemObservers.o \
+	src/ParticleSystemParameters.o \
+	src/Renderable.o \
 	src/RenderManager.o \
 	src/RenderQueue.o \
 	src/RenderTarget.o \
-	src/scene_graph.o \
-	src/scene_node.o \
-	src/scene_object.o \
+	src/SceneGraph.o \
+	src/SceneNode.o \
+	src/SceneObject.o \
 	src/SceneParameters.o \
-	src/surface.o \
+	src/Surface.o \
 	src/Texture.o \
 	src/variant.o \
-	src/vector_graphics_cairo.o \
-	src/vector_graphics.o \
-	src/window_manager.o
+	src/VGraphCairo.o \
+	src/VGraph.o \
+	src/WindowManager.o
 
 sdl_objects = \
 	src/DisplayDeviceSDL.o \
-	src/surface_sdl.o \
+	src/SurfaceSDL.o \
 	src/TextureSDL.o
 	
 ogl_objects = \
 	src/AttributeSetOGL.o \
-	src/canvas_ogl.o \
+	src/CanvasOGL.o \
 	src/DisplayDeviceOpenGL.o \
 	src/FboOpenGL.o \
 	src/MaterialOpenGL.o \
 	src/ShadersOpenGL.o \
 	src/TextureOpenGL.o \
-	src/vector_graphics_ogl.o \
+	src/VGraphOpenGL.o \
 	src/UniformBufferOGL.o
 
 ogl_fixed_objects = \
 	src/DisplayDeviceOpenGLFixed.o \
-	src/vector_graphics_oglf.o
+	src/VGraphOpenGLFixed.o
 

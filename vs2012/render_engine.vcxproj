@@ -11,119 +11,160 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\attribute_set.cpp" />
-    <ClCompile Include="..\src\attribute_set_ogl.cpp" />
-    <ClCompile Include="..\src\blittable.cpp" />
-    <ClCompile Include="..\src\camera_object.cpp" />
-    <ClCompile Include="..\src\canvas.cpp" />
-    <ClCompile Include="..\src\canvas_ogl.cpp" />
-    <ClCompile Include="..\src\color.cpp" />
-    <ClCompile Include="..\src\display_device.cpp" />
-    <ClCompile Include="..\src\display_device_ogl.cpp" />
-    <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp" />
-    <ClCompile Include="..\src\DisplayDeviceSDL.cpp" />
-    <ClCompile Include="..\src\FboOpenGL.cpp" />
-    <ClCompile Include="..\src\particle_system_emitters.cpp" />
-    <ClCompile Include="..\src\RenderTarget.cpp" />
     <ClCompile Include="..\src\filesystem.cpp" />
-    <ClCompile Include="..\src\frustum.cpp" />
+    <ClCompile Include="..\src\ft_iface.cpp" />
     <ClCompile Include="..\src\json.cpp" />
-    <ClCompile Include="..\src\LightObject.cpp" />
-    <ClCompile Include="..\src\logger.cpp" />
+    <ClCompile Include="..\src\kre\AttributeSet.cpp" />
+    <ClCompile Include="..\src\kre\AttributeSetOGL.cpp" />
+    <ClCompile Include="..\src\kre\Blend.cpp" />
+    <ClCompile Include="..\src\kre\BlendModeScope.cpp" />
+    <ClCompile Include="..\src\kre\BlendOGL.cpp" />
+    <ClCompile Include="..\src\kre\Blittable.cpp" />
+    <ClCompile Include="..\src\kre\CameraObject.cpp" />
+    <ClCompile Include="..\src\kre\Canvas.cpp" />
+    <ClCompile Include="..\src\kre\CanvasOGL.cpp" />
+    <ClCompile Include="..\src\kre\ClipScope.cpp" />
+    <ClCompile Include="..\src\kre\ClipScopeOGL.cpp" />
+    <ClCompile Include="..\src\kre\Color.cpp" />
+    <ClCompile Include="..\src\kre\ColorScope.cpp" />
+    <ClCompile Include="..\src\kre\DisplayDevice.cpp" />
+    <ClCompile Include="..\src\kre\DisplayDeviceOGL.cpp" />
+    <ClCompile Include="..\src\kre\DisplayDeviceOGLFixed.cpp" />
+    <ClCompile Include="..\src\kre\DisplayDeviceSDL.cpp" />
+    <ClCompile Include="..\src\kre\EffectsOGL.cpp" />
+    <ClCompile Include="..\src\kre\FboOGL.cpp" />
+    <ClCompile Include="..\src\kre\Font.cpp" />
+    <ClCompile Include="..\src\kre\FontSDL.cpp" />
+    <ClCompile Include="..\src\kre\Frustum.cpp" />
+    <ClCompile Include="..\src\kre\HintMap.cpp" />
+    <ClCompile Include="..\src\kre\LightObject.cpp" />
+    <ClCompile Include="..\src\kre\PaletteMap.cpp" />
+    <ClCompile Include="..\src\kre\ParticleSystem.cpp" />
+    <ClCompile Include="..\src\kre\ParticleSystemAffectors.cpp" />
+    <ClCompile Include="..\src\kre\ParticleSystemEmitters.cpp" />
+    <ClCompile Include="..\src\kre\ParticleSystemObservers.cpp" />
+    <ClCompile Include="..\src\kre\ParticleSystemParameters.cpp" />
+    <ClCompile Include="..\src\kre\Renderable.cpp" />
+    <ClCompile Include="..\src\kre\RenderManager.cpp" />
+    <ClCompile Include="..\src\kre\RenderQueue.cpp" />
+    <ClCompile Include="..\src\kre\RenderTarget.cpp" />
+    <ClCompile Include="..\src\kre\SceneGraph.cpp" />
+    <ClCompile Include="..\src\kre\SceneNode.cpp" />
+    <ClCompile Include="..\src\kre\SceneObject.cpp" />
+    <ClCompile Include="..\src\kre\SceneParameters.cpp" />
+    <ClCompile Include="..\src\kre\Scissor.cpp" />
+    <ClCompile Include="..\src\kre\ScissorOGL.cpp" />
+    <ClCompile Include="..\src\kre\Shaders.cpp" />
+    <ClCompile Include="..\src\kre\ShadersOGL.cpp" />
+    <ClCompile Include="..\src\kre\StencilScope.cpp" />
+    <ClCompile Include="..\src\kre\StencilScopeOGL.cpp" />
+    <ClCompile Include="..\src\kre\Surface.cpp" />
+    <ClCompile Include="..\src\kre\SurfaceSDL.cpp" />
+    <ClCompile Include="..\src\kre\TexPack.cpp" />
+    <ClCompile Include="..\src\kre\Texture.cpp" />
+    <ClCompile Include="..\src\kre\TextureOGL.cpp" />
+    <ClCompile Include="..\src\kre\TextureSDL.cpp" />
+    <ClCompile Include="..\src\kre\UniformBuffer.cpp" />
+    <ClCompile Include="..\src\kre\UniformBufferOGL.cpp" />
+    <ClCompile Include="..\src\kre\util.cpp" />
+    <ClCompile Include="..\src\kre\VGraph.cpp" />
+    <ClCompile Include="..\src\kre\VGraphCairo.cpp" />
+    <ClCompile Include="..\src\kre\VGraphOGL.cpp" />
+    <ClCompile Include="..\src\kre\VGraphOGLFixed.cpp" />
+    <ClCompile Include="..\src\kre\WindowManager.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\Material.cpp" />
-    <ClCompile Include="..\src\MaterialOpenGL.cpp" />
-    <ClCompile Include="..\src\particle_system.cpp" />
-    <ClCompile Include="..\src\particle_system_affectors.cpp" />
-    <ClCompile Include="..\src\particle_system_observers.cpp" />
-    <ClCompile Include="..\src\particle_system_parameters.cpp" />
-    <ClCompile Include="..\src\renderable.cpp" />
-    <ClCompile Include="..\src\RenderManager.cpp" />
-    <ClCompile Include="..\src\RenderQueue.cpp" />
-    <ClCompile Include="..\src\scene_graph.cpp" />
-    <ClCompile Include="..\src\scene_node.cpp" />
-    <ClCompile Include="..\src\scene_object.cpp" />
-    <ClCompile Include="..\src\SceneParameters.cpp" />
-    <ClCompile Include="..\src\shaders_ogl.cpp" />
-    <ClCompile Include="..\src\surface.cpp" />
-    <ClCompile Include="..\src\surface_sdl.cpp" />
-    <ClCompile Include="..\src\texture.cpp" />
-    <ClCompile Include="..\src\texture_ogl.cpp" />
-    <ClCompile Include="..\src\TextureSDL.cpp" />
+    <ClCompile Include="..\src\module.cpp" />
     <ClCompile Include="..\src\variant.cpp" />
-    <ClCompile Include="..\src\vector_graphics.cpp" />
-    <ClCompile Include="..\src\vector_graphics_cairo.cpp" />
-    <ClCompile Include="..\src\vector_graphics_ogl.cpp" />
-    <ClCompile Include="..\src\vector_graphics_oglf.cpp" />
-    <ClCompile Include="..\src\window_manager.cpp" />
+    <ClCompile Include="..\src\variant_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\treetree\tree.hpp" />
     <ClInclude Include="..\src\asserts.hpp" />
-    <ClInclude Include="..\src\attribute_set.hpp" />
-    <ClInclude Include="..\src\attribute_set_ogl.hpp" />
-    <ClInclude Include="..\src\blittable.hpp" />
-    <ClInclude Include="..\src\camera_object.hpp" />
-    <ClInclude Include="..\src\canvas.hpp" />
-    <ClInclude Include="..\src\canvas_ogl.hpp" />
-    <ClInclude Include="..\src\color.hpp" />
-    <ClInclude Include="..\src\display_device.hpp" />
-    <ClInclude Include="..\src\display_device_fwd.hpp" />
-    <ClInclude Include="..\src\display_device_ogl.hpp" />
-    <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp" />
-    <ClInclude Include="..\src\DisplayDeviceSDL.hpp" />
-    <ClInclude Include="..\src\FboOpenGL.hpp" />
-    <ClInclude Include="..\src\RenderTarget.hpp" />
     <ClInclude Include="..\src\filesystem.hpp" />
     <ClInclude Include="..\src\formatter.hpp" />
-    <ClInclude Include="..\src\frustum.hpp" />
-    <ClInclude Include="..\src\geometry.hpp" />
+    <ClInclude Include="..\src\ft_iface.hpp" />
     <ClInclude Include="..\src\json.hpp" />
-    <ClInclude Include="..\src\LightObject.hpp" />
-    <ClInclude Include="..\src\logger.hpp" />
-    <ClInclude Include="..\src\Material.hpp" />
-    <ClInclude Include="..\src\MaterialOpenGL.hpp" />
-    <ClInclude Include="..\src\particle_system.hpp" />
-    <ClInclude Include="..\src\particle_system_affectors.hpp" />
-    <ClInclude Include="..\src\particle_system_emitters.hpp" />
-    <ClInclude Include="..\src\particle_system_fwd.hpp" />
-    <ClInclude Include="..\src\particle_system_observers.hpp" />
-    <ClInclude Include="..\src\particle_system_parameters.hpp" />
+    <ClInclude Include="..\src\kre\AttributeSet.hpp" />
+    <ClInclude Include="..\src\kre\AttributeSetOGL.hpp" />
+    <ClInclude Include="..\src\kre\Blend.hpp" />
+    <ClInclude Include="..\src\kre\BlendModeScope.hpp" />
+    <ClInclude Include="..\src\kre\BlendOGL.hpp" />
+    <ClInclude Include="..\src\kre\Blittable.hpp" />
+    <ClInclude Include="..\src\kre\CameraObject.hpp" />
+    <ClInclude Include="..\src\kre\Canvas.hpp" />
+    <ClInclude Include="..\src\kre\CanvasOGL.hpp" />
+    <ClInclude Include="..\src\kre\ClipScope.hpp" />
+    <ClInclude Include="..\src\kre\ClipScopeOGL.hpp" />
+    <ClInclude Include="..\src\kre\Color.hpp" />
+    <ClInclude Include="..\src\kre\ColorScope.hpp" />
+    <ClInclude Include="..\src\kre\DisplayDevice.hpp" />
+    <ClInclude Include="..\src\kre\DisplayDeviceFwd.hpp" />
+    <ClInclude Include="..\src\kre\DisplayDeviceOGL.hpp" />
+    <ClInclude Include="..\src\kre\DisplayDeviceOGLFixed.hpp" />
+    <ClInclude Include="..\src\kre\DisplayDeviceSDL.hpp" />
+    <ClInclude Include="..\src\kre\Effects.hpp" />
+    <ClInclude Include="..\src\kre\EffectsOGL.hpp" />
+    <ClInclude Include="..\src\kre\FboOGL.hpp" />
+    <ClInclude Include="..\src\kre\Font.hpp" />
+    <ClInclude Include="..\src\kre\FontSDL.hpp" />
+    <ClInclude Include="..\src\kre\Frustum.hpp" />
+    <ClInclude Include="..\src\kre\geometry.hpp" />
+    <ClInclude Include="..\src\kre\HintMap.hpp" />
+    <ClInclude Include="..\src\kre\lexical_cast.hpp" />
+    <ClInclude Include="..\src\kre\LightObject.hpp" />
+    <ClInclude Include="..\src\kre\PaletteMap.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystem.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystemAffectors.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystemEmitters.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystemFwd.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystemObservers.hpp" />
+    <ClInclude Include="..\src\kre\ParticleSystemParameters.hpp" />
+    <ClInclude Include="..\src\kre\PixelFormat.hpp" />
+    <ClInclude Include="..\src\kre\Renderable.hpp" />
+    <ClInclude Include="..\src\kre\RenderFwd.hpp" />
+    <ClInclude Include="..\src\kre\RenderManager.hpp" />
+    <ClInclude Include="..\src\kre\RenderQueue.hpp" />
+    <ClInclude Include="..\src\kre\RenderTarget.hpp" />
+    <ClInclude Include="..\src\kre\SceneFwd.hpp" />
+    <ClInclude Include="..\src\kre\SceneGraph.hpp" />
+    <ClInclude Include="..\src\kre\SceneNode.hpp" />
+    <ClInclude Include="..\src\kre\SceneObject.hpp" />
+    <ClInclude Include="..\src\kre\SceneParameters.hpp" />
+    <ClInclude Include="..\src\kre\SceneUtil.hpp" />
+    <ClInclude Include="..\src\kre\Scissor.hpp" />
+    <ClInclude Include="..\src\kre\ScissorOGL.hpp" />
+    <ClInclude Include="..\src\kre\SDLWrapper.hpp" />
+    <ClInclude Include="..\src\kre\Shaders.hpp" />
+    <ClInclude Include="..\src\kre\ShadersOGL.hpp" />
+    <ClInclude Include="..\src\kre\spline.hpp" />
+    <ClInclude Include="..\src\kre\StencilScope.hpp" />
+    <ClInclude Include="..\src\kre\StencilScopeOGL.hpp" />
+    <ClInclude Include="..\src\kre\StencilSettings.hpp" />
+    <ClInclude Include="..\src\kre\Surface.hpp" />
+    <ClInclude Include="..\src\kre\SurfaceSDL.hpp" />
+    <ClInclude Include="..\src\kre\TexPack.hpp" />
+    <ClInclude Include="..\src\kre\Texture.hpp" />
+    <ClInclude Include="..\src\kre\TextureOGL.hpp" />
+    <ClInclude Include="..\src\kre\TextureSDL.hpp" />
+    <ClInclude Include="..\src\kre\TextureUtils.hpp" />
+    <ClInclude Include="..\src\kre\UniformBuffer.hpp" />
+    <ClInclude Include="..\src\kre\UniformBufferOGL.hpp" />
+    <ClInclude Include="..\src\kre\util.hpp" />
+    <ClInclude Include="..\src\kre\VGraph.hpp" />
+    <ClInclude Include="..\src\kre\VGraphCairo.hpp" />
+    <ClInclude Include="..\src\kre\VGraphFwd.hpp" />
+    <ClInclude Include="..\src\kre\VGraphOGL.hpp" />
+    <ClInclude Include="..\src\kre\VGraphOGLFixed.hpp" />
+    <ClInclude Include="..\src\kre\VGraphPatterns.hpp" />
+    <ClInclude Include="..\src\kre\WindowManager.hpp" />
+    <ClInclude Include="..\src\kre\WindowManagerFwd.hpp" />
+    <ClInclude Include="..\src\module.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
-    <ClInclude Include="..\src\renderable.hpp" />
-    <ClInclude Include="..\src\RenderFwd.hpp" />
-    <ClInclude Include="..\src\RenderManager.hpp" />
-    <ClInclude Include="..\src\RenderQueue.hpp" />
-    <ClInclude Include="..\src\scene_fwd.hpp" />
-    <ClInclude Include="..\src\scene_graph.hpp" />
-    <ClInclude Include="..\src\scene_node.hpp" />
-    <ClInclude Include="..\src\scene_object.hpp" />
-    <ClInclude Include="..\src\SceneParameters.hpp" />
-    <ClInclude Include="..\src\SDLWrapper.hpp" />
-    <ClInclude Include="..\src\shaders_ogl.hpp" />
-    <ClInclude Include="..\src\spline.hpp" />
-    <ClInclude Include="..\src\surface.hpp" />
-    <ClInclude Include="..\src\surface_sdl.hpp" />
-    <ClInclude Include="..\src\texture.hpp" />
-    <ClInclude Include="..\src\texture_ogl.hpp" />
-    <ClInclude Include="..\src\TextureSDL.hpp" />
-    <ClInclude Include="..\src\util.hpp" />
+    <ClInclude Include="..\src\utf8_to_codepoint.hpp" />
     <ClInclude Include="..\src\variant.hpp" />
-    <ClInclude Include="..\src\vector_graphics.hpp" />
-    <ClInclude Include="..\src\vector_graphics_cairo.hpp" />
-    <ClInclude Include="..\src\vector_graphics_fwd.hpp" />
-    <ClInclude Include="..\src\vector_graphics_ogl.hpp" />
-    <ClInclude Include="..\src\vector_graphics_oglf.hpp" />
-    <ClInclude Include="..\src\vector_graphics_patterns.hpp" />
-    <ClInclude Include="..\src\window_manager.hpp" />
-    <ClInclude Include="..\src\window_manager_fwd.hpp" />
+    <ClInclude Include="..\src\variant_utils.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\cairo\external\x86\lib\cairo.lib" />
-    <Library Include="..\..\glew\lib\glew32.lib" />
-    <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
-    <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
-    <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
+    <None Include="..\src\kre\geometry.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B61A84FB-90CB-4638-9F1D-65DCEBC0DFF5}</ProjectGuid>
@@ -166,14 +207,14 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\cairo\external\x86\include;C:\Projects\glew\include;c:\projects\SDL\include;c:\projects\SDL_image\;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>c:\Projects\render_engine\external\include\cairo;C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\src;C:\Projects\render_engine\src\kre;C:\Projects\render_engine\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Projects\boost\stage32-debug-static\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Projects\render_engine\external\lib;C:\Projects\boost\stage32-debug-static\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -184,8 +225,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Projects\glew-1.9.0\include;c:\projects\SDL\include;c:\projects\SDL_image\</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Projects\render_engine\src\kre;C:\Projects\render_engine\src;C:\Projects\render_engine\external\include\freetype2\;c:\Projects\render_engine\external\include\;c:\projects\SDL\include;c:\projects\SDL_ttf\;c:\projects\SDL_image\;C:\Projects\render_engine\include;C:\Projects\render_engine\external\include\cairo;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -193,6 +234,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Projects\boost\stage32-release-static\lib;C:\Projects\render_engine\external\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

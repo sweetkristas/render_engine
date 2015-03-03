@@ -26,11 +26,14 @@ public:
 	variant();
 	variant(const variant&);
 	explicit variant(int64_t);
+	explicit variant(int);
 	explicit variant(float);
+	explicit variant(double);
 	explicit variant(const std::string&);
 	explicit variant(const variant_map&);
 	explicit variant(const variant_list&);
 	explicit variant(std::vector<variant>* list);
+	explicit variant(variant_map* vmap);
 
 	variant_type type() const { return type_; }
 	std::string type_as_string() const;
@@ -38,8 +41,10 @@ public:
 	static variant from_bool(bool b);
 
 	std::string as_string() const;
+	std::string as_string_default(const std::string& s) const;
 	int64_t as_int() const;
 	int64_t as_int(int64_t value) const;
+	int as_int32(int value=0) const { return static_cast<int>(as_int(value)); }
 	float as_float() const;
 	float as_float(float value) const;
 	bool as_bool() const;
@@ -47,6 +52,7 @@ public:
 	const variant_list& as_list() const;
 	const variant_map& as_map() const;
 	std::vector<std::string> as_list_string() const;
+	std::vector<int> as_list_int() const;
 
 	variant_list& as_mutable_list();
 	variant_map& as_mutable_map();
@@ -80,6 +86,8 @@ public:
 			
 	void write_json(std::ostream& s, bool pretty=true, int indent=0) const;
 	std::string write_json(bool pretty=true, int indent=0) const;
+
+	std::string to_debug_string() const;
 protected:
 private:
 	variant_type type_;

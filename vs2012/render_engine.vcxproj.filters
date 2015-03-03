@@ -39,180 +39,432 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\kre\VGraphCairo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\WindowManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\AttributeSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Blend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Blittable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\CameraObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Canvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ClipScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\DisplayDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\LightObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\PaletteMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Renderable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\RenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\RenderQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\RenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\SceneGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\SceneNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\SceneObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\SceneParameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Scissor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Shaders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\StencilScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Surface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\UniformBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\VGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\AttributeSetOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\BlendOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\CanvasOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ClipScopeOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\DisplayDeviceOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\EffectsOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\FboOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ShadersOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ScissorOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\StencilScopeOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\UniformBufferOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\VGraphOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\DisplayDeviceSDL.cpp">
+      <Filter>Source Files\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\FontSDL.cpp">
+      <Filter>Source Files\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\TextureSDL.cpp">
+      <Filter>Source Files\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\SurfaceSDL.cpp">
+      <Filter>Source Files\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ParticleSystem.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ParticleSystemAffectors.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ParticleSystemEmitters.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ParticleSystemObservers.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\ParticleSystemParameters.cpp">
+      <Filter>Source Files\Particle Systems</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\TextureOGL.cpp">
+      <Filter>Source Files\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\logger.cpp">
+    <ClCompile Include="..\src\kre\Color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\RenderManager.cpp">
+    <ClCompile Include="..\src\kre\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\RenderQueue.cpp">
+    <ClCompile Include="..\src\kre\VGraphOGLFixed.cpp">
+      <Filter>Source Files\OpenGLFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\DisplayDeviceOGLFixed.cpp">
+      <Filter>Source Files\OpenGLFixed</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\kre\BlendModeScope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\LightObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\SceneParameters.cpp">
+    <ClCompile Include="..\src\kre\ColorScope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\variant.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\json.cpp">
+    <ClCompile Include="..\src\variant_utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\filesystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Material.cpp">
+    <ClCompile Include="..\src\ft_iface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\MaterialOpenGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\DisplayDeviceOpenGLFixed.cpp">
-      <Filter>Source Files\OpenGLFixed</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\DisplayDeviceSDL.cpp">
-      <Filter>Source Files\SDL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\TextureSDL.cpp">
-      <Filter>Source Files\SDL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\RenderTarget.cpp">
+    <ClCompile Include="..\src\json.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\FboOpenGL.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\scene_object.cpp">
+    <ClCompile Include="..\src\module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\scene_graph.cpp">
+    <ClCompile Include="..\src\kre\HintMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\scene_node.cpp">
+    <ClCompile Include="..\src\kre\TexPack.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\surface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\surface_sdl.cpp">
-      <Filter>Source Files\SDL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\window_manager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vector_graphics_cairo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vector_graphics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\blittable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\camera_object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\particle_system.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\particle_system_affectors.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\particle_system_observers.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\particle_system_parameters.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\frustum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\canvas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\canvas_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vector_graphics_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\vector_graphics_oglf.cpp">
-      <Filter>Source Files\OpenGLFixed</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\renderable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\display_device_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\shaders_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\texture_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\color.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\display_device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\attribute_set.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\attribute_set_ogl.cpp">
-      <Filter>Source Files\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\particle_system_emitters.cpp">
-      <Filter>Source Files\Particle Systems</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\logger.hpp">
+    <ClInclude Include="..\src\kre\VGraphCairo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\asserts.hpp">
+    <ClInclude Include="..\src\kre\VGraphFwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\SDLWrapper.hpp">
+    <ClInclude Include="..\src\kre\VGraphPatterns.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\WindowManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\WindowManagerFwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\AttributeSet.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Blend.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Blittable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\CameraObject.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Canvas.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ClipScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDevice.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDeviceFwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Effects.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Font.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Frustum.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\LightObject.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\PaletteMap.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\PixelFormat.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Renderable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\RenderFwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\RenderManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\RenderQueue.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\RenderTarget.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneFwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneGraph.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneNode.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneObject.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneParameters.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SceneUtil.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Scissor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SDLWrapper.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Shaders.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\spline.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\StencilScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\StencilSettings.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Surface.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Texture.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\TextureUtils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\UniformBuffer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\VGraph.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\AttributeSetOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\BlendOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\CanvasOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ClipScopeOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDeviceOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\EffectsOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\FboOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\FontSDL.hpp">
+      <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDeviceSDL.hpp">
+      <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ScissorOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ShadersOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\StencilScopeOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\TextureOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\UniformBufferOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\VGraphOGL.hpp">
+      <Filter>Header Files\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystem.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystemAffectors.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystemEmitters.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystemFwd.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystemObservers.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ParticleSystemParameters.hpp">
+      <Filter>Header Files\Particle Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\SurfaceSDL.hpp">
+      <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\TextureSDL.hpp">
+      <Filter>Header Files\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utf8_to_codepoint.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\geometry.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\lexical_cast.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\Color.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\DisplayDeviceOGLFixed.hpp">
+      <Filter>Header Files\OpenGLFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\VGraphOGLFixed.hpp">
+      <Filter>Header Files\OpenGLFixed</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\BlendModeScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\kre\ColorScope.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\profile_timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\RenderManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\RenderQueue.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\LightObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\SceneParameters.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\spline.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\RenderFwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\treetree\tree.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\variant.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\variant_utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\asserts.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\filesystem.hpp">
@@ -221,144 +473,25 @@
     <ClInclude Include="..\src\formatter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Material.hpp">
+    <ClInclude Include="..\src\ft_iface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\MaterialOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\DisplayDeviceOpenGLFixed.hpp">
-      <Filter>Header Files\OpenGLFixed</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\DisplayDeviceSDL.hpp">
-      <Filter>Header Files\SDL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\TextureSDL.hpp">
-      <Filter>Header Files\SDL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\RenderTarget.hpp">
+    <ClInclude Include="..\src\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\FboOpenGL.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\scene_object.hpp">
+    <ClInclude Include="..\src\module.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\scene_graph.hpp">
+    <ClInclude Include="..\src\kre\HintMap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\scene_node.hpp">
+    <ClInclude Include="..\src\kre\TexPack.hpp">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\scene_fwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\surface.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\surface_sdl.hpp">
-      <Filter>Header Files\SDL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\window_manager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\window_manager_fwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics_fwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics_cairo.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\util.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\blittable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\geometry.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\camera_object.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system_fwd.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system_affectors.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system_emitters.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system_observers.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\particle_system_parameters.hpp">
-      <Filter>Header Files\Particle Systems</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\frustum.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\canvas.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\canvas_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics_oglf.hpp">
-      <Filter>Header Files\OpenGLFixed</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\renderable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vector_graphics_patterns.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\display_device_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\shaders_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\texture_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\texture.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\color.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\display_device.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\display_device_fwd.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\attribute_set.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\attribute_set_ogl.hpp">
-      <Filter>Header Files\OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\SDL_image\VisualC\Win32\Release\SDL2_image.lib" />
-    <Library Include="..\..\SDL\VisualC\SDL\Win32\Release\SDL2.lib" />
-    <Library Include="..\..\SDL\VisualC\SDLmain\Win32\Release\SDL2main.lib" />
-    <Library Include="..\..\cairo\external\x86\lib\cairo.lib" />
-    <Library Include="..\..\glew\lib\glew32.lib" />
+    <None Include="..\src\kre\geometry.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
