@@ -21,40 +21,27 @@
 	   distribution.
 */
 
-#include "asserts.hpp"
-#include "HintMap.hpp"
+#pragma once
 
-HintMapContainer::HintMapContainer()
-{
-}
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-const std::vector<std::string>& HintMapContainer::findHint(const std::string& name) const
+namespace KRE
 {
-	static std::vector<std::string> no_hint_list;
-	auto it = hints_.find(name);
-	if(it != hints_.end()) {
-		return it->second;
-	}
-	LOG_WARN("No hint named '" << name << "' found.");
-	return no_hint_list;
-}
+	class ModelManager2D
+	{
+	public:
+		ModelManager2D();
+		explicit ModelManager2D(int tx, int ty, float angle=0.0f, float scale=1.0f);
+		explicit ModelManager2D(int tx, int ty, float angle, const glm::vec2& scale);
+		~ModelManager2D();
+		void setIdentity();
+		void translate(int tx, int ty);
+		void rotate(float angle);
+		void scale(float sx, float sy);
+		void scale(float s);
+	};
 
-const std::string& HintMapContainer::findFirstHint(const std::string& name, const std::string& default) const
-{
-	auto it = hints_.find(name);
-	if(it != hints_.end()) {
-		return it->second.front();
-	}
-	return default;
-}
-
-void HintMapContainer::setHint(const std::string& hint_name, const std::string& hint)
-{
-	HintList hint_list(1,hint);
-	hints_.insert(std::make_pair(hint_name, hint_list));
-}
-
-void HintMapContainer::setHint(const std::string& hint_name, const HintList& hint)
-{
-	hints_[hint_name] = hint;
+	bool is_global_model_matrix_valid();
+	const glm::mat4& get_global_model_matrix();
 }

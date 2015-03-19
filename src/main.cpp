@@ -27,6 +27,8 @@
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
+#include "variant_utils.hpp"
+
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -182,7 +184,7 @@ struct FreeTextureHolder : public KRE::SceneObject
 		
 		addAttributeSet(as);
 	}
-	void preRender(const KRE::WindowManagerPtr& wm) override
+	void preRender(const KRE::WindowPtr& wm) override
 	{
 		const float offs_x = 0.0f;
 		const float offs_y = 0.0f;
@@ -214,7 +216,7 @@ private:
 void set_alpha_masks()
 {
 	using namespace KRE;
-	std::vector<SimpleColor> alpha_colors;
+	std::vector<Color> alpha_colors;
 
 	auto surf = Surface::create("alpha-colors.png");
 	surf->iterateOverSurface([&alpha_colors](int x, int y, int r, int g, int b, int a) {
@@ -224,7 +226,7 @@ void set_alpha_masks()
 
 	Surface::setAlphaFilter([=](int r, int g, int b) {
 		for(auto& c : alpha_colors) {
-			if(c.red == r && c.green == g && c.blue == b) {
+			if(c.ri() == r && c.gi() == g && c.bi() == b) {
 				return true;
 			}
 		}
@@ -286,17 +288,18 @@ int main(int argc, char *argv[])
 
 	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 
-	HintMapContainer hints;
-	hints.setHint("renderer", "opengl");
-	hints.setHint("dpi_aware", "true");
-	WindowManagerPtr main_wnd = WindowManager::create("SDL", hints);
-	main_wnd->enableVsync(true);
+	WindowManager wm("SDL");
+
+	variant_builder hints;
+	hints.add("renderer", "opengl");
+	hints.add("dpi_aware", "true");
 	int neww = 800, newh = 600;
-	if(!main_wnd->autoWindowSize(neww, newh)) {
-		LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
-	}
+	//if(!autoWindowSize(neww, newh)) {
+	//	LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
+	//}
 	LOG_DEBUG("Creating window of size: " << neww << "x" << newh);
-	main_wnd->createWindow(neww, newh);
+	auto main_wnd = wm.createWindow(neww, newh, hints.build());
+	main_wnd->enableVsync(true);
 	const float aspect_ratio = static_cast<float>(neww) / newh;
 
 	std::map<std::string, std::string> font_paths;
@@ -367,11 +370,11 @@ int main(int argc, char *argv[])
 #else
 	std::string psys_test_file = "../data/psystem1.cfg";
 #endif
-	auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
-	auto particle_cam = std::make_shared<Camera>("particle_cam");
-	particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	psystem->attachCamera(particle_cam);
-	root->attachNode(psystem);
+	//auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
+	//auto particle_cam = std::make_shared<Camera>("particle_cam");
+	//particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+	//psystem->attachCamera(particle_cam);
+	//root->attachNode(psystem);
 	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
 	//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
 	//rt->SetDrawRect(rect(400,300,400,300));
@@ -453,8 +456,8 @@ int main(int argc, char *argv[])
 	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
 	test1->setPosition(0,512);
 	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
-	palette_tex->getTexture()->addPalette(Surface::create("cave_pearl.png"));
-	palette_tex->getTexture()->addPalette(Surface::create("cave_mossy.png"));
+	palette_tex->getTexture()->addPalette(1, Surface::create("cave_pearl.png"));
+	palette_tex->getTexture()->addPalette(2, Surface::create("cave_mossy.png"));
 	
 	//auto test1 = std::make_shared<FreeTextureHolder>("sand.png");
 	//test1->setPosition(0,512);
@@ -534,11 +537,11 @@ int main(int argc, char *argv[])
 		//canvas->blitTexture(rt2->getTexture(), 0.0f, 0, 0);
 
 		static int counter_pal = 0;
-		static int pal = 0;
+		static int pal = -1;
 		if(++counter_pal >= 60*2) {
 			counter_pal = 0;
-			if(++pal >= palette_tex->getTexture()->getMaxPalettes()) {
-				pal = 0;
+			if(++pal >= 2) {
+				pal = -1;
 			}
 			palette_tex->getTexture()->setPalette(pal);
 		}

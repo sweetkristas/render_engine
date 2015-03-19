@@ -51,7 +51,7 @@ namespace KRE
 			GLuint shader_;
 			std::string name_;
 		};
-		typedef std::unique_ptr<Shader> ShaderPtr;
+		//typedef std::unique_ptr<Shader> ShaderPtr;
 
 		struct Actives
 		{
@@ -95,13 +95,19 @@ namespace KRE
 			void setUniformValue(int uid, const GLint*) const override;
 			void setUniformValue(int uid, const void*) const override;
 
+			void setUniformFromVariant(int uid, const variant& value) const override;
+
 			void makeActive() override;
 
 			void configureActives(AttributeSetPtr attrset) override;
+			void configureAttribute(AttributeBasePtr attr) override;
 			void configureUniforms(UniformBufferBase& uniforms) override;
 
 			void setAlternateUniformName(const std::string& name, const std::string& alt_name);
 			void setAlternateAttributeName(const std::string& name, const std::string& alt_name);
+
+			void setUniformMapping(const std::vector<std::pair<std::string, std::string>>& mapping) override;
+			void setAttributeMapping(const std::vector<std::pair<std::string, std::string>>& mapping) override;
 
 			static ShaderProgramPtr factory(const std::string& name);
 			static ShaderProgramPtr factory(const variant& node);
@@ -126,18 +132,17 @@ namespace KRE
 
 			void setUniformsForTexture(const TexturePtr& tex) const override;
 
+			KRE::ShaderProgramPtr clone() override;
 		protected:
-			bool link();
+			bool link(const std::vector<Shader>& shader_programs);
 			bool queryUniforms();
 			bool queryAttributes();
 
 			std::vector<GLint> active_attributes_;
 		private:
-			DISALLOW_COPY_AND_ASSIGN(ShaderProgram);
+			void operator=(const ShaderProgram&);
 
 			std::string name_;
-			ShaderPtr vs_;
-			ShaderPtr fs_;
 			GLuint object_;
 			ActivesMap attribs_;
 			ActivesMap uniforms_;
@@ -162,6 +167,8 @@ namespace KRE
 			int u_palette_;
 			int u_palette_width_;
 			int u_palette_map_;
+			int u_mix_palettes_;
+			int u_mix_;
 
 			std::vector<GLuint> enabled_attribs_;
 		};

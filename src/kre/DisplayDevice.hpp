@@ -140,7 +140,7 @@ namespace KRE
 
 		virtual ScissorPtr getScissor(const rect& r) = 0;
 
-		virtual void setDefaultCamera(const CameraPtr& cam) = 0;
+		virtual CameraPtr setDefaultCamera(const CameraPtr& cam) = 0;
 
 		virtual void loadShadersFromVariant(const variant& node) = 0;
 		virtual ShaderProgramPtr getShaderProgram(const std::string& name) = 0;
@@ -166,10 +166,12 @@ namespace KRE
 		virtual void setViewPort(int x, int y, unsigned width, unsigned height) = 0;
 
 		template<typename T>
-		bool readPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, std::vector<T>& data) {
-			data.resize(width * height);
-			return handleReadPixels(x, y, width, height, fmt, type, static_cast<void*>(&data[0]));
+		bool readPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, std::vector<T>& data, int stride) {
+			data.resize(stride * height / sizeof(T));
+			return handleReadPixels(x, y, width, height, fmt, type, static_cast<void*>(&data[0]), stride);
 		}
+
+		virtual void drawArrays(DrawMode dm, int first, int count) const = 0;
 
 		static AttributeSetPtr createAttributeSet(bool hardware_hint=false, bool indexed=false, bool instanced=false);
 		static HardwareAttributePtr createAttributeBuffer(bool hw_backed, AttributeBase* parent);
@@ -194,7 +196,7 @@ namespace KRE
 			size_t multi_samples) = 0;
 		virtual RenderTargetPtr handleCreateRenderTarget(const variant& node) = 0;
 
-		virtual bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data) = 0;
+		virtual bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data, int stride) = 0;
 		
 		virtual TexturePtr handleCreateTexture(const SurfacePtr& surface, TextureType type, int mipmap_levels) = 0;
 		virtual TexturePtr handleCreateTexture(const SurfacePtr& surface, const variant& node) = 0;

@@ -406,7 +406,7 @@ bool variant::operator==(const variant& n) const
 	return false;
 }
 
-size_t variant::num_elements() const
+int variant::num_elements() const
 {
 	if(type_ == VARIANT_TYPE_NULL){
 		return 0;
@@ -417,11 +417,11 @@ size_t variant::num_elements() const
 	} else if(type_ == VARIANT_TYPE_FLOAT) {
 		return 1;
 	} else if (type_ == VARIANT_TYPE_LIST) {
-		return l_.size();
+		return static_cast<int>(l_.size());
 	} else if (type_ == VARIANT_TYPE_STRING) {
-		return s_.size();
+		return static_cast<int>(s_.size());
 	} else if (type_ == VARIANT_TYPE_MAP) {
-		return m_.size();
+		return static_cast<int>(m_.size());
 	}
 	return 0;
 }

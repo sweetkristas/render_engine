@@ -45,6 +45,7 @@ namespace KRE
 		{
 			color_table["aliceblue"] = Color(240, 248, 255);
 			color_table["antiquewhite"] = Color(250, 235, 215);
+			color_table["antique_white"] = Color(250, 235, 215);
 			color_table["aqua"] = Color(0, 255, 255);
 			color_table["aquamarine"] = Color(127, 255, 212);
 			color_table["azure"] = Color(240, 255, 255);
@@ -358,17 +359,17 @@ namespace KRE
 		rgb hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v)
 		{
 			rgb out;
-			uint8_t region, remainder, p, q, t;
+			
 
 			if(s == 0) {
 				out.r = out.g = out.b = v;
 			} else {
-				region = h / 43;
-				remainder = (h - (region * 43)) * 6; 
+				const uint8_t region = h / 43;
+				const uint8_t remainder = (h - (region * 43)) * 6; 
 
-				p = (v * (255 - s)) >> 8;
-				q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-				t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+				const uint8_t p = (v * (255 - s)) >> 8;
+				const uint8_t q = (v * (255 - ((s * remainder) >> 8))) >> 8;
+				const uint8_t t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
 
 				switch(region)
 				{
@@ -737,7 +738,11 @@ namespace KRE
 
 	std::ostream& operator<<(std::ostream& os, const Color& c)
 	{
-		os << "rgba(" << c.ri() << "," << c.gi() << "," << c.bi() << "); rgbaf(" << c.r() << "," << c.g() << "," << c.b() << ")";
+		if(c.ai() == 255) {
+			os << "rgb(" << c.ri() << "," << c.gi() << "," << c.bi() << ")";
+		} else {
+			os << "rgba(" << c.ri() << "," << c.gi() << "," << c.bi() << "," << c.ai() << ")";
+		}
 		return os;
 	}
 }

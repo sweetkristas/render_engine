@@ -38,28 +38,31 @@ namespace KRE
 {
 	Renderable::Renderable()
 		: order_(0),
-		position_(0.0f),
-		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
-		scale_(1.0f),
-		shader_(ShaderProgram::getSystemDefault())
+		  position_(0.0f),
+		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
+		  scale_(1.0f),
+		  shader_(ShaderProgram::getSystemDefault()),
+		  enabled_(true)
 	{
 	}
 
 	Renderable::Renderable(size_t order)
 		: order_(order), 
-		position_(0.0f),
-		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
-		scale_(1.0f),
-		shader_(ShaderProgram::getSystemDefault())
+		  position_(0.0f),
+		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
+		  scale_(1.0f),
+		  shader_(ShaderProgram::getSystemDefault()),
+		  enabled_(true)
 	{
 	}
 
 	Renderable::Renderable(const variant& node)
 		: order_(0),
-		position_(0.0f),
-		rotation_(1.0f, 0.0f, 0.0f, 0.0f),
-		scale_(1.0f),
-		shader_(ShaderProgram::getSystemDefault())
+		  position_(0.0f),
+		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
+		  scale_(1.0f),
+		  shader_(ShaderProgram::getSystemDefault()),
+		  enabled_(true)
 	{
 		if(node.has_key("order")) {
 			order_ = node["order"].as_int32();
@@ -147,14 +150,14 @@ namespace KRE
 		  texture_(r.texture_ ? r.texture_->clone() : nullptr),
 		  render_target_(r.render_target_ ? r.render_target_->clone() : nullptr),
 		  shader_(r.shader_),
-		  attributes_()
+		  attributes_(r.attributes_)
 	{
 		for(auto& l : r.lights_) {
 			lights_[l.first] = l.second->clone();
 		}
-		for(auto& att : r.attributes_) {
-			attributes_.emplace_back(att->clone());
-		}
+		//for(auto& att : r.attributes_) {
+		//	attributes_.emplace_back(att->clone());
+		//}
 	}
 
 	Renderable::~Renderable()
@@ -248,7 +251,7 @@ namespace KRE
 
 	void Renderable::setShader(ShaderProgramPtr shader)
 	{
-		LOG_DEBUG("Reconfiguring attribute sets as new shader specified.");
+		//LOG_DEBUG("Reconfiguring attribute sets as new shader specified.");
 		shader_ = shader;
 		for(auto& attrset : attributes_) {
 			shader_->configureActives(attrset);

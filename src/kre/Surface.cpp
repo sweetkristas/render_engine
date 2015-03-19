@@ -63,7 +63,7 @@ namespace KRE
 		pf_ = pf;
 	}
 
-	SurfaceLock::SurfaceLock(const SurfacePtr& surface)
+	SurfaceLock::SurfaceLock(SurfacePtr surface)
 		: surface_(surface)
 	{
 		surface_->lock();
@@ -111,11 +111,13 @@ namespace KRE
 				return it->second;
 			}
 			auto surface = std::get<0>(create_fn_tuple)(filename, fmt, flags, convert);
+			surface->name_ = filename;
 			get_surface_cache()[filename] = surface;
 			surface->init();
 			return surface;
 		} 
 		auto surf = std::get<0>(create_fn_tuple)(filename, fmt, flags, convert);
+		surf->name_ = filename;
 		surf->init();
 		return surf;
 	}
@@ -134,6 +136,9 @@ namespace KRE
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create surfaces from pixels.");
 		auto create_fn_tuple = get_surface_creator().begin()->second;
 		auto surf = std::get<1>(create_fn_tuple)(width, height, bpp, row_pitch, rmask, gmask, bmask, amask, pixels);
+		std::stringstream ss;
+		ss << "Surface(" << width << "," << height << "," << bpp << "," << row_pitch << "," << rmask << "," << gmask << "," << amask << ", has data:yes)";
+		surf->name_ = ss.str();
 		surf->init();
 		return surf;
 	}
@@ -150,7 +155,9 @@ namespace KRE
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create surfaces from masks.");
 		auto create_fn_tuple = get_surface_creator().begin()->second;
 		auto surf = std::get<2>(create_fn_tuple)(width, height, bpp, rmask, gmask, bmask, amask);
-		surf->init();
+		std::stringstream ss;
+		ss << "Surface(" << width << "," << height << "," << bpp << "," << rmask << "," << gmask << "," << amask << ", has data:no)";
+		surf->name_ = ss.str();
 		return surf;
 	}
 
@@ -159,7 +166,9 @@ namespace KRE
 		ASSERT_LOG(get_surface_creator().empty() == false, "No resources registered to create surfaces from pixel format.");
 		auto create_fn_tuple = get_surface_creator().begin()->second;
 		auto surf = std::get<3>(create_fn_tuple)(width, height, fmt);
-		surf->init();
+		std::stringstream ss;
+		ss << "Surface(" << width << "," << height << "," << static_cast<int>(fmt) << ")";
+		surf->name_ = ss.str();
 		return surf;
 	}
 
@@ -171,16 +180,39 @@ namespace KRE
 	void Surface::createAlphaMap()
 	{
 		const int npixels = width() * height();
-		alpha_map_.resize(npixels);
-		std::fill(alpha_map_.begin(), alpha_map_.end(), false);
+		alpha_map_ = std::make_shared<std::vector<bool>>();
+		alpha_map_->resize(npixels);
 
 		if(getPixelFormat()->hasAlphaChannel()) {
-			int w = width();
-			auto& am = alpha_map_;
-			iterateOverSurface([&am, w](int x, int y, int r, int g, int b, int a) {
-				am[x + y * w] = a == 0;
-			});
+			SurfaceLock lck(shared_from_this());
+			auto pf = getPixelFormat();
+			uint32_t alpha_mask = pf->getAlphaMask();
+			if(bytesPerPixel() == 4 && rowPitch() % 4 == 0) {
+				// Optimization for a common case. Operates ~25 faster than default case.
+				const uint32_t* px = reinterpret_cast<const uint32_t*>(pixels());
+				auto it = alpha_map_->begin();
+				for(int n = 0; n != npixels; ++n) {
+					*it++ = (*px++ & alpha_mask) ? false : true;
+				}
+			} else {
+				std::fill(alpha_map_->begin(), alpha_map_->end(), false);
+				int w = width();
+				auto& am = *alpha_map_;
+				iterateOverSurface([&am, w](int x, int y, int r, int g, int b, int a) {
+					if(a == 0) {
+						am[x + y * w] = true;
+					}
+				});
+			}
 		}
+
+		//if(getPixelFormat()->hasAlphaChannel()) {
+			//int w = width();
+			//auto& am = alpha_map_;
+			//iterateOverSurface([&am, w](int x, int y, int r, int g, int b, int a) {
+			//	am[x + y * w] = a == 0 ? true : false;
+			//});
+		//}
 	}
 
 	void Surface::clearSurfaceCache()
@@ -332,21 +364,21 @@ namespace KRE
 
 	bool Surface::isAlpha(unsigned x, unsigned y) const
 	{ 
-		ASSERT_LOG(alpha_map_.size() > 0, "No alpha map found.");
-		ASSERT_LOG(x + y* width() < static_cast<int>(alpha_map_.size()), "Index exceeds alpha map size.");
-		return alpha_map_[y*width()+x]; 
+		ASSERT_LOG(alpha_map_ != nullptr && alpha_map_->size() > 0, "No alpha map found.");
+		ASSERT_LOG(x + y* width() < static_cast<int>(alpha_map_->size()), "Index exceeds alpha map size.");
+		return (*alpha_map_)[y*width()+x]; 
 	}
 
 	std::vector<bool>::const_iterator Surface::getAlphaRow(int x, int y) const 
 	{ 
-		ASSERT_LOG(alpha_map_.size() > 0, "No alpha map found.");
-		ASSERT_LOG(x + y* width() < static_cast<int>(alpha_map_.size()), "Index exceeds alpha map size.");
-		return alpha_map_.begin() + y*width() + x; 
+		ASSERT_LOG(alpha_map_ != nullptr && alpha_map_->size() > 0, "No alpha map found.");
+		ASSERT_LOG(x + y* width() < static_cast<int>(alpha_map_->size()), "Index exceeds alpha map size.");
+		return alpha_map_->begin() + y * width() + x; 
 	}
 
 	std::vector<bool>::const_iterator Surface::endAlpha() const 
 	{ 
-		return alpha_map_.end(); 
+		return alpha_map_->end(); 
 	}
 
 	void Surface::iterateOverSurface(surface_iterator_fn fn)

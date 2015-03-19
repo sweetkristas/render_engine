@@ -84,8 +84,8 @@ namespace KRE
 		position_ = glm::vec3(0.0f, 0.0f, 0.7f); 
 		aspect_ = float(wnd->logicalWidth())/float(wnd->logicalHeight());
 	
-		computeView();
-		computeProjection();
+		//computeView();
+		//computeProjection();
 	}
 
 	Camera::Camera(const variant& node)
@@ -532,7 +532,7 @@ namespace KRE
 		// XXX I tend to think this might be better abstracted into DisplayDevice.
 		glm::vec4 view_port(0, 0, wx, wy);
 		std::vector<float> depth;
-		DisplayDevice::getCurrent()->readPixels(x, wy - y, 1, 1, ReadFormat::DEPTH, AttrFormat::FLOAT, depth);
+		DisplayDevice::getCurrent()->readPixels(x, wy - y, 1, 1, ReadFormat::DEPTH, AttrFormat::FLOAT, depth, wx * sizeof(float));
 		glm::vec3 screen(x, wy - y, depth[0]);
 		return glm::unProject(screen, view_, projection_, view_port);
 	}

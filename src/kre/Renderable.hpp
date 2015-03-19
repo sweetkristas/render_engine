@@ -25,7 +25,6 @@
 
 #include <glm/gtx/quaternion.hpp>
 
-#include "HintMap.hpp"
 #include "RenderQueue.hpp"
 #include "SceneFwd.hpp"
 #include "ScopeableValue.hpp"
@@ -84,8 +83,12 @@ namespace KRE
 		//void clearUniformSets();
 		void addUniformBuffer(UniformBufferBase&& ub);
 
-		virtual void preRender(const WindowManagerPtr& wm) {}
-		virtual void postRender(const WindowManagerPtr& wm) {}
+		bool isEnabled() const { return enabled_; }
+		void enable(bool en=true) { enabled_ = en; }
+		void disable() { enabled_ = false; }
+
+		virtual void preRender(const WindowPtr& wm) {}
+		virtual void postRender(const WindowPtr& wm) {}
 
 		// Called just before rendering this item, after shaders and other variables
 		// have been set-up
@@ -107,5 +110,6 @@ namespace KRE
 
 		std::vector<AttributeSetPtr> attributes_;
 		//std::vector<UniformBufferBase> uniforms_;
+		bool enabled_;
 	};
 }

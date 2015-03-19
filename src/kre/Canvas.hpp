@@ -41,6 +41,20 @@ namespace KRE
 	class Canvas;
 	typedef std::shared_ptr<Canvas> CanvasPtr;
 
+	enum class CanvasBlitFlags {
+		NONE				= 0,
+		FLIP_HORIZONTAL		= 1,
+		FLIP_VERTICAL		= 2,
+	};
+
+	inline CanvasBlitFlags operator|(CanvasBlitFlags lhs, CanvasBlitFlags rhs) {
+		return static_cast<CanvasBlitFlags>(static_cast<int>(lhs) | static_cast<int>(rhs));
+	}
+	
+	inline bool operator&(CanvasBlitFlags lhs, CanvasBlitFlags rhs) {
+		return (static_cast<int>(lhs) & static_cast<int>(rhs)) == static_cast<int>(rhs);
+	}
+
 	// A 2D canvas class for drawing on. Not in the renderable pipelines.
 	// Canvas writes are done in the order in the code.
 	// Intended for making things like UI's.
@@ -55,7 +69,7 @@ namespace KRE
 		unsigned height() const { return height_; }
 
 		// Blit's a texture from co-ordinates given in src to the screen co-ordinates dst
-		virtual void blitTexture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color=Color::colorWhite()) const = 0;
+		virtual void blitTexture(const TexturePtr& tex, const rect& src, float rotation, const rect& dst, const Color& color=Color::colorWhite(), CanvasBlitFlags flags=CanvasBlitFlags::NONE) const = 0;
 		virtual void blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color=Color::colorWhite()) = 0;
 		// Blit a texture to the given co-ordinates on the display. Assumes the whole texture is being used.
 		void blitTexture(const TexturePtr& tex, float rotation, const rect& dst, const Color& color=Color::colorWhite()) const;
@@ -112,7 +126,7 @@ namespace KRE
 			CanvasPtr canvas_;
 		};
 
-		const glm::mat4& getModelMatrix() const;
+		glm::mat4 getModelMatrix() const;
 
 		const Color getColor() const {
 			if(color_stack_.empty()) {
@@ -121,8 +135,8 @@ namespace KRE
 			return color_stack_.top();
 		}
 
-		WindowManagerPtr getWindow() const;
-		void setWindow(WindowManagerPtr wnd);
+		WindowPtr getWindow() const;
+		void setWindow(WindowPtr wnd);
 
 	protected:
 		Canvas();
@@ -134,7 +148,8 @@ namespace KRE
 		std::stack<Color> color_stack_;
 		mutable glm::mat4 model_matrix_;
 		mutable bool model_changed_;
-		std::weak_ptr<WindowManager> window_;
+		std::weak_ptr<Window> window_;
+		int size_change_key_;
 	};
 
 	// Helper function to generate a color wheel between the given hue values.

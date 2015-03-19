@@ -77,18 +77,12 @@ namespace KRE
 	class SurfaceLock
 	{
 	public:
-		SurfaceLock(const SurfacePtr& surface);
+		SurfaceLock(SurfacePtr surface);
 		~SurfaceLock();
 	private:
+		void operator=(const SurfaceLock&);
+		SurfaceLock(const SurfaceLock&);
 		SurfacePtr surface_;
-	};
-
-	struct SimpleColor
-	{
-		SimpleColor() : red(0), green(0), blue(0), alpha(0), x(0), y(0) {}
-		SimpleColor(int r, int g, int b, int a=255) : red(r), green(g), blue(b), alpha(a) {}
-		int red, green, blue, alpha;
-		int x, y;
 	};
 
 	inline bool operator&(SurfaceFlags lhs, SurfaceFlags rhs) {
@@ -151,7 +145,7 @@ namespace KRE
 
 		static void clearSurfaceCache();
 
-		virtual void savePng(const std::string& filename) = 0;
+		virtual std::string savePng(const std::string& filename) = 0;
 
 		enum BlendMode {
 			BLEND_MODE_NONE,
@@ -219,6 +213,11 @@ namespace KRE
 		std::vector<bool>::const_iterator endAlpha() const;
 
 		void createAlphaMap();
+
+		const std::string& getName() const { return name_; }
+
+		std::shared_ptr<std::vector<bool>> getAlphaMap() { return alpha_map_; }
+		void setAlphaMap(std::shared_ptr<std::vector<bool>> am) { alpha_map_ = am; }
 	protected:
 		Surface();
 		void setPixelFormat(PixelFormatPtr pf);
@@ -227,6 +226,7 @@ namespace KRE
 		virtual SurfacePtr handleConvert(PixelFormat::PF fmt, SurfaceConvertFn convert) = 0;
 		SurfaceFlags flags_;
 		PixelFormatPtr pf_;
-		std::vector<bool> alpha_map_;
+		std::shared_ptr<std::vector<bool>> alpha_map_;
+		std::string name_;
 	};
 }

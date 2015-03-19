@@ -51,14 +51,15 @@ namespace KRE
 	void CanvasOGL::handleDimensionsChanged()
 	{
 		mvp_ = glm::ortho(0.0f, static_cast<float>(width()), static_cast<float>(height()), 0.0f);
+		LOG_DEBUG("canvas dimesions changed: " << width() << " x " << height());
 	}
 
-	void CanvasOGL::blitTexture(const TexturePtr& texture, const rect& src, float rotation, const rect& dst, const Color& color) const
+	void CanvasOGL::blitTexture(const TexturePtr& texture, const rect& src, float rotation, const rect& dst, const Color& color, CanvasBlitFlags flags) const
 	{
-		const float tx1 = texture->getNormalisedTextureCoordW<float>(0, src.x());
-		const float ty1 = texture->getNormalisedTextureCoordH<float>(0, src.y());
-		const float tx2 = texture->getNormalisedTextureCoordW<float>(0, src.w() == 0 ? texture->surfaceWidth() : src.x2());
-		const float ty2 = texture->getNormalisedTextureCoordH<float>(0, src.h() == 0 ? texture->surfaceHeight() : src.y2());
+		const float tx1 = texture->getTextureCoordW(0, src.x());
+		const float ty1 = texture->getTextureCoordH(0, src.y());
+		const float tx2 = texture->getTextureCoordW(0, src.w() == 0 ? texture->surfaceWidth() : src.x2());
+		const float ty2 = texture->getTextureCoordH(0, src.h() == 0 ? texture->surfaceHeight() : src.y2());
 		const float uv_coords[] = {
 			tx1, ty1,
 			tx2, ty1,
@@ -67,10 +68,17 @@ namespace KRE
 		};
 
 		auto& tex_dst = texture->getSourceRect();
-		const float vx1 = static_cast<float>(dst.x());
-		const float vy1 = static_cast<float>(dst.y());
-		const float vx2 = static_cast<float>(dst.w() == 0 ? tex_dst.w() == 0 ? texture->surfaceWidth() : dst.x() + tex_dst.w() : dst.x2());
-		const float vy2 = static_cast<float>(dst.h() == 0 ? tex_dst.h() == 0 ? texture->surfaceHeight() : dst.y() + tex_dst.h() : dst.y2());
+		float vx1 = static_cast<float>(dst.x());
+		float vy1 = static_cast<float>(dst.y());
+		float vx2 = static_cast<float>(dst.w() == 0 ? tex_dst.w() == 0 ? texture->surfaceWidth() : dst.x() + tex_dst.w() : dst.x2());
+		float vy2 = static_cast<float>(dst.h() == 0 ? tex_dst.h() == 0 ? texture->surfaceHeight() : dst.y() + tex_dst.h() : dst.y2());
+
+		if(flags & CanvasBlitFlags::FLIP_VERTICAL) {
+			std::swap(vx1, vx2);
+		}
+		if(flags & CanvasBlitFlags::FLIP_HORIZONTAL) {
+			std::swap(vy1, vy2);
+		}
 		const float vtx_coords[] = {
 			vx1, vy1,
 			vx2, vy1,
@@ -256,8 +264,8 @@ namespace KRE
 		shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(getModelMatrix()));
 		shader->setUniformValue(shader->getPUniform(), glm::value_ptr(mvp_));
 
-		if(shader->getNormalAttribute() == ShaderProgram::INALID_ATTRIBUTE 
-			|| shader->getVertexAttribute() == ShaderProgram::INALID_ATTRIBUTE) {
+		if(shader->getNormalAttribute() == ShaderProgram::INVALID_ATTRIBUTE 
+			|| shader->getVertexAttribute() == ShaderProgram::INVALID_ATTRIBUTE) {
 			return;
 		}
 
@@ -532,7 +540,6 @@ namespace KRE
 
 		static auto it = shader->getUniform("point_size");
 		shader->setUniformValue(it, radius);
-		shader->setUniformValue(shader->getLineWidthUniform(), 1.0f);
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
