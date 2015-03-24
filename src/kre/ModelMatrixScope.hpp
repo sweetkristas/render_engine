@@ -23,21 +23,25 @@
 
 #pragma once
 
-#include <map>
-#include <string>
-#include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-typedef std::vector<std::string> HintList;
-typedef std::map<std::string,HintList> HintMap;
-class HintMapContainer
+namespace KRE
 {
-public:
-	HintMapContainer();
-	void setHint(const std::string& hint_name, const std::string& hint);
-	void setHint(const std::string& hint_name, const HintList& hint);
-	const std::vector<std::string>& findHint(const std::string& name) const;
-	const std::string& findFirstHint(const std::string& name, const std::string& def=std::string()) const;
-	HintMap getHints() const { return hints_; }
-private:
-	HintMap hints_;
-};
+	class ModelManager2D
+	{
+	public:
+		ModelManager2D();
+		explicit ModelManager2D(int tx, int ty, float angle=0.0f, float scale=1.0f);
+		explicit ModelManager2D(int tx, int ty, float angle, const glm::vec2& scale);
+		~ModelManager2D();
+		void setIdentity();
+		void translate(int tx, int ty);
+		void rotate(float angle);
+		void scale(float sx, float sy);
+		void scale(float s);
+	};
+
+	bool is_global_model_matrix_valid();
+	const glm::mat4& get_global_model_matrix();
+}

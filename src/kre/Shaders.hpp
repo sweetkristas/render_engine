@@ -47,15 +47,17 @@ namespace KRE
 	{
 		ShaderAttributeError(const char* what) : std::runtime_error(what) {}
 	};
+	
+	typedef std::function<void()> UniformSetFn;
 
 	class ShaderProgram
 	{
 	public:
 		enum {
-			INALID_UNIFORM		= -1,
-			INALID_ATTRIBUTE	= -1,
+			INVALID_UNIFORM		= -1,
+			INVALID_ATTRIBUTE	= -1,
 		};
-		ShaderProgram(const variant& node);
+		explicit ShaderProgram(const std::string& name, const variant& node);
 		virtual ~ShaderProgram();
 
 		virtual void makeActive() = 0;
@@ -69,13 +71,18 @@ namespace KRE
 		virtual int getAttribute(const std::string& attr) const = 0;
 		virtual int getUniform(const std::string& attr) const = 0;
 
+		virtual void setUniformMapping(const std::vector<std::pair<std::string, std::string>>& mapping) = 0;
+		virtual void setAttributeMapping(const std::vector<std::pair<std::string, std::string>>& mapping) = 0;
+
 		virtual void setUniformValue(int uid, const int) const = 0;
 		virtual void setUniformValue(int uid, const float) const = 0;
 		virtual void setUniformValue(int uid, const float*) const = 0;
 		virtual void setUniformValue(int uid, const int*) const = 0;
 		virtual void setUniformValue(int uid, const void*) const = 0;
+		virtual void setUniformFromVariant(int uid, const variant& value) const = 0;
 
 		virtual void configureActives(AttributeSetPtr attrset) = 0;
+		virtual void configureAttribute(AttributeBasePtr attr) = 0;
 		virtual void configureUniforms(UniformBufferBase& uniforms) = 0;
 
 		virtual int getColorUniform() const = 0;
@@ -91,6 +98,9 @@ namespace KRE
 		virtual int getNormalAttribute() const = 0;
 
 		virtual void setUniformsForTexture(const TexturePtr& tex) const = 0;
+		
+		void setUniformDrawFunction(UniformSetFn fn) { uniform_draw_fn_ = fn; }
+		UniformSetFn getUniformDrawFunction() const { return uniform_draw_fn_; }
 
 		static ShaderProgramPtr getSystemDefault();
 
@@ -99,7 +109,17 @@ namespace KRE
 
 		//! loads the internal store of shader programs from the given data.
 		static void loadFromVariant(const variant& node);
+
+		variant getShaderVariant() { return node_; }
+
+		virtual ShaderProgramPtr clone() = 0;
+
+		const std::string& getName() const { return name_; }
 	private:
-		DISALLOW_COPY_ASSIGN_AND_DEFAULT(ShaderProgram);
+		ShaderProgram();
+
+		UniformSetFn uniform_draw_fn_;
+		std::string name_;
+		variant node_;
 	};
 }

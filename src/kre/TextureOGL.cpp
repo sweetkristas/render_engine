@@ -30,7 +30,7 @@ namespace KRE
 {
 	namespace
 	{
-		const int maximum_palette_variations = 32;
+		const int maximum_palette_variations = 48;
 
 		GLenum GetGLAddressMode(Texture::AddressMode am)
 		{
@@ -58,6 +58,12 @@ namespace KRE
 		texture_id_cache& get_id_cache()
 		{
 			static texture_id_cache res;
+			return res;
+		}
+
+		GLuint& get_current_bound_texture()
+		{
+			static GLuint res = -1;
 			return res;
 		}
 	}
@@ -147,9 +153,9 @@ namespace KRE
 		if(getUnpackAlignment(n) != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, getUnpackAlignment(n));
 		}
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
+		//glPixelStorei(GL_UNPACK_ROW_LENGTH, stride);
 		glTexSubImage2D(GetGLTextureType(getType(n)), 0, x, y, width, height, td.format, td.type, pixels);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		//glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		if(getUnpackAlignment(n) != 4) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		}
@@ -241,22 +247,20 @@ namespace KRE
 		}
 	}
 
-	void OpenGLTexture::updatePaletteRow(SurfacePtr new_palette_surface, int palette_width, const std::vector<glm::u8vec4>& pixels)
+	void OpenGLTexture::updatePaletteRow(int index, SurfacePtr new_palette_surface, int palette_width, const std::vector<glm::u8vec4>& pixels)
 	{
 		// write altered pixel data to texture.
-		update(1, 0, texture_data_[0].palette_row_index, palette_width, 1, &pixels[0]);
+		update(1, 0, index, palette_width, 1, &pixels[0]);
 		// write altered pixel data to surface.
 		unsigned char* px = reinterpret_cast<unsigned char*>(new_palette_surface->pixelsWriteable());
-		memcpy(&px[texture_data_[0].palette_row_index * new_palette_surface->rowPitch()], &pixels[0], pixels.size() * sizeof(glm::u8vec4));
-
-		// Update the palette row index so it points to the next free location.
-		++texture_data_[0].palette_row_index;
+		memcpy(&px[index * new_palette_surface->rowPitch()], &pixels[0], pixels.size() * sizeof(glm::u8vec4));
 	}
 
-	void OpenGLTexture::handleAddPalette(const SurfacePtr& palette)
+	void OpenGLTexture::handleAddPalette(int index, const SurfacePtr& palette)
 	{
-		profile::manager pman("handleAddPalette");
+		//profile::manager pman("handleAddPalette");
 		ASSERT_LOG(is_yuv_planar_ == false, "Can't create a palette for a YUV surface.");
+		ASSERT_LOG(index < maximum_palette_variations, "index of (" << index << ") exceeds the maximum soft palette limit: " << maximum_palette_variations);
 
 		if(PixelFormat::isIndexedFormat(getFrontSurface()->getPixelFormat()->getFormat())) {
 			// Is already an indexed format.
@@ -299,8 +303,11 @@ namespace KRE
 				ASSERT_LOG(td.palette.size() < 256, "Can't convert surface to palettized version. Too many colors in source image > 256");
 			});
 			surf->writePixels(&new_pixels[0], new_pixels.size());
+			surf->setAlphaMap(getSurface(0)->getAlphaMap());
 
-			LOG_INFO("handleAddPalette: Color count: " << td.palette.size());
+			//LOG_DEBUG("adding palette '" << palette->getName() << "' to: " << getSurface(0)->getName() << ". " << td.color_index_map.size() << " colors in map");
+
+			//LOG_INFO("handleAddPalette: Color count: " << td.palette.size());
 
 			// save old palette
 			auto old_palette = std::move(texture_data_[0].palette);
@@ -322,7 +329,6 @@ namespace KRE
 
 		if(texture_data_.size() > 1) {
 			// Already have a palette texture we can use.
-			ASSERT_LOG(texture_data_[0].palette_row_index + 1 < maximum_palette_variations, "Only support a maximum of " << maximum_palette_variations << " palettes per texture.");
 			new_palette_surface = getSurface(1);
 			ASSERT_LOG(new_palette_surface != nullptr, "There was no palette surface found, when there should have been.");
 		} else {
@@ -340,7 +346,7 @@ namespace KRE
 			for(auto& color : texture_data_[0].palette) {
 				new_pixels.emplace_back((color >> 24) & 0xff, (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
 			}
-			updatePaletteRow(new_palette_surface, palette_width, new_pixels);
+			updatePaletteRow(0, new_palette_surface, palette_width, new_pixels);
 		}
 
 		// Create altered pixel data and update the surface/texture.
@@ -385,10 +391,9 @@ namespace KRE
 				}
 			}
 		}
-		LOG_INFO("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
+		//LOG_INFO("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
 
-		updatePaletteRow(new_palette_surface, palette_width, new_pixels);
-		setMaxPalettes(texture_data_[0].palette_row_index);
+		updatePaletteRow(index, new_palette_surface, palette_width, new_pixels);
 	}
 
 	void OpenGLTexture::createTexture(int n)
@@ -725,13 +730,19 @@ namespace KRE
 		}
 	}
 
-	void OpenGLTexture::bind() 
+	void OpenGLTexture::bind(int binding_point) 
 	{
+		// XXX fix this fore multiple texture binding.
+		if(get_current_bound_texture() == *texture_data_[0].id) {
+			return;
+		}
 		int n = texture_data_.size()-1;
 		for(auto it = texture_data_.rbegin(); it != texture_data_.rend(); ++it, --n) {
-			glActiveTexture(GL_TEXTURE0 + n);
+			glActiveTexture(GL_TEXTURE0 + n + binding_point);
 			glBindTexture(GetGLTextureType(getType(n)), *it->id);
 		}
+
+		get_current_bound_texture() = *texture_data_[0].id;
 	}
 
 	unsigned OpenGLTexture::id(int n) const

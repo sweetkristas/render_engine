@@ -34,7 +34,7 @@ namespace KRE
 	class DisplayDeviceOpenGL : public DisplayDevice
 	{
 	public:
-		DisplayDeviceOpenGL();
+		explicit DisplayDeviceOpenGL(WindowPtr wnd);
 		~DisplayDeviceOpenGL();
 
 		DisplayDeviceId ID() const override { return DISPLAY_DEVICE_OPENGL; }
@@ -48,7 +48,7 @@ namespace KRE
 		void render(const Renderable* r) const override;
 
 		// Lets us set a default camera if nothing else is configured.
-		void setDefaultCamera(const CameraPtr& cam) override;
+		CameraPtr setDefaultCamera(const CameraPtr& cam) override;
 
 		CanvasPtr getCanvas() override;
 		ClipScopePtr createClipScope(const rect& r) override;
@@ -71,8 +71,11 @@ namespace KRE
 
 		int queryParameteri(DisplayDeviceParameters param) override;
 
-		void setViewPort(int x, int y, unsigned width, unsigned height) override;
+		void setViewPort(const rect& vp) override;
+		void setViewPort(int x, int y, int width, int height) override;
+		const rect& getViewPort() const override;
 	private:
+		DisplayDeviceOpenGL();
 		DisplayDeviceOpenGL(const DisplayDeviceOpenGL&);
 
 		AttributeSetPtr handleCreateAttributeSet(bool indexed, bool instanced) override;
@@ -99,7 +102,7 @@ namespace KRE
 		TexturePtr handleCreateTextureArray(int count, int width, int height, PixelFormat::PF fmt, TextureType type) override;
 		TexturePtr handleCreateTextureArray(const std::vector<SurfacePtr>& surfaces, const variant& node) override;
 
-		bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data) override;
+		bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data, int stride) override;
 
 		std::set<std::string> extensions_;
 

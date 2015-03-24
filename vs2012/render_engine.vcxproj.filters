@@ -75,9 +75,6 @@
     <ClCompile Include="..\src\kre\LightObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\PaletteMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\kre\Renderable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -228,10 +225,10 @@
     <ClCompile Include="..\src\module.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\HintMap.cpp">
+    <ClCompile Include="..\src\kre\TexPack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\kre\TexPack.cpp">
+    <ClCompile Include="..\src\kre\ModelMatrixScope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -285,9 +282,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\LightObject.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\PaletteMap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\PixelFormat.hpp">
@@ -482,10 +476,10 @@
     <ClInclude Include="..\src\module.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\HintMap.hpp">
+    <ClInclude Include="..\src\kre\TexPack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\kre\TexPack.hpp">
+    <ClInclude Include="..\src\kre\ModelMatrixScope.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

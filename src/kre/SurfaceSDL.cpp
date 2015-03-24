@@ -24,7 +24,9 @@
 #ifndef _USE_MATH_DEFINES
 #	define _USE_MATH_DEFINES	1
 #endif 
-#define HAVE_M_PI
+#ifndef HAVE_M_PI
+#	define HAVE_M_PI
+#endif 
 
 #include "SDL_image.h"
 
@@ -886,12 +888,13 @@ namespace KRE
 		return dst;
 	}
 
-	void SurfaceSDL::savePng(const std::string& filename)
+	std::string SurfaceSDL::savePng(const std::string& filename)
 	{
-		auto filter = Surface::getFileFilter(FileFilterType::SAVE);
-		SurfaceLock lock(SurfacePtr(this));
-		auto err = IMG_SavePNG(surface_, filter(filename).c_str());
+		auto filter = Surface::getFileFilter(FileFilterType::SAVE)(filename);
+		SurfaceLock lock(shared_from_this());
+		auto err = IMG_SavePNG(surface_, filter.c_str());
 		ASSERT_LOG(err == 0, "Error saving PNG file: " << SDL_GetError());
+		return filter;
 	}
 
 	void SurfaceSDL::blit(SurfacePtr src, const rect& src_rect) 

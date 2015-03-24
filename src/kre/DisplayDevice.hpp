@@ -104,7 +104,7 @@ namespace KRE
 			DISPLAY_DEVICE_D3D,
 		};
 
-		DisplayDevice();
+		explicit DisplayDevice(WindowPtr wnd);
 		virtual ~DisplayDevice();
 
 		virtual DisplayDeviceId ID() const = 0;
@@ -140,7 +140,7 @@ namespace KRE
 
 		virtual ScissorPtr getScissor(const rect& r) = 0;
 
-		virtual void setDefaultCamera(const CameraPtr& cam) = 0;
+		virtual CameraPtr setDefaultCamera(const CameraPtr& cam) = 0;
 
 		virtual void loadShadersFromVariant(const variant& node) = 0;
 		virtual ShaderProgramPtr getShaderProgram(const std::string& name) = 0;
@@ -163,25 +163,32 @@ namespace KRE
 			size_t multi_samples=0);
 		static RenderTargetPtr renderTargetInstance(const variant& node);
 
-		virtual void setViewPort(int x, int y, unsigned width, unsigned height) = 0;
+		virtual void setViewPort(const rect& vp) = 0;
+		virtual void setViewPort(int x, int y, int width, int height) = 0;
+		virtual const rect& getViewPort() const = 0;
 
 		template<typename T>
-		bool readPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, std::vector<T>& data) {
-			data.resize(width * height);
-			return handleReadPixels(x, y, width, height, fmt, type, static_cast<void*>(&data[0]));
+		bool readPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, std::vector<T>& data, int stride) {
+			data.resize(stride * height / sizeof(T));
+			return handleReadPixels(x, y, width, height, fmt, type, static_cast<void*>(&data[0]), stride);
 		}
+
+		WindowPtr getParentWindow() const;
 
 		static AttributeSetPtr createAttributeSet(bool hardware_hint=false, bool indexed=false, bool instanced=false);
 		static HardwareAttributePtr createAttributeBuffer(bool hw_backed, AttributeBase* parent);
 
-		static DisplayDevicePtr factory(const std::string& type);
+		static DisplayDevicePtr factory(const std::string& type, WindowPtr wnd);
 
 		static DisplayDevicePtr getCurrent();		
 
 		static bool checkForFeature(DisplayDeviceCapabilties cap);
 
-		static void registerFactoryFunction(const std::string& type, std::function<DisplayDevicePtr()>);
+		static void registerFactoryFunction(const std::string& type, std::function<DisplayDevicePtr(WindowPtr)>);
 	private:
+		std::weak_ptr<Window> parent_;
+
+		DisplayDevice();
 		DisplayDevice(const DisplayDevice&);
 		virtual AttributeSetPtr handleCreateAttributeSet(bool indexed, bool instanced) = 0;
 		virtual HardwareAttributePtr handleCreateAttribute(AttributeBase* parent) = 0;
@@ -194,7 +201,7 @@ namespace KRE
 			size_t multi_samples) = 0;
 		virtual RenderTargetPtr handleCreateRenderTarget(const variant& node) = 0;
 
-		virtual bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data) = 0;
+		virtual bool handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data, int stride) = 0;
 		
 		virtual TexturePtr handleCreateTexture(const SurfacePtr& surface, TextureType type, int mipmap_levels) = 0;
 		virtual TexturePtr handleCreateTexture(const SurfacePtr& surface, const variant& node) = 0;
@@ -217,7 +224,7 @@ namespace KRE
 		DisplayDeviceRegistrar(const std::string& type)
 		{
 			// register the class factory function 
-			DisplayDevice::registerFactoryFunction(type, []() -> DisplayDevicePtr { return DisplayDevicePtr(new T());});
+			DisplayDevice::registerFactoryFunction(type, [](WindowPtr wnd) -> DisplayDevicePtr { return DisplayDevicePtr(new T(wnd));});
 		}
 	};
 }

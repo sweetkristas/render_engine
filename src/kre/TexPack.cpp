@@ -174,7 +174,7 @@ namespace KRE
 			}
 		}
 
-		ASSERT_LOG(root.size() > 1, "Currently we are limiting things to one surface.");
+		ASSERT_LOG(root.size() <= 1, "Currently we are limiting things to one surface.");
 
 		// process root
 		for(auto& n : root) {

@@ -23,6 +23,7 @@
 
 #include "Canvas.hpp"
 #include "DisplayDevice.hpp"
+#include "ModelMatrixScope.hpp"
 
 namespace KRE
 {
@@ -53,17 +54,29 @@ namespace KRE
 		  height_(0),
 		  model_matrix_(1.0f),
 		  model_changed_(false),
-		  window_(WindowManager::getMainWindow())
+		  window_(WindowManager::getMainWindow()),
+		  size_change_key_(-1),
+		  mvp_()
 	{
-		width_ = getWindow()->logicalWidth();
-		height_ = getWindow()->logicalHeight();			
+		width_ = getWindow()->width();
+		height_ = getWindow()->height();			
+		LOG_DEBUG("canvas dimensions set to: " << width_ << " x " << height_);
+		auto wnd = window_.lock();
+		mvp_ = glm::ortho(0.0f, static_cast<float>(width_), static_cast<float>(height_), 0.0f);
+		if(wnd) {
+			size_change_key_ = wnd->registerSizeChangeObserver([this](int w, int h) {
+				this->setDimensions(w, h);
+			});
+		}
 	}
 
 	void Canvas::setDimensions(unsigned w, unsigned h)
 	{
 		width_ = w;
 		height_ = h;
+		mvp_ = glm::ortho(0.0f, static_cast<float>(width_), static_cast<float>(height_), 0.0f);
 		handleDimensionsChanged();
+		LOG_DEBUG("canvas dimensions set to: " << width_ << " x " << height_);
 	}
 
 	Canvas::~Canvas()
@@ -112,19 +125,30 @@ namespace KRE
 		color_array->emplace_back((*color_array)[1]);
 	}
 
-	WindowManagerPtr Canvas::getWindow() const
+	WindowPtr Canvas::getWindow() const
 	{
 		auto wnd = window_.lock();
 		ASSERT_LOG(wnd != nullptr, "The window attached to this canvas is no longer valid.");
 		return wnd;
 	}
 
-	void Canvas::setWindow(WindowManagerPtr wnd)
+	void Canvas::setWindow(WindowPtr wnd)
 	{
-		window_ = wnd; 
+		window_ = wnd;
+		if(wnd) {
+			if(size_change_key_ >= 0) {
+				wnd->registerSizeChangeObserver(size_change_key_, [this](int w, int h) {
+					this->setDimensions(w, h);
+				});	
+			} else {
+				size_change_key_ = wnd->registerSizeChangeObserver([this](int w, int h) {
+					this->setDimensions(w, h);
+				});	
+			}
+		}
 	}
 
-	const glm::mat4& Canvas::getModelMatrix() const 
+	glm::mat4 Canvas::getModelMatrix() const 
 	{
 		if(model_changed_) {
 			model_changed_ = false;
@@ -144,9 +168,36 @@ namespace KRE
 				model_matrix_ = glm::scale(model_matrix_, glm::vec3(top, 1.0f));
 			}
 		}
+		if(is_global_model_matrix_valid()) {
+			return get_global_model_matrix() * model_matrix_;
+		}
 		return model_matrix_;
 	}
 
+	glm::vec2 Canvas::getCurrentTranslation()
+	{
+		if(get_translation_stack().empty()) {
+			return glm::vec2();
+		}
+		return get_translation_stack().top();
+	}
+
+	float Canvas::getCurrentRotation()
+	{
+		if(get_rotation_stack().empty()) {
+			return 0;
+		}
+		return get_rotation_stack().top();
+	}
+
+	glm::vec2 Canvas::getCurrentScale()
+	{
+		if(get_scale_stack().empty()) {
+			return glm::vec2(1.0f,1.0f);
+		}
+		return get_scale_stack().top();
+	}
+						 
 	Canvas::ModelManager::ModelManager()
 		: canvas_(KRE::Canvas::getInstance())
 	{

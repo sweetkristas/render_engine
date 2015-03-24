@@ -292,12 +292,13 @@ namespace KRE
 			}
 
 			void execute(cairo_t* context) {
-				std::cerr << "Executing path:";
+				std::ostringstream ss;
+				ss << "Executing path:";
 				for(auto ins : path_instructions_) {
-					std::cerr << " " << ins->asString();
+					ss << " " << ins->asString();
 					ins->execute(context);
 				}
-				std::cerr << std::endl;
+				LOG_DEBUG(ss.str());
 			}
 		private:
 			CairoContext* context_;
@@ -306,7 +307,7 @@ namespace KRE
 
 		CairoContext::CairoContext(int width, int height)
 			: Context(width, height),
-			draw_rect_(0.0f, 0.0f, float(width), float(height))
+			  draw_rect_(0.0f, 0.0f, float(width), float(height))
 		{
 			surface_ = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 			auto status = cairo_surface_status(surface_);
@@ -319,7 +320,7 @@ namespace KRE
 			int w = cairo_image_surface_get_width(surface_);
 			int h = cairo_image_surface_get_height(surface_);
 			auto fmt = cairo_image_surface_get_format(surface_);
-			int stride = cairo_image_surface_get_stride(surface_);
+			//int stride = cairo_image_surface_get_stride(surface_);
 
 			PixelFormat::PF pffmt;
 			switch(fmt) {
@@ -332,7 +333,9 @@ namespace KRE
 				case CAIRO_FORMAT_ARGB32:	pffmt = PixelFormat::PF::PIXELFORMAT_ARGB8888;	break;
 				case CAIRO_FORMAT_RGB24:	pffmt = PixelFormat::PF::PIXELFORMAT_RGB888;	break;
 				case CAIRO_FORMAT_RGB16_565:pffmt = PixelFormat::PF::PIXELFORMAT_RGB565;	break;
+#if CAIRO_VERSION_MAJOR >= 1 && CAIRO_VERSION_MINOR >= 12
 				case CAIRO_FORMAT_RGB30:	pffmt = PixelFormat::PF::PIXELFORMAT_RGB101010;	break;
+#endif
 				default:
 					ASSERT_LOG(false, "Unrecognised cairo surface format: " << fmt);
 			}
@@ -348,10 +351,8 @@ namespace KRE
 			as->setDrawMode(DrawMode::TRIANGLE_STRIP);
 			addAttributeSet(as);
 
-			float offs_x = 0.0f;
-			float offs_y = 0.0f;
-			offs_x = -draw_rect_.w()/2.0f;
-			offs_y = -draw_rect_.h()/2.0f;
+			float offs_x = -draw_rect_.w()/2.0f;
+			float offs_y = -draw_rect_.h()/2.0f;
 			// XXX we should only do this if things changed.
 			const float vx1 = draw_rect_.x() + offs_x;
 			const float vy1 = draw_rect_.y() + offs_y;
@@ -621,7 +622,7 @@ namespace KRE
 			cpath->execute(context_);
 		}
 
-		void CairoContext::preRender(const WindowManagerPtr& wnd) 
+		void CairoContext::preRender(const WindowPtr& wnd) 
 		{
 			tex_->update2D(0, 0, 0, width(), height(), cairo_image_surface_get_width(surface_), cairo_image_surface_get_data(surface_));
 		}

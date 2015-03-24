@@ -46,13 +46,13 @@ namespace KRE
 		  index8_(as.index8_),
 		  index16_(as.index16_),
 		  index32_(as.index32_),
-		  attributes_(),
+		  attributes_(as.attributes_),
 		  count_(as.count_),
 		  offset_(as.offset_)
 	{
-		for(auto& attr : as.attributes_) {
-			attributes_.emplace_back(attr->clone());
-		}
+		//for(auto& attr : as.attributes_) {
+		//	attributes_.emplace_back(attr->clone());
+		//}
 	}
 
 	AttributeSet::~AttributeSet()
@@ -61,7 +61,11 @@ namespace KRE
 
 	AttributeSetPtr AttributeSet::clone()
 	{
-		return std::make_shared<AttributeSet>(*this);
+		auto as = std::make_shared<AttributeSet>(*this);
+		//for(auto& attr : as->attributes_) {
+		//	attr->setParent(as);
+		//}
+		return as;
 	}
 
 	void AttributeSet::setDrawMode(DrawMode dm)
@@ -119,6 +123,7 @@ namespace KRE
 		attributes_.emplace_back(attrib);
 		auto hwbuffer = DisplayDevice::createAttributeBuffer(isHardwareBacked(), attrib.get());
 		attrib->setDeviceBufferData(hwbuffer);
+		attrib->setParent(shared_from_this());
 	}
 
 
@@ -135,7 +140,8 @@ namespace KRE
 		  normalise_(normalise),
 		  stride_(stride),
 		  offset_(offset),
-		  divisor_(divisor)
+		  divisor_(divisor),
+          location_(-1)
 	{
 		switch(type_) {
 		case AttrType::POSITION:	type_name_ = "position"; break;
@@ -155,13 +161,14 @@ namespace KRE
 		ptrdiff_t offset,
 		size_t divisor)
 		: type_(AttrType::UNKOWN),
-		type_name_(type_name),
-		num_elements_(num_elements),
-		var_type_(var_type),
-		normalise_(normalise),
-		stride_(stride),
-		offset_(offset),
-		divisor_(divisor)
+		  type_name_(type_name),
+		  num_elements_(num_elements),
+		  var_type_(var_type),
+		  normalise_(normalise),
+		  stride_(stride),
+		  offset_(offset),
+		  divisor_(divisor),
+          location_(-1)
 	{
 	}
 
@@ -170,12 +177,40 @@ namespace KRE
 		  access_type_(a.access_type_),
 		  offs_(a.offs_),
 		  desc_(a.desc_),
-		  hardware_(),
+		  hardware_(a.hardware_),
 		  hardware_buffer_(a.hardware_buffer_),
-		  enabled_(a.enabled_)
+		  enabled_(a.enabled_),
+		  parent_(a.parent_)
 	{
 		// XXX still don't really like this. need to consider it more.
 		//hardware_ = DisplayDevice::createAttributeBuffer(hardware_buffer_, this);
-		hardware_ = a.hardware_;
+	}
+
+	AttributeSetPtr AttributeBase::getParent() const
+	{
+		auto parent = parent_.lock();
+		ASSERT_LOG(parent != nullptr, "Attribute parent was null.");
+		return parent;
+	}
+
+	GenericAttribute::GenericAttribute(AccessFreqHint freq, AccessTypeHint type) 
+		:  AttributeBase(freq, type) 
+	{
+	}
+
+	AttributeBasePtr GenericAttribute::clone()
+	{
+		return std::make_shared<GenericAttribute>(*this);
+	}
+
+	void GenericAttribute::update(const void* data_ptr, int data_size, int count)
+	{
+		ASSERT_LOG(getDeviceBufferData() != nullptr, "No device buffer attached.");
+		getDeviceBufferData()->update(data_ptr, 0, data_size);
+		getParent()->setCount(count);
+	}
+
+	void GenericAttribute::handleAttachHardwareBuffer()
+	{
 	}
 }

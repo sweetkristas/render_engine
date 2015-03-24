@@ -40,10 +40,12 @@
 #include "EffectsOGL.hpp"
 #include "FboOGL.hpp"
 #include "LightObject.hpp"
+#include "ModelMatrixScope.hpp"
 #include "ScissorOGL.hpp"
 #include "ShadersOGL.hpp"
 #include "StencilScopeOGL.hpp"
 #include "TextureOGL.hpp"
+#include "WindowManager.hpp"
 
 namespace KRE
 {
@@ -54,6 +56,12 @@ namespace KRE
 		CameraPtr& get_default_camera()
 		{
 			static CameraPtr res = nullptr;
+			return res;
+		}
+
+		rect& get_current_viewport()
+		{
+			static rect res;
 			return res;
 		}
 	}
@@ -91,8 +99,9 @@ namespace KRE
 		}
 	}
 
-	DisplayDeviceOpenGL::DisplayDeviceOpenGL()
-		: seperate_blend_equations_(false),
+	DisplayDeviceOpenGL::DisplayDeviceOpenGL(WindowPtr wnd)
+		: DisplayDevice(wnd),
+		  seperate_blend_equations_(false),
 		  have_render_to_texture_(false),
 		  npot_textures_(false),
 		  hardware_uniform_buffers_(false),
@@ -140,7 +149,7 @@ namespace KRE
 		have_render_to_texture_ = extensions_.find("GL_EXT_framebuffer_object") != extensions_.end();
 		npot_textures_ = extensions_.find("GL_ARB_texture_non_power_of_two") != extensions_.end();
 		hardware_uniform_buffers_ = extensions_.find("GL_ARB_uniform_buffer_object") != extensions_.end();
-
+		
 		glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_units_);
 		if((err = glGetError()) != GL_NONE) {
 			LOG_ERROR("Failed query for GL_MAX_TEXTURE_IMAGE_UNITS: 0x" << std::hex << err);
@@ -156,6 +165,8 @@ namespace KRE
 			minor_version_ = static_cast<int>(std::modf(vers, &integral) * 100.0f);
 			major_version_ = static_cast<int>(integral);
 		}
+
+		glEnable(GL_POINT_SPRITE);
 	}
 
 	void DisplayDeviceOpenGL::printDeviceInfo()
@@ -207,9 +218,9 @@ namespace KRE
 
 	void DisplayDeviceOpenGL::clear(ClearFlags clr)
 	{
-		glClear(clr & ClearFlags::COLOR ? GL_COLOR_BUFFER_BIT : 0 
-			| clr & ClearFlags::DEPTH ? GL_DEPTH_BUFFER_BIT : 0 
-			| clr & ClearFlags::STENCIL ? GL_STENCIL_BUFFER_BIT : 0);
+		glClear((clr & ClearFlags::COLOR ? GL_COLOR_BUFFER_BIT : 0) 
+			| (clr & ClearFlags::DEPTH ? GL_DEPTH_BUFFER_BIT : 0) 
+			| (clr & ClearFlags::STENCIL ? GL_STENCIL_BUFFER_BIT : 0));
 	}
 
 	void DisplayDeviceOpenGL::setClearColor(float r, float g, float b, float a) const
@@ -232,13 +243,20 @@ namespace KRE
 		return OpenGL::ShaderProgram::defaultSystemShader();
 	}
 
-	void DisplayDeviceOpenGL::setDefaultCamera(const CameraPtr& cam)
+	CameraPtr DisplayDeviceOpenGL::setDefaultCamera(const CameraPtr& cam)
 	{
+		auto old_cam = get_default_camera();
 		get_default_camera() = cam;
+		return old_cam;
 	}
 
 	void DisplayDeviceOpenGL::render(const Renderable* r) const
 	{
+		if(!r->isEnabled()) {
+			// Renderable item not enabled then early return.
+			return;
+		}
+
 		auto shader = r->getShader();
 		shader->makeActive();
 
@@ -266,12 +284,16 @@ namespace KRE
 			r->getRenderTarget()->apply();
 		}
 
-		if(shader->getMvpUniform() != ShaderProgram::INALID_UNIFORM) {
-			pvmat *= r->getModelMatrix();
+		if(shader->getMvpUniform() != ShaderProgram::INVALID_UNIFORM) {
+			if(is_global_model_matrix_valid()) {
+				pvmat = pvmat * get_global_model_matrix() * r->getModelMatrix();
+			} else {
+				pvmat *= r->getModelMatrix();
+			}
 			shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(pvmat));
 		}
 
-		if(shader->getColorUniform() != ShaderProgram::INALID_UNIFORM) {
+		if(shader->getColorUniform() != ShaderProgram::INVALID_UNIFORM) {
 			if(r->isColorSet()) {
 				shader->setUniformValue(shader->getColorUniform(), r->getColor().asFloatVector());
 			} else {
@@ -280,6 +302,12 @@ namespace KRE
 		}
 
 		shader->setUniformsForTexture(r->getTexture());
+
+		// XXX we should make this either or with setting the mvp/color uniforms above.
+		auto uniform_draw_fn = shader->getUniformDrawFunction();
+		if(uniform_draw_fn) {
+			uniform_draw_fn();
+		}
 
 		// Loop through uniform render variables and set them.
 		/*for(auto& urv : r->UniformRenderVariables()) {
@@ -304,12 +332,14 @@ namespace KRE
 			BlendEquationScopeOGL be_scope(*as);
 			BlendModeScopeOGL bm_scope(*as);
 
-			if(shader->getColorUniform() != ShaderProgram::INALID_UNIFORM && as->isColorSet()) {
+			if(shader->getColorUniform() != ShaderProgram::INVALID_UNIFORM && as->isColorSet()) {
 				shader->setUniformValue(shader->getColorUniform(), as->getColor().asFloatVector());
 			}
 
 			for(auto& attr : as->getAttributes()) {
-				shader->applyAttribute(attr);
+				if(attr->isEnabled()) {
+					shader->applyAttribute(attr);
+				}
 			}
 
 			if(as->isInstanced()) {
@@ -433,9 +463,31 @@ namespace KRE
 		return BlendEquationImplBasePtr(new BlendEquationImplOGL());
 	}
 
-	void DisplayDeviceOpenGL::setViewPort(int x, int y, unsigned width, unsigned height)
+	void DisplayDeviceOpenGL::setViewPort(int x, int y, int width, int height)
 	{
-		glViewport(x, y, width, height);
+		rect new_vp(x, y, width, height);
+		if(get_current_viewport() != new_vp) {
+			get_current_viewport() = new_vp;
+			//LOG_DEBUG("Viewport changed to: " << x << "," << y << "," << width << "," << height);
+			// N.B. glViewPort has the origin in the bottom-left corner. Hence the modification
+			// to the y value.
+			auto wnd = getParentWindow();
+			glViewport(x, wnd->height() - (y + height), width, height);
+		}
+	}
+
+	void DisplayDeviceOpenGL::setViewPort(const rect& vp)
+	{
+		if(get_current_viewport() != vp) {
+			get_current_viewport() = vp;
+			auto wnd = getParentWindow();
+			glViewport(vp.x(), wnd->height() - vp.y2(), vp.w(), vp.h());
+		}
+	}
+
+	const rect& DisplayDeviceOpenGL::getViewPort() const 
+	{
+		return get_current_viewport();
 	}
 	
 	bool DisplayDeviceOpenGL::doCheckForFeature(DisplayDeviceCapabilties cap)
@@ -476,6 +528,7 @@ namespace KRE
 	// XXX Need a way to deal with blits with Camera/Lighting.
 	void DisplayDeviceOpenGL::doBlitTexture(const TexturePtr& tex, int dstx, int dsty, int dstw, int dsth, float rotation, int srcx, int srcy, int srcw, int srch)
 	{
+		ASSERT_LOG(false, "DisplayDevice::doBlitTexture deprecated");
 		ASSERT_LOG(!tex, "Texture passed in was not of expected type.");
 
 		const float tx1 = float(srcx) / tex->width();
@@ -529,8 +582,7 @@ namespace KRE
 	{
 		GLenum convert_read_format(ReadFormat fmt)
 		{
-			switch(fmt)
-			{
+			switch(fmt) {
 			case ReadFormat::DEPTH:			return GL_DEPTH_COMPONENT;
 			case ReadFormat::STENCIL:		return GL_STENCIL_INDEX;
 			case ReadFormat::DEPTH_STENCIL:	return GL_DEPTH_STENCIL;
@@ -559,8 +611,7 @@ namespace KRE
 
 		GLenum convert_attr_format(AttrFormat type)
 		{
-			switch (type)
-			{
+			switch(type) {
 			case AttrFormat::BOOL:				return GL_BOOL;
 			case AttrFormat::HALF_FLOAT:		return GL_HALF_FLOAT;
 			case AttrFormat::FLOAT:				return GL_FLOAT;
@@ -582,14 +633,32 @@ namespace KRE
 		}
 	}
 
-	bool DisplayDeviceOpenGL::handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data)
+	bool DisplayDeviceOpenGL::handleReadPixels(int x, int y, unsigned width, unsigned height, ReadFormat fmt, AttrFormat type, void* data, int stride)
 	{
-		glReadPixels(x, y, width, height, convert_read_format(fmt), convert_attr_format(type), data);
+		ASSERT_LOG(width > 0 && height > 0, "Width or height was negative: " << width << " x " << height);
+		LOG_DEBUG("row_pitch: " << stride);
+		std::vector<uint8_t> new_data;
+		new_data.resize(height * stride);
+		//if(pixel_size != 4) {
+		//	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		//}
+		//glPixelStorei(GL_PACK_ALIGNMENT, 4);
+		LOG_DEBUG("before read pixels");
+		glReadPixels(x, y, static_cast<int>(width), static_cast<int>(height), convert_read_format(fmt), convert_attr_format(type), &new_data[0]);
+		LOG_DEBUG("after read pixels");
 		GLenum ok = glGetError();
 		if(ok != GL_NONE) {
 			LOG_ERROR("Unable to read pixels error was: " << ok);
 			return false;
 		}
+		LOG_DEBUG("before copy");
+		uint8_t* cp_data = reinterpret_cast<uint8_t*>(data);
+		
+		for(auto it = new_data.begin() + (height-1)*stride; it != new_data.begin(); it -= stride) {
+			std::copy(it, it + stride, cp_data);
+			cp_data += stride;
+		}
+		LOG_DEBUG("after copy");
 		return true;
 	}
 
