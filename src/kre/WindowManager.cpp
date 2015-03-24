@@ -80,7 +80,9 @@ namespace KRE
 			: Window(width, height, hints),
 			  renderer_hint_(),
 			  renderer_(nullptr),
-			  context_(nullptr) 
+			  context_(nullptr),
+			  nonfs_width_(width),
+			  nonfs_height_(height)
 		{
 			if(hints.has_key("renderer")) {
 				if(hints["renderer"].is_string()) {
@@ -91,14 +93,6 @@ namespace KRE
 			} else {
 				renderer_hint_.emplace_back("opengl");
 			}
-
-			for(auto rh : renderer_hint_) {
-				current_display_device() = display_ = DisplayDevice::factory(rh);
-				if(display_ != nullptr) {
-					break;
-				}
-			}
-			ASSERT_LOG(display_ != nullptr, "No display driver was created.");
 
 			// XXX figure out a better way to pass this hint.
 			SDL_SetHint(SDL_HINT_RENDER_DRIVER, renderer_hint_.front().c_str());
@@ -114,7 +108,16 @@ namespace KRE
 		void createWindow() override {
 			Uint32 wnd_flags = 0;
 
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			for(auto rh : renderer_hint_) {
+				setDisplayDevice(DisplayDevice::factory(rh, shared_from_this()));
+				current_display_device() = getDisplayDevice();
+				if(getDisplayDevice() != nullptr) {
+					break;
+				}
+			}
+			ASSERT_LOG(getDisplayDevice() != nullptr, "No display driver was created.");
+
+			if(getDisplayDevice()->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				// We need to do extra SDL set-up for an OpenGL context.
 				// Since these parameter's need to be set-up before context
 				// creation.
@@ -152,8 +155,8 @@ namespace KRE
 
 			int x = SDL_WINDOWPOS_CENTERED;
 			int y = SDL_WINDOWPOS_CENTERED;
-			int w = width_;
-			int h = height_;
+			int w = width();
+			int h = height();
 			switch(fullscreenMode()) {
 			case FullScreenMode::WINDOWED:		break;
 			case FullScreenMode::FULLSCREEN_WINDOWED:
@@ -167,10 +170,10 @@ namespace KRE
 			//	break;
 			}
 			window_.reset(SDL_CreateWindow(getTitle().c_str(), x, y, w, h, wnd_flags), [&](SDL_Window* wnd){
-				if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+				if(getDisplayDevice()->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
 					SDL_DestroyRenderer(renderer_);
 				}
-				display_.reset();
+				getDisplayDevice().reset();
 				if(context_) {
 					SDL_GL_DeleteContext(context_);
 					context_ = nullptr;
@@ -178,7 +181,7 @@ namespace KRE
 				SDL_DestroyWindow(wnd);
 			});
 
-			if(display_->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
+			if(getDisplayDevice()->ID() != DisplayDevice::DISPLAY_DEVICE_SDL) {
 				Uint32 rnd_flags = SDL_RENDERER_ACCELERATED;
 				if(vSync()) {
 					rnd_flags |= SDL_RENDERER_PRESENTVSYNC;
@@ -188,16 +191,16 @@ namespace KRE
 			}
 
 			ASSERT_LOG(window_ != nullptr, "Failed to create window: " << SDL_GetError());
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			if(getDisplayDevice()->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				context_ = SDL_GL_CreateContext(window_.get());	
 				ASSERT_LOG(context_ != nullptr, "Failed to GL Context: " << SDL_GetError());
 			}
 
-			display_->init(width_, height_);
-			display_->printDeviceInfo();
+			getDisplayDevice()->init(width(), height());
+			getDisplayDevice()->printDeviceInfo();
 
-			display_->setClearColor(clear_color_);
-			display_->clear(ClearFlags::ALL);
+			getDisplayDevice()->setClearColor(clear_color_);
+			getDisplayDevice()->clear(ClearFlags::ALL);
 			swap();
 		}
 
@@ -208,25 +211,20 @@ namespace KRE
 		void clear(ClearFlags f) override {
 			// N.B. Clear color is global GL state, so we need to re-configure it everytime we clear.
 			// Since it may have changed by some sneaky render target user.
-			display_->setClearColor(clear_color_);
-			display_->clear(f);
+			getDisplayDevice()->setClearColor(clear_color_);
+			getDisplayDevice()->clear(f);
 		}
 
 		void swap() override {
 			// This is a little bit hacky -- ideally the display device should swap buffers.
 			// But SDL provides a device independent way of doing it which is really nice.
 			// So we use that.
-			if(display_->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
+			if(getDisplayDevice()->ID() == DisplayDevice::DISPLAY_DEVICE_OPENGL) {
 				SDL_GL_SwapWindow(window_.get());
 			} else {
 				// default to delegating to the display device.
-				display_->swap();
+				getDisplayDevice()->swap();
 			}
-		}
-
-		// N.B. The viewport x,y location is the lower left hand corner!
-		void setViewPort(int x, int y, int width, int height) override {
-			display_->setViewPort(x, y, width, height);
 		}
 
 		unsigned getWindowID() const override {
@@ -280,11 +278,6 @@ namespace KRE
 			}
 		}
 
-		void render(const Renderable* r) const override {
-			ASSERT_LOG(display_ != nullptr, "No display to render to.");
-			display_->render(r);
-		}
-		
 		WindowMode getDisplaySize() const override {
 			SDL_DisplayMode new_mode;
 			int display_index = 0;
@@ -321,12 +314,36 @@ namespace KRE
 
 	private:
 		void handleSetClearColor() const override {
-			if(display_ != nullptr) {
-				display_->setClearColor(clear_color_);
+			if(getDisplayDevice() != nullptr) {
+				getDisplayDevice()->setClearColor(clear_color_);
 			}
 		}
 		void changeFullscreenMode() override {
-			// XXX
+			if(fullscreenMode() == FullScreenMode::FULLSCREEN_WINDOWED) {
+				nonfs_width_ = width();
+				nonfs_height_ = height();
+
+				if(SDL_SetWindowFullscreen(window_.get(), SDL_WINDOW_FULLSCREEN_DESKTOP) != 0) {
+					LOG_WARN("Unable to set windowed fullscreen mode at " << width() << " x " << height());
+					return;
+				}
+				SDL_SetWindowSize(window_.get(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
+				SDL_SetWindowPosition(window_.get(), 0, 0);
+
+			} else {
+				if(SDL_SetWindowFullscreen(window_.get(), 0) != 0) {
+					LOG_WARN("Unable to set windowed mode at " << width() << " x " << height());
+					return;
+				}
+				SDL_SetWindowSize(window_.get(), nonfs_width_, nonfs_height_);
+				SDL_SetWindowPosition(window_.get(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+			}
+			int w, h;
+			SDL_GetWindowSize(window_.get(), &w, &h);
+			// update viewport
+			setViewPort(0, 0, w, h);
+			// update width_ and height_ and notify observers
+			updateDimensions(w, h);
 		}
 		bool handleLogicalWindowSizeChange() override {
 			// XXX do nothing for now
@@ -342,11 +359,20 @@ namespace KRE
 			return false;
 		}
 
+		void handleSetViewPort() override {
+			getDisplayDevice()->setViewPort(getViewPort());
+		}
 
 		SDL_WindowPtr window_;
 		SDL_GLContext context_;
 		SDL_Renderer* renderer_;
 		std::vector<std::string> renderer_hint_;
+
+		// Width of the window before changing to full-screen mode
+		int nonfs_width_;
+		// Height of the window before changing to full-screen mode
+		int nonfs_height_;
+
 		SDLWindow(const SDLWindow&);
 	};
 
@@ -362,7 +388,9 @@ namespace KRE
 		  fullscreen_mode_(hints["fullscreen"].as_bool(false) ? FullScreenMode::FULLSCREEN_WINDOWED : FullScreenMode::WINDOWED),
 		  title_(hints["title"].as_string_default("")),
 		  use_vsync_(hints["use_vsync"].as_bool(false)),
-		  clear_color_(0.0f,0.0f,0.0f,1.0f)
+		  clear_color_(0.0f,0.0f,0.0f,1.0f),
+		  view_port_(0, 0, width_, height_),
+		  display_(nullptr)
 	{
 		if(hints.has_key("clear_color")) {
 			clear_color_ = Color(hints["clear_color"]);
@@ -371,6 +399,12 @@ namespace KRE
 
 	Window::~Window()
 	{
+	}
+
+	void Window::render(const Renderable* r) const
+	{
+		ASSERT_LOG(display_ != nullptr, "display was null");
+		display_->render(r);
 	}
 
 	void Window::enable16bpp(bool bpp) {
@@ -421,6 +455,15 @@ namespace KRE
 			}
 		}
 		return result;
+	}
+
+	void Window::updateDimensions(int w, int h)
+	{
+		width_ = w;
+		height_ = h;
+		for(auto& observer : dimensions_changed_observers_) {
+			observer.second(width_, height_);
+		}
 	}
 
 	bool Window::setLogicalWindowSize(int width, int height)
@@ -506,6 +549,17 @@ namespace KRE
 		dimensions_changed_observers_.erase(it);
 	}
 
+	void Window::setViewPort(int x, int y, int w, int h) 
+	{
+		view_port_ = rect(x, y, w, h);
+		handleSetViewPort();
+	}
+
+	void Window::setViewPort(const rect& vp)
+	{
+		view_port_ = vp;
+		handleSetViewPort();
+	}
 
 	WindowPtr WindowManager::createWindow(int width, int height, const variant& hints)
 	{

@@ -55,12 +55,14 @@ namespace KRE
 		  model_matrix_(1.0f),
 		  model_changed_(false),
 		  window_(WindowManager::getMainWindow()),
-		  size_change_key_(-1)
+		  size_change_key_(-1),
+		  mvp_()
 	{
 		width_ = getWindow()->width();
 		height_ = getWindow()->height();			
 		LOG_DEBUG("canvas dimensions set to: " << width_ << " x " << height_);
 		auto wnd = window_.lock();
+		mvp_ = glm::ortho(0.0f, static_cast<float>(width_), static_cast<float>(height_), 0.0f);
 		if(wnd) {
 			size_change_key_ = wnd->registerSizeChangeObserver([this](int w, int h) {
 				this->setDimensions(w, h);
@@ -72,6 +74,7 @@ namespace KRE
 	{
 		width_ = w;
 		height_ = h;
+		mvp_ = glm::ortho(0.0f, static_cast<float>(width_), static_cast<float>(height_), 0.0f);
 		handleDimensionsChanged();
 		LOG_DEBUG("canvas dimensions set to: " << width_ << " x " << height_);
 	}
@@ -171,6 +174,30 @@ namespace KRE
 		return model_matrix_;
 	}
 
+	glm::vec2 Canvas::getCurrentTranslation()
+	{
+		if(get_translation_stack().empty()) {
+			return glm::vec2();
+		}
+		return get_translation_stack().top();
+	}
+
+	float Canvas::getCurrentRotation()
+	{
+		if(get_rotation_stack().empty()) {
+			return 0;
+		}
+		return get_rotation_stack().top();
+	}
+
+	glm::vec2 Canvas::getCurrentScale()
+	{
+		if(get_scale_stack().empty()) {
+			return glm::vec2(1.0f,1.0f);
+		}
+		return get_scale_stack().top();
+	}
+						 
 	Canvas::ModelManager::ModelManager()
 		: canvas_(KRE::Canvas::getInstance())
 	{
