@@ -292,7 +292,8 @@ int main(int argc, char *argv[])
 
 	variant_builder hints;
 	hints.add("renderer", "opengl");
-	hints.add("dpi_aware", "true");
+	hints.add("dpi_aware", true);
+	hints.add("use_vsync", true);
 	int neww = 800, newh = 600;
 	//if(!autoWindowSize(neww, newh)) {
 	//	LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
