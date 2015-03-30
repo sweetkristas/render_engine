@@ -4,9 +4,7 @@ TODO LIST
 List of things still needed to be done, not in any particular order.
 
 * Add ways to specify different techniques for implementing things, so we can fallback if the hardware doesn't support a required feature.
-* Add a 2D canvas for drawing simple textures, such as might be used with UI elements.
 * Auto-convert surfaces to 16bpp if use_16bpp() is enabled in window manager (textures should just magically work now :) )
-* Add a way to specify a custom conversion function when converting a surface to a different format. -- may need to be templated?
 * set_window_icon/set_window_size/auto_window_size/change_fullscreen_mode need still to be implemented.
 * Finish implementing packed YUV texture support.
 * Finish implementing cubic texture support.
@@ -14,7 +12,6 @@ List of things still needed to be done, not in any particular order.
 * Fix lighting. 
 * Add uniform blocks (with hardware backing)
 * Useful things on texture units: http://www.ogre3d.org/docs/manual/manual_17.html#Texture-Units
-* Add instancing support see: http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
 * Make some sort of framework for universal shaders.
 * Add SVG support.
 * Make it so that if addressing modes other than clamp are used or mipmapping is enabled then we only use power-of-two textures.
@@ -30,3 +27,6 @@ Finished things
 * -Add a way to convert a surface to a different format (such as might be used if 16bpp is enabled).-
 * -Implement a texture registry and system for re-building textures if the context is lost.-
 * -Make sure uniform color is always set to "white" in the shader if it isn't used.-  -- Worked around this.
+* -Add instancing support see: http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
+* -Add a way to specify a custom conversion function when converting a surface to a different format. -- may need to be templated?
+* -Add a 2D canvas for drawing simple textures, such as might be used with UI elements.
