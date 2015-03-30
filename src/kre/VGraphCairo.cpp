@@ -21,7 +21,7 @@
 	   distribution.
 */
 
-#pragma comment(lib, "cairo")
+#pragma comment(lib, "libcairo-2")
 
 #include "asserts.hpp"
 #include "AttributeSet.hpp"
@@ -161,7 +161,7 @@ namespace KRE
 					cairo_curve_to(context, cp_x1_, cp_y1_, cp_x2_, cp_y2_, ex_, ey_);
 				}
 			}
-			std::string asString() const override { return "cubic_bézier"; }
+			std::string asString() const override { return "cubic_bÃ©zier"; }
 		private:
 			enum {
 				instruction_type_ = static_cast<unsigned>(InstructionType::CURVE_TO)
@@ -207,7 +207,7 @@ namespace KRE
 
 				cairo_curve_to(context, cp1x, cp1y, cp2x, cp2y, nex, ney);
 			}
-			std::string asString() const override { return "quadratic_bézier"; }
+			std::string asString() const override { return "quadratic_bÃ©zier"; }
 		private:
 			enum {
 				instruction_type_ = static_cast<unsigned>(InstructionType::QUAD_CURVE_TO)
@@ -490,7 +490,7 @@ namespace KRE
 
 		void CairoContext::SetDashStyle(const std::vector<double>& dashes, const double offset)
 		{
-			cairo_set_dash(context_, &dashes[0], dashes.size(), offset);
+			cairo_set_dash(context_, &dashes[0], static_cast<int>(dashes.size()), offset);
 		}
 
 		const std::vector<double> CairoContext::GetDashStyle() const

@@ -83,6 +83,9 @@ namespace KRE
 			vx1, vy2,
 			vx2, vy2,
 		};
+		
+		//LOG_DEBUG("blit: " << src << "," << dst);
+		//LOG_DEBUG("blit: " << tx1 << "," << ty1 << "," << tx2 << "," << ty2 << " : " << vx1 << "," << vy1 << "," << vx2 << "," << vy2);
 
 		glm::mat4 mvp;
 		if(std::abs(rotation) > FLT_EPSILON) {
@@ -133,7 +136,7 @@ namespace KRE
 		glEnableVertexAttribArray(shader->getTexcoordAttribute());
 		glVertexAttribPointer(shader->getTexcoordAttribute(), 2, GL_FLOAT, GL_FALSE, sizeof(vertex_texcoord), reinterpret_cast<const unsigned char*>(&vtc[0]) + offsetof(vertex_texcoord, tc));
 
-		glDrawArrays(GL_TRIANGLES, 0, vtc.size());
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vtc.size()));
 
 		glDisableVertexAttribArray(shader->getTexcoordAttribute());
 		glDisableVertexAttribArray(shader->getVertexAttribute());
@@ -310,7 +313,7 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
-		glDrawArrays(GL_LINES, 0, varray.size());
+		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
@@ -331,7 +334,7 @@ namespace KRE
 		glEnableVertexAttribArray(shader->getColorAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
 		glVertexAttribPointer(shader->getColorAttribute(), 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, &carray[0]);
-		glDrawArrays(GL_LINES, 0, varray.size());
+		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getColorAttribute());
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
@@ -349,7 +352,7 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
-		glDrawArrays(GL_LINE_STRIP, 0, varray.size());
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
@@ -366,7 +369,7 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
-		glDrawArrays(GL_LINE_LOOP, 0, varray.size());
+		glDrawArrays(GL_LINE_LOOP, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
@@ -403,7 +406,7 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
-		glDrawArrays(GL_POLYGON, 0, varray.size());
+		glDrawArrays(GL_POLYGON, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
@@ -490,7 +493,7 @@ namespace KRE
 		glEnableVertexAttribArray(shader->getColorAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
 		glVertexAttribPointer(shader->getColorAttribute(), 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, &color[0]);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, varray.size());
+		glDrawArrays(GL_TRIANGLE_FAN, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getColorAttribute());
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 
@@ -553,7 +556,7 @@ namespace KRE
 		shader->setUniformValue(shader->getColorUniform(), color.asFloatVector());
 		glEnableVertexAttribArray(shader->getVertexAttribute());
 		glVertexAttribPointer(shader->getVertexAttribute(), 2, GL_FLOAT, GL_FALSE, 0, &varray[0]);
-		glDrawArrays(GL_POINTS, 0, varray.size());
+		glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(varray.size()));
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
