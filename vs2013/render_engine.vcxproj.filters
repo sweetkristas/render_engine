@@ -37,6 +37,12 @@
     <Filter Include="Source Files\SDL">
       <UniqueIdentifier>{de841aca-fe07-41ca-aa80-715283f9bdf3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tmx">
+      <UniqueIdentifier>{7b3ade05-8395-433e-a291-c91c07a4b947}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tmx">
+      <UniqueIdentifier>{79dda40f-1438-427a-9338-1f0e477ad771}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\kre\VGraphCairo.cpp">
@@ -229,6 +235,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\kre\ModelMatrixScope.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tiled\tmx_reader.cpp">
+      <Filter>Source Files\tmx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tiled\tiled.cpp">
+      <Filter>Source Files\tmx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -480,6 +498,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\kre\ModelMatrixScope.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tiled\tmx_reader.hpp">
+      <Filter>Header Files\tmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tiled\tiled.hpp">
+      <Filter>Header Files\tmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\base64.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\compress.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

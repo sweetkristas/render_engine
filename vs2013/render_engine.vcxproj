@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\base64.cpp" />
+    <ClCompile Include="..\src\compress.cpp" />
     <ClCompile Include="..\src\filesystem.cpp" />
     <ClCompile Include="..\src\ft_iface.cpp" />
     <ClCompile Include="..\src\json.cpp" />
@@ -73,11 +75,15 @@
     <ClCompile Include="..\src\kre\WindowManager.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\module.cpp" />
+    <ClCompile Include="..\src\tiled\tiled.cpp" />
+    <ClCompile Include="..\src\tiled\tmx_reader.cpp" />
     <ClCompile Include="..\src\variant.cpp" />
     <ClCompile Include="..\src\variant_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\asserts.hpp" />
+    <ClInclude Include="..\src\base64.hpp" />
+    <ClInclude Include="..\src\compress.hpp" />
     <ClInclude Include="..\src\filesystem.hpp" />
     <ClInclude Include="..\src\formatter.hpp" />
     <ClInclude Include="..\src\ft_iface.hpp" />
@@ -157,6 +163,8 @@
     <ClInclude Include="..\src\kre\WindowManagerFwd.hpp" />
     <ClInclude Include="..\src\module.hpp" />
     <ClInclude Include="..\src\profile_timer.hpp" />
+    <ClInclude Include="..\src\tiled\tiled.hpp" />
+    <ClInclude Include="..\src\tiled\tmx_reader.hpp" />
     <ClInclude Include="..\src\utf8_to_codepoint.hpp" />
     <ClInclude Include="..\src\variant.hpp" />
     <ClInclude Include="..\src\variant_utils.hpp" />
@@ -206,7 +214,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src;..\src\kre;..\external\include\SDL;..\external\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src;..\src\kre;..\src\tiled;..\external\include\SDL;..\external\include;c:\projects\boost\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

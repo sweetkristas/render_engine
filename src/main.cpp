@@ -27,6 +27,8 @@
 #include "WindowManager.hpp"
 #include "VGraph.hpp"
 
+#include "tmx_reader.hpp"
+
 #include "variant_utils.hpp"
 
 #ifdef _MSC_VER
@@ -493,6 +495,10 @@ int main(int argc, char *argv[])
 	water_tex.setPosition(neww/2, newh/2);
 	water_tex.setShader(water_shader);
 	water_tex.addUniformBuffer(std::move(water_uniforms));
+
+	auto tiled_map = tiled::Map::create();
+	tiled::TmxReader tmx_reader(tiled_map);
+	tmx_reader.parseFile("isometric_grass_and_water.tmx");
 
 	SDL_Event e;
 	bool done = false;
