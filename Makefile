@@ -56,7 +56,7 @@ BASE_CXXFLAGS += -std=c++0x -g -rdynamic -fno-inline-functions \
 	-Wno-narrowing -Wno-literal-suffix
 
 # Compiler include options, used after CXXFLAGS and CPPFLAGS.
-INC := -Iinclude $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib freetype2 cairo)
+INC := -Iexternal/include $(shell pkg-config --cflags x11 sdl2 glew SDL2_image SDL2_ttf libpng zlib freetype2 cairo)
 
 ifdef STEAM_RUNTIME_ROOT
 	INC += -I$(STEAM_RUNTIME_ROOT)/include
@@ -74,7 +74,7 @@ ifeq ($(USE_LIBVPX),yes)
 	LIBS += $(shell pkg-config --libs vpx)
 endif
 
-MODULES   := kre
+MODULES   := kre tiled
 SRC_DIR   := $(addprefix src/,$(MODULES)) src
 BUILD_DIR := $(addprefix build/,$(MODULES)) build
 

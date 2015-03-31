@@ -28,6 +28,7 @@
 #include <memory>
 
 #include "Color.hpp"
+#include "Texture.hpp"
 
 namespace tiled
 {
@@ -114,6 +115,7 @@ namespace tiled
 		void setTransparentColor(const KRE::Color& color) { transparent_color_ = color; has_transparent_color_set_ = true; }
 		void setWidth(int w) { width_ = w; }
 		void setHeight(int h) { height_ = h; }
+		KRE::TexturePtr getTexture() const;
 	private:
 		ImageFormat format_;
 		std::vector<char> data_;
@@ -151,7 +153,7 @@ namespace tiled
 		void setSpacing(int spacing) { spacing_ = spacing; }
 		void setMargin(int margin) { margin_ = margin; }
 		void setTileOffset(int x, int y) { tile_offset_x_ = x; tile_offset_y_ = y; }
-		void addImage(const TileImage& image);
+		void setImage(const TileImage& image);
 		void setTerrainTypes(const std::vector<Terrain>& tt) { terrain_types_ = tt; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void addTile(const Tile& t) { tiles_.emplace_back(t); }
@@ -169,6 +171,7 @@ namespace tiled
 		std::vector<Property> properties_;
 		std::vector<Terrain> terrain_types_;
 		std::vector<Tile> tiles_;
+		KRE::TexturePtr texture_;
 	};
 
 	class Map

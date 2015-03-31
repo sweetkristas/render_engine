@@ -30,7 +30,7 @@
 #include "compress.hpp"
 #include "filesystem.hpp"
 #include "tmx_reader.hpp"
-#include "util.hpp"
+#include "Util.hpp"
 
 namespace tiled
 {
@@ -183,8 +183,6 @@ namespace tiled
 				//parseObjectGroup(v.second);
 			} else if(v.first == "imagelayer") {
 				//parseImageLayer(v.second);
-			} else {
-				LOG_WARN("Ignoring element '" << v.first << "' as child of 'map' element");
 			}
 		}
 	}
@@ -242,13 +240,11 @@ namespace tiled
 				int y = to_attributes.get<int>("y");
 				ts.setTileOffset(x, y);
 			} else if(v.first == "image") {
-				ts.addImage(parseImageElement(v.second));
+				ts.setImage(parseImageElement(v.second));
 			} else if(v.first == "terraintypes") {
 				ts.setTerrainTypes(parseTerrainTypes(v.second));
 			} else if(v.first == "tile") {
 				ts.addTile(parseTileElement(v.second));
-			} else {
-				LOG_WARN("Ignoring element '" << v.first << "' as child of 'tileset' element");
 			}
 		}
 	}
@@ -395,8 +391,8 @@ namespace tiled
 
 		for(auto& v : pt) {
 			if(v.first == "terrain") {
-				auto name = v.second.get_child("name").data();
-				auto tile_id = v.second.get<int>("tile");
+				auto name = v.second.get_child("<xmlattr>.name").data();
+				auto tile_id = v.second.get<int>("<xmlattr>.tile");
 				res.emplace_back(name, tile_id);
 			} else {
 				LOG_WARN("Expected 'terrain' child elements, found: " << v.first);
@@ -421,38 +417,20 @@ namespace tiled
 		if(terrain) {
 			auto& str = terrain->data();
 			std::array<int, 4> terrain_array{ { -1, -1, -1, -1 } };
+
+			std::vector<std::string> strs = Util::split(terrain->data(), ",", Util::SplitFlags::ALLOW_EMPTY_STRINGS);
 			int n = 0;
-
-			std::string::size_type start = 0;
-			auto pos = str.find_first_of(",", start);
-			while(pos != std::string::npos) {
-				try {
-					std::string s(str, start, pos - start);
-					if(!s.empty()) {
+			for(auto& s : strs) {
+				if(!s.empty()) {
+					try {
 						int value = boost::lexical_cast<int>(s);
 						ASSERT_LOG(n < 4, "parsing too many elements of terrain data" << str);
 						terrain_array[n] = value;
+					} catch(boost::bad_lexical_cast& e) {
+						ASSERT_LOG(false, "Unable to convert string to integer: " << s);
 					}
-				} catch(boost::bad_lexical_cast& e) {					
-					ASSERT_LOG(false, "Unable to convert string to integer: " << e.what());
 				}
-
-				start = pos + 1;
-				pos = str.find_first_of("m", start);
-				
-				++n;				
-			}
-			if(start < str.length()) {
-				try {
-					std::string s(str, start, str.length() - start);
-					if(!s.empty()) {
-						int value = boost::lexical_cast<int>(s);
-						ASSERT_LOG(n < 4, "parsing too many elements of terrain data" << str);
-						terrain_array[n] = value;
-					}
-				} catch(boost::bad_lexical_cast& e) {					
-					ASSERT_LOG(false, "Unable to convert string to integer: " << e.what());
-				}
+				++n;
 			}
 			res.setTerrain(terrain_array);
 		}
@@ -466,8 +444,6 @@ namespace tiled
 			} else if(v.first == "objectgroup") {
 				// XXX
 				ASSERT_LOG(false, "XXX implement objectgroup parsing.");
-			} else {
-				LOG_WARN("ignoring child element '" << v.first << "' as part of 'tile' element");
 			}
 		}
 		return res;

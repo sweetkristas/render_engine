@@ -44,5 +44,9 @@
 
 namespace Util
 {
-	std::vector<std::string> split(const std::string& s, const std::string& eol);
+	enum class SplitFlags {
+		NONE,
+		ALLOW_EMPTY_STRINGS,
+	};
+	std::vector<std::string> split(const std::string& s, const std::string& eol, SplitFlags f=SplitFlags::NONE);
 }

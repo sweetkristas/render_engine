@@ -21,6 +21,9 @@
 	   distribution.
 */
 
+#include "SDL.h"
+#include "SDL_image.h"
+
 #include "asserts.hpp"
 #include "tiled.hpp"
 
@@ -60,9 +63,9 @@ namespace tiled
 	{
 	}
 
-	void TileSet::addImage(const TileImage& tile_image)
+	void TileSet::setImage(const TileImage& tile_image)
 	{
-		ASSERT_LOG(false, "TileSet::addImage writeme");
+		texture_ = tile_image.getTexture();
 	}
 
 	TileImage::TileImage()
@@ -74,6 +77,26 @@ namespace tiled
 		  width_(-1),
 		  height_(-1)
 	{
+	}
+
+	KRE::TexturePtr TileImage::getTexture() const
+	{
+		if(!source_.empty()) {
+			// is a file
+			return KRE::Texture::createTexture(source_);
+		}
+		// is raw data.
+		SDL_Surface* image = IMG_Load_RW(SDL_RWFromConstMem(&data_[0], static_cast<int>(data_.size())), 1);
+		ASSERT_LOG(image != nullptr, "Unable to create a surface from suplied data: " << SDL_GetError());
+		ASSERT_LOG(image->format != nullptr, "No format attached to the surface.");
+		int bpp = image->format->BytesPerPixel;
+		Uint32 rmask = image->format->Rmask;
+		Uint32 gmask = image->format->Gmask;
+		Uint32 bmask = image->format->Bmask;
+		Uint32 amask = image->format->Amask;
+		KRE::SurfacePtr surf = KRE::Surface::create(image->w, image->h, bpp, image->pitch, rmask, gmask, bmask, amask, image->pixels);		
+		SDL_FreeSurface(image);
+		return KRE::Texture::createTexture(surf);
 	}
 
 	Tile::Tile(uint32_t local_id)
