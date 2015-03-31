@@ -88,5 +88,15 @@ namespace tiled
 	
 	void Tile::addImage(const TileImage& image)
 	{
+		ASSERT_LOG(false, "XXX");
+	}
+
+	Layer::Layer(const std::string& name)
+		: name_(name),
+		  properties_(),
+		  tile_data_(),
+		  opacity_(1.0f),
+		  is_visible_(true)
+	{
 	}
 }

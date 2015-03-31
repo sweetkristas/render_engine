@@ -178,7 +178,7 @@ namespace tiled
 			} else if(v.first == "tileset") {
 				parseTileset(v.second);
 			} else if(v.first == "layer") {
-				//parseLayer(v.second);
+				map_->addLayer(parseLayerElement(v.second));
 			} else if(v.first == "objectgroup") {
 				//parseObjectGroup(v.second);
 			} else if(v.first == "imagelayer") {
@@ -405,11 +405,17 @@ namespace tiled
 		return res;
 	}
 
-	Tile parseTileElement(const boost::property_tree::ptree& pt)
+	Tile TmxReader::parseTileElement(const boost::property_tree::ptree& pt)
 	{
 		auto attributes = pt.get_child("<xmlattr>");
 		uint32_t local_id = attributes.get<int>("id");
 		Tile res(local_id);
+
+		auto probability = attributes.get_child_optional("probability");
+		if(probability) {
+			float p = probability->get_value<float>();
+			res.setProbability(p);
+		}
 
 		auto terrain = attributes.get_child_optional("terrain");
 		if(terrain) {
@@ -424,6 +430,7 @@ namespace tiled
 					std::string s(str, start, pos - start);
 					if(!s.empty()) {
 						int value = boost::lexical_cast<int>(s);
+						ASSERT_LOG(n < 4, "parsing too many elements of terrain data" << str);
 						terrain_array[n] = value;
 					}
 				} catch(boost::bad_lexical_cast& e) {					
@@ -440,11 +447,52 @@ namespace tiled
 					std::string s(str, start, str.length() - start);
 					if(!s.empty()) {
 						int value = boost::lexical_cast<int>(s);
+						ASSERT_LOG(n < 4, "parsing too many elements of terrain data" << str);
 						terrain_array[n] = value;
 					}
 				} catch(boost::bad_lexical_cast& e) {					
 					ASSERT_LOG(false, "Unable to convert string to integer: " << e.what());
 				}
+			}
+			res.setTerrain(terrain_array);
+		}
+
+		for(auto& v : pt) {
+			if(v.first == "properties") {
+				auto props = parseProperties(v.second);
+				res.setProperties(&props);
+			} else if(v.first == "image") {
+				res.addImage(parseImageElement(v.second));
+			} else if(v.first == "objectgroup") {
+				// XXX
+				ASSERT_LOG(false, "XXX implement objectgroup parsing.");
+			} else {
+				LOG_WARN("ignoring child element '" << v.first << "' as part of 'tile' element");
+			}
+		}
+		return res;
+	}
+
+	Layer TmxReader::parseLayerElement(const boost::property_tree::ptree& pt)
+	{
+		auto attributes = pt.get_child("<xmlattr>");
+		const std::string name = attributes.get_child("name").data();
+		Layer res(name);
+		auto opacity = attributes.get_child_optional("opacity");
+		if(opacity) {
+			res.setOpacity(opacity->get_value<float>());
+		}
+		auto visible = attributes.get_child_optional("visible");
+		if(visible) {
+			res.setVisibility(visible->get_value<int>() != 0 ? true : false);
+		}
+		for(auto& v : pt) {
+			if(v.first == "properties") {
+				auto props = parseProperties(v.second);
+				res.setProperties(&props);
+			} else if(v.first == "data") {
+				auto data = parseDataElement(v.second);
+				res.setData(&data);
 			}
 		}
 		return res;

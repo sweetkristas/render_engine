@@ -88,6 +88,22 @@ namespace tiled
 	private:
 	};
 
+	class Layer
+	{
+	public:
+		explicit Layer(const std::string& name);
+		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
+		void setData(std::vector<uint32_t>* data) { tile_data_.swap(*data); }
+		void setOpacity(float o) { opacity_ = o; }
+		void setVisibility(bool visible) { is_visible_ = visible; }
+	private:
+		std::string name_;
+		std::vector<Property> properties_;
+		std::vector<uint32_t> tile_data_;
+		float opacity_;
+		bool is_visible_;
+	};
+
 	class TileImage
 	{
 	public:
@@ -170,6 +186,7 @@ namespace tiled
 		void setHexsideLength(int length) { hexside_length_ = length; }
 		void setBackgroundColor(const KRE::Color& color) { background_color_ = color; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
+		void addLayer(const Layer& layer) { layers_.emplace_back(layer); }
 	private:
 		int width_;
 		int height_;
@@ -184,5 +201,6 @@ namespace tiled
 
 		std::vector<TileSet> tile_sets_;
 		std::vector<Property> properties_;
+		std::vector<Layer> layers_;
 	};
 }

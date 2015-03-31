@@ -50,6 +50,7 @@ namespace tiled
 		std::vector<uint32_t> parseDataElement(const boost::property_tree::ptree& pt);
 		std::vector<Terrain> parseTerrainTypes(const boost::property_tree::ptree& pt);
 		Tile parseTileElement(const boost::property_tree::ptree& pt);
+		Layer parseLayerElement(const boost::property_tree::ptree& pt);
 		MapPtr map_;
 	};
 }
