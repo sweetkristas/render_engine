@@ -105,6 +105,7 @@ namespace tiled
 			ASSERT_LOG(false, "Invalid case for orientation: " << static_cast<int>(orientation_));
 			break;
 		}
+		LOG_DEBUG("pixel pos for (" << x << "," << y << "): " << p);
 		return p;
 	}
 
