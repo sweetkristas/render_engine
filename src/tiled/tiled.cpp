@@ -25,6 +25,8 @@
 #include "SDL.h"
 #include "SDL_image.h"
 
+#include "Canvas.hpp"
+
 #include "asserts.hpp"
 #include "tiled.hpp"
 
@@ -41,13 +43,22 @@ namespace tiled
 		  stagger_direction_(StaggerDirection::ROWS),
 		  hexside_length_(-1),
 		  background_color_(128, 128, 128),
-		  tile_sets_()
+		  tile_sets_(),
+		  properties_(),
+		  layers_()
 	{
 	}
 
 	MapPtr Map::create()
 	{
 		return std::make_shared<Map>();
+	}
+
+	void Map::draw() const
+	{
+		for(const auto& layer : layers_) {
+			layer.draw();
+		}
 	}
 
 	point Map::getPixelPos(int x, int y) const
@@ -214,6 +225,11 @@ namespace tiled
 
 	void Layer::draw() const
 	{
+		if(!is_visible_) {
+			return;
+		}
+
+		// XXX apply opacity change here.
 		for(const auto& t : tiles_) {
 			t->draw();
 		}
@@ -233,5 +249,7 @@ namespace tiled
 	void Tile::draw() const
 	{
 		// XXX
+		auto canvas = KRE::Canvas::getInstance();
+		canvas->blitTexture(tile_def_.getParent().getTexture(), src_rect_, 0, dest_rect_);
 	}
 }

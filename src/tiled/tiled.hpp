@@ -202,6 +202,7 @@ namespace tiled
 		int getTileOffsetY() const { return tile_offset_y_; }
 
 		rect getImageRect(int local_id) const;
+		KRE::TexturePtr getTexture() const { return texture_; }
 	private:
 		TileSet() = delete;
 
@@ -237,6 +238,7 @@ namespace tiled
 		void setBackgroundColor(const KRE::Color& color) { background_color_ = color; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void addLayer(const Layer& layer) { layers_.emplace_back(layer); }
+		void addTileSet(const TileSet& ts) { tile_sets_.emplace_back(ts); }
 
 		int getTileWidth() const { return tile_width_; }
 		int getTileHeight() const { return tile_height_; }

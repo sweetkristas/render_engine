@@ -556,6 +556,8 @@ int main(int argc, char *argv[])
 		water_tex.preRender(main_wnd);
 		main_wnd->render(&water_tex);
 
+		tiled_map->draw();
+
 		/*scene->renderScene(rman);
 		rman->render(main_wnd);
 

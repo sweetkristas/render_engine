@@ -178,16 +178,22 @@ namespace tiled
 
 		for(auto& v : pt) {
 			if(v.first == "properties") {
+				LOG_DEBUG("parse map properties");
 				auto props = parseProperties(v.second);
-				map_->setProperties(&props);
+				map_->setProperties(&props);				
 			} else if(v.first == "tileset") {
 				parseTileset(v.second);
-			} else if(v.first == "layer") {
-				map_->addLayer(parseLayerElement(v.second));
 			} else if(v.first == "objectgroup") {
 				//parseObjectGroup(v.second);
 			} else if(v.first == "imagelayer") {
 				//parseImageLayer(v.second);
+			}
+		}
+
+		// parse layer's after other since we might parse tileset's out of order.
+		for(auto& v : pt) {
+			if(v.first == "layer") {
+				map_->addLayer(parseLayerElement(v.second));
 			}
 		}
 	}
@@ -252,6 +258,7 @@ namespace tiled
 				ts.addTile(parseTileElement(ts, v.second));
 			}
 		}
+		map_->addTileSet(ts);
 	}
 
 	std::vector<Property> TmxReader::parseProperties(const boost::property_tree::ptree& pt)
