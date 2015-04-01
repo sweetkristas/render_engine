@@ -160,14 +160,15 @@ namespace tiled
 	class TileDefinition
 	{
 	public:
-		explicit TileDefinition(const TileSet& parent, uint32_t local_id);
+		explicit TileDefinition(uint32_t local_id);
 		void addImage(const TileImage& image);
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void setProbability(float p) { probability_ = p; }
 		void setTerrain(const std::array<int, 4>& t) { terrain_ = t; }
 		
 		int getLocalId() const { return local_id_; }
-		const TileSet& getParent() const { return parent_; }
+		KRE::TexturePtr getTexture() const { return texture_; }
+		void setTexture(KRE::TexturePtr tex) { texture_ = tex; }
 	private:
 		TileDefinition() = delete;
 		uint32_t local_id_;
@@ -175,7 +176,7 @@ namespace tiled
 		float probability_;
 		std::vector<Property> properties_;
 		std::vector<ObjectGroup> object_group_;
-		const TileSet& parent_;
+		KRE::TexturePtr texture_;
 	};
 
 	class TileSet

@@ -156,7 +156,7 @@ namespace tiled
 			}
 		}
 		ASSERT_LOG(false, "No tile definition found for local id of: " << local_id << " in tile_set: " << name_ << ", gid: " << first_gid_);
-		static TileDefinition dummy(*this, 0);
+		static TileDefinition dummy(0);
 		return dummy;
 	}
 
@@ -198,20 +198,20 @@ namespace tiled
 		return KRE::Texture::createTexture(surf);
 	}
 
-	TileDefinition::TileDefinition(const TileSet& parent, uint32_t local_id)
+	TileDefinition::TileDefinition(uint32_t local_id)
 		: local_id_(local_id),
 		  terrain_(),
 		  probability_(1.0f),
 		  properties_(),
 		  object_group_(),
-		  parent_(parent)
+		  texture_()
 	{
 		terrain_[0] = terrain_[1] = terrain_[2] = terrain_[3] = -1;
 	}
 	
 	void TileDefinition::addImage(const TileImage& image)
 	{
-		ASSERT_LOG(false, "XXX");
+		texture_ = image.getTexture();
 	}
 
 	Layer::Layer(const std::string& name)
@@ -250,6 +250,7 @@ namespace tiled
 	{
 		// XXX
 		auto canvas = KRE::Canvas::getInstance();
-		canvas->blitTexture(tile_def_.getParent().getTexture(), src_rect_, 0, dest_rect_);
+		ASSERT_LOG(tile_def_.getTexture() != nullptr, "texture was nullptr");
+		canvas->blitTexture(tile_def_.getTexture(), dest_rect_, 0, src_rect_);
 	}
 }

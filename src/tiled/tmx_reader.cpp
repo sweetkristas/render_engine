@@ -224,7 +224,7 @@ namespace tiled
 
 		auto tileheight = attributes->get_child_optional("tileheight");
 		if(tileheight) {
-			max_tile_width = tileheight->get_value<int>();
+			max_tile_height = tileheight->get_value<int>();
 		}
 
 		if(max_tile_width != -1 || max_tile_height != -1) {
@@ -417,7 +417,8 @@ namespace tiled
 	{
 		auto attributes = pt.get_child("<xmlattr>");
 		uint32_t local_id = attributes.get<int>("id");
-		TileDefinition res(ts, local_id);
+		TileDefinition res(local_id);
+		res.setTexture(ts.getTexture());
 
 		auto probability = attributes.get_child_optional("probability");
 		if(probability) {
