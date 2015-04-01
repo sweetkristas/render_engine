@@ -46,6 +46,11 @@ namespace tiled
 			}
 		}
 
+		const uint32_t flipped_horizontally_bit = 0x80000000U;
+		const uint32_t flipped_vertically_bit   = 0x40000000U;
+		const uint32_t flipped_diagonally_bit	= 0x20000000U;
+		const uint32_t flip_mask				= ~(flipped_horizontally_bit | flipped_vertically_bit | flipped_diagonally_bit);
+
 		Orientation convert_orientation(const std::string& o)
 		{
 			if(o == "orthogonal") {
@@ -244,7 +249,7 @@ namespace tiled
 			} else if(v.first == "terraintypes") {
 				ts.setTerrainTypes(parseTerrainTypes(v.second));
 			} else if(v.first == "tile") {
-				ts.addTile(parseTileElement(v.second));
+				ts.addTile(parseTileElement(ts, v.second));
 			}
 		}
 	}
@@ -401,11 +406,11 @@ namespace tiled
 		return res;
 	}
 
-	Tile TmxReader::parseTileElement(const boost::property_tree::ptree& pt)
+	TileDefinition TmxReader::parseTileElement(const TileSet& ts, const boost::property_tree::ptree& pt)
 	{
 		auto attributes = pt.get_child("<xmlattr>");
 		uint32_t local_id = attributes.get<int>("id");
-		Tile res(local_id);
+		TileDefinition res(ts, local_id);
 
 		auto probability = attributes.get_child_optional("probability");
 		if(probability) {
@@ -427,7 +432,7 @@ namespace tiled
 						ASSERT_LOG(n < 4, "parsing too many elements of terrain data" << str);
 						terrain_array[n] = value;
 					} catch(boost::bad_lexical_cast& e) {
-						ASSERT_LOG(false, "Unable to convert string to integer: " << s);
+						ASSERT_LOG(false, "Unable to convert string to integer: " << s << ", " << e.what());
 					}
 				}
 				++n;
@@ -467,8 +472,24 @@ namespace tiled
 				auto props = parseProperties(v.second);
 				res.setProperties(&props);
 			} else if(v.first == "data") {
-				auto data = parseDataElement(v.second);
-				res.setData(&data);
+				int row = 0;
+				int col = 0;
+				for(auto n : parseDataElement(v.second)) {
+					const uint32_t tile_gid = n & flip_mask;
+					const bool flipped_h = n & flipped_horizontally_bit ? true : false;
+					const bool flipped_v = n & flipped_vertically_bit ? true : false;
+					const bool flipped_d = n & flipped_diagonally_bit ? true : false;
+					if(tile_gid != 0) {
+						auto t = map_->createTileInstance(row, col, tile_gid);
+						t->setFlipFlags(flipped_h, flipped_v, flipped_d);
+						res.addTile(t);
+					}
+
+					if(++col >= map_->getWidth()) {
+						col = 0;
+						++row;
+					}
+				}
 			}
 		}
 		return res;

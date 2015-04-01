@@ -66,6 +66,8 @@ namespace tiled
 
 	class Map;
 	typedef std::shared_ptr<Map> MapPtr;
+	class TileDefinition;
+	class TileSet;
 
 	struct Property
 	{
@@ -81,7 +83,6 @@ namespace tiled
 		uint32_t tile_id;
 	};
 
-
 	class ObjectGroup
 	{
 	public:
@@ -89,18 +90,46 @@ namespace tiled
 	private:
 	};
 
+	class Tile
+	{
+	public:
+		Tile(const TileDefinition& td);
+		
+		void setFlipFlags(bool h, bool v, bool d) { 
+			flipped_horizontally_ = h; 
+			flipped_vertically_ = v; 
+			flipped_diagonally_ = d; 
+		}
+
+		void setDestRect(const rect& dst) { dest_rect_ = dst; }
+		void setSrcRect(const rect& src) { src_rect_ = src; }
+
+		void draw() const;
+	private:
+		rect dest_rect_;
+		KRE::TexturePtr texture_;
+		rect src_rect_;
+		bool flipped_horizontally_;
+		bool flipped_vertically_;
+		bool flipped_diagonally_;
+		const TileDefinition& tile_def_;
+	};
+	typedef std::shared_ptr<Tile> TilePtr;
+	typedef std::weak_ptr<Tile> WeakTilePtr;
+
 	class Layer
 	{
 	public:
 		explicit Layer(const std::string& name);
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
-		void setData(std::vector<uint32_t>* data) { tile_data_.swap(*data); }
 		void setOpacity(float o) { opacity_ = o; }
 		void setVisibility(bool visible) { is_visible_ = visible; }
+		void addTile(TilePtr t) { tiles_.emplace_back(t); }
+		void draw() const;
 	private:
 		std::string name_;
 		std::vector<Property> properties_;
-		std::vector<uint32_t> tile_data_;
+		std::vector<TilePtr> tiles_;
 		float opacity_;
 		bool is_visible_;
 	};
@@ -116,6 +145,8 @@ namespace tiled
 		void setWidth(int w) { width_ = w; }
 		void setHeight(int h) { height_ = h; }
 		KRE::TexturePtr getTexture() const;
+		int getWidth() const { return width_; }
+		int getHeight() const { return height_; }
 	private:
 		ImageFormat format_;
 		std::vector<char> data_;
@@ -126,21 +157,25 @@ namespace tiled
 		int height_;
 	};
 
-	class Tile
+	class TileDefinition
 	{
 	public:
-		explicit Tile(uint32_t local_id);
+		explicit TileDefinition(const TileSet& parent, uint32_t local_id);
 		void addImage(const TileImage& image);
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void setProbability(float p) { probability_ = p; }
 		void setTerrain(const std::array<int, 4>& t) { terrain_ = t; }
+		
+		int getLocalId() const { return local_id_; }
+		const TileSet& getParent() const { return parent_; }
 	private:
-		Tile() = delete;
+		TileDefinition() = delete;
 		uint32_t local_id_;
 		std::array<int, 4> terrain_;
 		float probability_;
 		std::vector<Property> properties_;
 		std::vector<ObjectGroup> object_group_;
+		const TileSet& parent_;
 	};
 
 	class TileSet
@@ -156,7 +191,17 @@ namespace tiled
 		void setImage(const TileImage& image);
 		void setTerrainTypes(const std::vector<Terrain>& tt) { terrain_types_ = tt; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
-		void addTile(const Tile& t) { tiles_.emplace_back(t); }
+		void addTile(const TileDefinition& t) { tiles_.emplace_back(t); }
+
+		int getFirstId() const { return first_gid_; }
+		const TileDefinition& getTileDefinition(int local_id) const;
+
+		int getTileWidth() const { return tile_width_; }
+		int getTileHeight() const { return tile_height_; }
+		int getTileOffsetX() const { return tile_offset_x_; }
+		int getTileOffsetY() const { return tile_offset_y_; }
+
+		rect getImageRect(int local_id) const;
 	private:
 		TileSet() = delete;
 
@@ -170,8 +215,10 @@ namespace tiled
 		int tile_offset_y_;
 		std::vector<Property> properties_;
 		std::vector<Terrain> terrain_types_;
-		std::vector<Tile> tiles_;
+		std::vector<TileDefinition> tiles_;
 		KRE::TexturePtr texture_;
+		int image_width_;
+		int image_height_;
 	};
 
 	class Map
@@ -190,6 +237,17 @@ namespace tiled
 		void setBackgroundColor(const KRE::Color& color) { background_color_ = color; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void addLayer(const Layer& layer) { layers_.emplace_back(layer); }
+
+		int getTileWidth() const { return tile_width_; }
+		int getTileHeight() const { return tile_height_; }
+
+		int getWidth() const { return width_; }
+		int getHeight() const { return height_; }
+
+		point getPixelPos(int x, int y) const;
+		TilePtr createTileInstance(int x, int y, int tile_gid);
+
+		void draw() const;
 	private:
 		int width_;
 		int height_;

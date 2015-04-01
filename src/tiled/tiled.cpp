@@ -21,6 +21,7 @@
 	   distribution.
 */
 
+#define HAVE_M_PI
 #include "SDL.h"
 #include "SDL_image.h"
 
@@ -49,6 +50,70 @@ namespace tiled
 		return std::make_shared<Map>();
 	}
 
+	point Map::getPixelPos(int x, int y) const
+	{
+		point p;
+		switch(orientation_) {
+		case Orientation::ORTHOGONAL:
+			p = point(tile_width_ * x, tile_height_ * y);
+			break;
+		case Orientation::ISOMETRIC:
+			p = point((x - y) * tile_width_/2, (x + y) * tile_height_/2);
+			break;
+		case Orientation::STAGGERED:
+			if(stagger_index_ == StaggerIndex::ODD) {
+				p = point((x + y % 2) * tile_width_, y * tile_height_);
+			} else {
+				p = point((x + 1 - (y % 2)) * tile_width_, y * tile_height_);
+			};
+			break;
+		case Orientation::HEXAGONAL: {
+			const int length_one_and_a_half = (3 * hexside_length_) / 2;
+			const int even_length = hexside_length_ * (2 * x + y % 2);
+			const int odd_length = hexside_length_ * (2 * x + 1 - (y % 2));
+			if(stagger_index_ == StaggerIndex::ODD) {
+				if(stagger_direction_ == StaggerDirection::ROWS) {
+					// odd-r
+					p = point(even_length, length_one_and_a_half);
+				} else {
+					// odd-q
+					p = point(odd_length, length_one_and_a_half);
+				}
+			} else {
+				if(stagger_direction_ == StaggerDirection::ROWS) {
+					// even-r
+					p = point(length_one_and_a_half, even_length);
+				} else {
+					// even-q
+					p = point(length_one_and_a_half, odd_length);
+				}
+			}
+			break;
+		}
+		default:
+			ASSERT_LOG(false, "Invalid case for orientation: " << static_cast<int>(orientation_));
+			break;
+		}
+		return p;
+	}
+
+	TilePtr Map::createTileInstance(int x, int y, int tile_gid)
+	{
+		for(auto it = tile_sets_.rbegin(); it != tile_sets_.rend(); ++it) {
+			if(it->getFirstId() <= tile_gid) {
+				auto& td = it->getTileDefinition(tile_gid - it->getFirstId());
+				auto p = getPixelPos(x, y) + point(it->getTileOffsetX(), it->getTileOffsetY());
+				auto t = std::make_shared<Tile>(td);
+				t->setDestRect(rect(p.x, p.y, it->getTileWidth(), it->getTileHeight()));
+				// XXX if the TileDefinition(td) has it's on texture we use those source co-ords.
+				t->setSrcRect(it->getImageRect(td.getLocalId()));
+				return t;
+			}
+		}
+		ASSERT_LOG(false, "Unable to match a tile with gid of: " << tile_gid);
+		return nullptr;
+	}
+
 	TileSet::TileSet(int first_gid)
 		: first_gid_(first_gid),
 		  name_(),
@@ -59,12 +124,35 @@ namespace tiled
 		  tile_offset_x_(0),
 		  tile_offset_y_(0),
 		  properties_(),
-		  terrain_types_()
+		  terrain_types_(),
+		  texture_(),
+		  image_width_(-1),
+		  image_height_(-1)
 	{
+	}
+
+	rect TileSet::getImageRect(int local_id) const
+	{		
+		// XXX we need to check use of margin and spacing for correctness
+		return rect(((local_id + spacing_) * tile_width_) % image_width_, ((local_id + spacing_) * tile_width_) / image_width_, tile_width_, tile_height_);
+	}
+
+	const TileDefinition& TileSet::getTileDefinition(int local_id) const
+	{
+		for(auto& td : tiles_) {
+			if(td.getLocalId() == local_id) {
+				return td;
+			}
+		}
+		ASSERT_LOG(false, "No tile definition found for local id of: " << local_id << " in tile_set: " << name_ << ", gid: " << first_gid_);
+		static TileDefinition dummy(*this, 0);
+		return dummy;
 	}
 
 	void TileSet::setImage(const TileImage& tile_image)
 	{
+		image_width_ = tile_image.getWidth();
+		image_height_ = tile_image.getHeight();
 		texture_ = tile_image.getTexture();
 	}
 
@@ -99,17 +187,18 @@ namespace tiled
 		return KRE::Texture::createTexture(surf);
 	}
 
-	Tile::Tile(uint32_t local_id)
+	TileDefinition::TileDefinition(const TileSet& parent, uint32_t local_id)
 		: local_id_(local_id),
 		  terrain_(),
 		  probability_(1.0f),
 		  properties_(),
-		  object_group_()
+		  object_group_(),
+		  parent_(parent)
 	{
 		terrain_[0] = terrain_[1] = terrain_[2] = terrain_[3] = -1;
 	}
 	
-	void Tile::addImage(const TileImage& image)
+	void TileDefinition::addImage(const TileImage& image)
 	{
 		ASSERT_LOG(false, "XXX");
 	}
@@ -117,9 +206,32 @@ namespace tiled
 	Layer::Layer(const std::string& name)
 		: name_(name),
 		  properties_(),
-		  tile_data_(),
+		  tiles_(),
 		  opacity_(1.0f),
 		  is_visible_(true)
 	{
+	}
+
+	void Layer::draw() const
+	{
+		for(const auto& t : tiles_) {
+			t->draw();
+		}
+	}
+
+	Tile::Tile(const TileDefinition& td)
+		: dest_rect_(),
+		  texture_(),
+		  src_rect_(),
+		  flipped_horizontally_(false),
+		  flipped_vertically_(false),
+		  flipped_diagonally_(false),
+		  tile_def_(td)
+	{
+	}
+
+	void Tile::draw() const
+	{
+		// XXX
 	}
 }
