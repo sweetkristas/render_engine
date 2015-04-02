@@ -499,7 +499,9 @@ int main(int argc, char *argv[])
 
 	auto tiled_map = tiled::Map::create();
 	tiled::TmxReader tmx_reader(tiled_map);
-	tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
+	//tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
+	//tmx_reader.parseFile("data/hex-mini.tmx");
+	tmx_reader.parseFile("data/sewer_tileset.tmx");
 
 	SDL_Event e;
 	bool done = false;
