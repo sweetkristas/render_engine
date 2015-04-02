@@ -488,7 +488,7 @@ namespace tiled
 					const bool flipped_v = n & flipped_vertically_bit ? true : false;
 					const bool flipped_d = n & flipped_diagonally_bit ? true : false;
 					if(tile_gid != 0) {
-						auto t = map_->createTileInstance(row, col, tile_gid);
+						auto t = map_->createTileInstance(col, row, tile_gid);
 						t->setFlipFlags(flipped_h, flipped_v, flipped_d);
 						res.addTile(t);
 					}

@@ -60,7 +60,8 @@ namespace tiled
 		std::unique_ptr<KRE::Canvas::ModelManager> mm_ptr;
 		if(orientation_ == Orientation::ISOMETRIC || orientation_ == Orientation::STAGGERED) {
 			// shift half a screen to center in isometric mode.
-			mm_ptr = std::make_unique<KRE::Canvas::ModelManager>(wnd->width()/2, 0);
+			//mm_ptr = std::make_unique<KRE::Canvas::ModelManager>(wnd->width()/2, 0);
+			mm_ptr = std::unique_ptr<KRE::Canvas::ModelManager>(new KRE::Canvas::ModelManager(wnd->width()/2, 0));
 		}
 		for(const auto& layer : layers_) {
 			layer.draw(orientation_, render_order_);
@@ -121,7 +122,7 @@ namespace tiled
 				const int local_id = tile_gid - it->getFirstId();
 				const TileDefinition* td = it->getTileDefinition(local_id);
 				auto p = getPixelPos(x, y) + point(it->getTileOffsetX(), it->getTileOffsetY());
-				auto t = std::make_shared<Tile>(tile_gid, td != nullptr ? td->getTexture() : it->getTexture());
+				auto t = std::make_shared<Tile>(tile_gid, td != nullptr && td->getTexture() != nullptr ? td->getTexture() : it->getTexture());
 				t->setDestRect(rect(p.x, p.y, it->getTileWidth(), it->getTileHeight()));
 				// XXX if the TileDefinition(td) has it's on texture we use those source co-ords.
 				t->setSrcRect(it->getImageRect(local_id));
