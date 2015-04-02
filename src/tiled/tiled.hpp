@@ -93,7 +93,7 @@ namespace tiled
 	class Tile
 	{
 	public:
-		Tile(const TileDefinition& td);
+		Tile(int gid, KRE::TexturePtr tex);
 		
 		void setFlipFlags(bool h, bool v, bool d) { 
 			flipped_horizontally_ = h; 
@@ -104,15 +104,20 @@ namespace tiled
 		void setDestRect(const rect& dst) { dest_rect_ = dst; }
 		void setSrcRect(const rect& src) { src_rect_ = src; }
 
+		const rect& getSrcRect() const { return src_rect_; }
+		const rect& getDestRect() const { return dest_rect_; }
+
+		int gid() const { return global_id_; }
+
 		void draw() const;
 	private:
+		int global_id_;
 		rect dest_rect_;
 		KRE::TexturePtr texture_;
 		rect src_rect_;
 		bool flipped_horizontally_;
 		bool flipped_vertically_;
 		bool flipped_diagonally_;
-		const TileDefinition& tile_def_;
 	};
 	typedef std::shared_ptr<Tile> TilePtr;
 	typedef std::weak_ptr<Tile> WeakTilePtr;
@@ -120,18 +125,26 @@ namespace tiled
 	class Layer
 	{
 	public:
-		explicit Layer(const std::string& name);
+		explicit Layer(const std::string& name, int w, int h);
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void setOpacity(float o) { opacity_ = o; }
 		void setVisibility(bool visible) { is_visible_ = visible; }
-		void addTile(TilePtr t) { tiles_.emplace_back(t); }
-		void draw() const;
+		void addTile(TilePtr t);
+		void draw(Orientation orientation, RenderOrder render_order) const;
 	private:
+		void drawIsometic(RenderOrder render_order) const;
+		void drawStaggered(RenderOrder render_order) const;
+		void drawOrthogonal(RenderOrder render_order) const;
+		void drawHexagonal(RenderOrder render_order) const;
 		std::string name_;
+		int width_;
+		int height_;
 		std::vector<Property> properties_;
-		std::vector<TilePtr> tiles_;
+		std::vector<std::vector<TilePtr>> tiles_;
 		float opacity_;
 		bool is_visible_;
+		int add_x_;
+		int add_y_;
 	};
 
 	class TileImage
@@ -195,7 +208,7 @@ namespace tiled
 		void addTile(const TileDefinition& t) { tiles_.emplace_back(t); }
 
 		int getFirstId() const { return first_gid_; }
-		const TileDefinition& getTileDefinition(int local_id) const;
+		const TileDefinition* getTileDefinition(int local_id) const;
 
 		int getTileWidth() const { return tile_width_; }
 		int getTileHeight() const { return tile_height_; }
@@ -250,7 +263,7 @@ namespace tiled
 		point getPixelPos(int x, int y) const;
 		TilePtr createTileInstance(int x, int y, int tile_gid);
 
-		void draw() const;
+		void draw(const KRE::WindowPtr& wnd) const;
 	private:
 		int width_;
 		int height_;

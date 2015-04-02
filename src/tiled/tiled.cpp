@@ -26,6 +26,7 @@
 #include "SDL_image.h"
 
 #include "Canvas.hpp"
+#include "WindowManager.hpp"
 
 #include "asserts.hpp"
 #include "tiled.hpp"
@@ -54,10 +55,15 @@ namespace tiled
 		return std::make_shared<Map>();
 	}
 
-	void Map::draw() const
+	void Map::draw(const KRE::WindowPtr& wnd) const
 	{
+		std::unique_ptr<KRE::Canvas::ModelManager> mm_ptr;
+		if(orientation_ == Orientation::ISOMETRIC || orientation_ == Orientation::STAGGERED) {
+			// shift half a screen to center in isometric mode.
+			mm_ptr = std::make_unique<KRE::Canvas::ModelManager>(wnd->width()/2, 0);
+		}
 		for(const auto& layer : layers_) {
-			layer.draw();
+			layer.draw(orientation_, render_order_);
 		}
 	}
 
@@ -105,7 +111,6 @@ namespace tiled
 			ASSERT_LOG(false, "Invalid case for orientation: " << static_cast<int>(orientation_));
 			break;
 		}
-		LOG_DEBUG("pixel pos for (" << x << "," << y << "): " << p);
 		return p;
 	}
 
@@ -113,12 +118,13 @@ namespace tiled
 	{
 		for(auto it = tile_sets_.rbegin(); it != tile_sets_.rend(); ++it) {
 			if(it->getFirstId() <= tile_gid) {
-				auto& td = it->getTileDefinition(tile_gid - it->getFirstId());
+				const int local_id = tile_gid - it->getFirstId();
+				const TileDefinition* td = it->getTileDefinition(local_id);
 				auto p = getPixelPos(x, y) + point(it->getTileOffsetX(), it->getTileOffsetY());
-				auto t = std::make_shared<Tile>(td);
+				auto t = std::make_shared<Tile>(tile_gid, td != nullptr ? td->getTexture() : it->getTexture());
 				t->setDestRect(rect(p.x, p.y, it->getTileWidth(), it->getTileHeight()));
 				// XXX if the TileDefinition(td) has it's on texture we use those source co-ords.
-				t->setSrcRect(it->getImageRect(td.getLocalId()));
+				t->setSrcRect(it->getImageRect(local_id));
 				return t;
 			}
 		}
@@ -146,19 +152,17 @@ namespace tiled
 	rect TileSet::getImageRect(int local_id) const
 	{		
 		// XXX we need to check use of margin and spacing for correctness
-		return rect(((local_id + spacing_) * tile_width_) % image_width_, ((local_id + spacing_) * tile_width_) / image_width_, tile_width_, tile_height_);
+		return rect(((local_id + spacing_) * tile_width_) % image_width_, (((local_id + spacing_) * tile_width_) / image_width_) * tile_height_, tile_width_, tile_height_);
 	}
 
-	const TileDefinition& TileSet::getTileDefinition(int local_id) const
+	const TileDefinition* TileSet::getTileDefinition(int local_id) const
 	{
 		for(auto& td : tiles_) {
 			if(td.getLocalId() == local_id) {
-				return td;
+				return &td;
 			}
 		}
-		ASSERT_LOG(false, "No tile definition found for local id of: " << local_id << " in tile_set: " << name_ << ", gid: " << first_gid_);
-		static TileDefinition dummy(0);
-		return dummy;
+		return nullptr;
 	}
 
 	void TileSet::setImage(const TileImage& tile_image)
@@ -215,43 +219,144 @@ namespace tiled
 		texture_ = image.getTexture();
 	}
 
-	Layer::Layer(const std::string& name)
+	Layer::Layer(const std::string& name, int w, int h)
 		: name_(name),
+		  width_(w),
+		  height_(h),
 		  properties_(),
 		  tiles_(),
 		  opacity_(1.0f),
-		  is_visible_(true)
+		  is_visible_(true),
+		  add_x_(0),
+		  add_y_(0)
 	{
+		tiles_.resize(height_);
+		for(auto& r : tiles_) {
+			r.resize(width_);
+		}
 	}
 
-	void Layer::draw() const
+	void Layer::addTile(TilePtr t)
+	{
+		ASSERT_LOG(add_x_ < width_, "add_x_ >= width_: " << add_x_ << " : " << width_);
+		ASSERT_LOG(add_y_ < height_, "add_y_ >= height_: " << add_y_ << " : " << height_);
+		tiles_[add_y_][add_x_] = t;
+		if(++add_x_ >= width_) {
+			++add_y_;
+			add_x_ = 0;
+		}
+	}
+
+	void Layer::drawIsometic(RenderOrder render_order) const
+	{
+		int limit_x = width_ - 1;
+		int limit_y = height_ - 1;
+		int xend = 0;
+		int ystart = 0;
+		int xstart = 0;
+		int yend = 0;
+		while(true) {
+			for(int x = xstart, y = ystart; x <= xend; ++x) {
+				tiles_[y][x]->draw();
+				//LOG_DEBUG("draw tile at: (" << x << "," << y << "), id: " << tiles_[y][x]->gid() << ", src_rect=" << tiles_[y][x]->getSrcRect());
+				if(--y < yend) {
+					y = yend;
+				}
+			}
+			
+			if(xstart == limit_x && ystart == limit_y) {
+				break;
+			}
+
+			if(++xend > limit_x) {
+				xend = limit_x;
+				++xstart;
+			}
+			if(++ystart > limit_y) {
+				ystart = limit_y;
+				++yend;
+			}
+		}
+	}
+
+	void Layer::drawStaggered(RenderOrder render_order) const
+	{
+		ASSERT_LOG(false, "XXX Layer::drawHexagonal");
+	}
+
+	void Layer::drawOrthogonal(RenderOrder render_order) const
+	{
+		switch(render_order) {
+			case RenderOrder::RIGHT_DOWN: {
+				for(auto& r : tiles_) {
+					for(auto c = r.rbegin(); c != r.rend(); ++c) {
+						(*c)->draw();
+					}
+				}
+				break;
+			}
+			case RenderOrder::RIGHT_UP: {
+				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
+					for(auto c = r->rbegin(); c != r->rend(); ++c) {
+						(*c)->draw();
+					}
+				}
+				break;
+			}
+			case RenderOrder::LEFT_DOWN: {
+				for(auto& r : tiles_) {
+					for(auto& c : r) {
+						c->draw();
+					}
+				}
+				break;
+			}
+			case RenderOrder::LEFT_UP: {
+				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
+					for(auto& c : *r) {
+						c->draw();
+					}
+				}
+				break;
+			}
+		}
+	}
+
+	void Layer::drawHexagonal(RenderOrder render_order) const
+	{
+		ASSERT_LOG(false, "XXX Layer::drawHexagonal");
+	}
+
+	void Layer::draw(Orientation orientation, RenderOrder render_order) const
 	{
 		if(!is_visible_) {
 			return;
 		}
 
 		// XXX apply opacity change here.
-		for(const auto& t : tiles_) {
-			t->draw();
+		switch(orientation) {
+			case Orientation::ORTHOGONAL:	drawOrthogonal(render_order); break;
+			case Orientation::ISOMETRIC:	drawIsometic(render_order); break;
+			case Orientation::STAGGERED:	drawStaggered(render_order); break;
+			case Orientation::HEXAGONAL:	drawHexagonal(render_order); break;
 		}
 	}
 
-	Tile::Tile(const TileDefinition& td)
-		: dest_rect_(),
-		  texture_(),
+	Tile::Tile(int gid, KRE::TexturePtr tex)
+		: global_id_(gid),
+		  dest_rect_(),
+		  texture_(tex),
 		  src_rect_(),
 		  flipped_horizontally_(false),
 		  flipped_vertically_(false),
-		  flipped_diagonally_(false),
-		  tile_def_(td)
+		  flipped_diagonally_(false)
 	{
 	}
 
 	void Tile::draw() const
 	{
-		// XXX
 		auto canvas = KRE::Canvas::getInstance();
-		ASSERT_LOG(tile_def_.getTexture() != nullptr, "texture was nullptr");
-		canvas->blitTexture(tile_def_.getTexture(), dest_rect_, 0, src_rect_);
+		ASSERT_LOG(texture_ != nullptr, "texture was nullptr");
+		canvas->blitTexture(texture_, src_rect_, 0, dest_rect_);
 	}
 }

@@ -466,7 +466,7 @@ namespace tiled
 	{
 		auto attributes = pt.get_child("<xmlattr>");
 		const std::string name = attributes.get_child("name").data();
-		Layer res(name);
+		Layer res(name, map_->getWidth(), map_->getHeight());
 		auto opacity = attributes.get_child_optional("opacity");
 		if(opacity) {
 			res.setOpacity(opacity->get_value<float>());

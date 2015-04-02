@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
 	hints.add("renderer", "opengl");
 	hints.add("dpi_aware", true);
 	hints.add("use_vsync", true);
-	int neww = 800, newh = 600;
+	int neww = 1600, newh = 900;
 	//if(!autoWindowSize(neww, newh)) {
 	//	LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
 	//}
@@ -332,16 +332,16 @@ int main(int argc, char *argv[])
 	SceneGraphPtr scene = SceneGraph::create("main");
 	SceneNodePtr root = scene->getRootNode();
 	root->setNodeName("root_node");
-	auto scenecam = std::make_shared<Camera>("cam0", 0, neww, 0, newh);
+	/*auto scenecam = std::make_shared<Camera>("cam0", 0, neww, 0, newh);
 	scenecam->attachFrustum(std::make_shared<Frustum>());
 	root->attachCamera(scenecam);
 	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
 	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
-	root->attachLight(0, sunlight);
+	root->attachLight(0, sunlight);*/
 
 	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, neww, 0, newh));
 	
-	SquareRenderablePtr square(std::make_shared<SquareRenderable>());
+	/*SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
 	square->setScale(2.0f,2.0f);
 	root->attachObject(square);
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
 	cairo_canvas->setOrder(5);
 	cairo_canvas->setPosition(256.0f,256.0f);
 	cairo_canvas->setColor(1.0f,1.0f,1.0f,1.0f);
-	root->attachObject(cairo_canvas);
+	root->attachObject(cairo_canvas);*/
 
 #if defined(__linux__)
 	std::string psys_test_file = "data/psystem1.cfg";
@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
 #endif
 	ShaderProgram::loadFromVariant(json::parse_from_file(shader_test_file));
 
-	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
+/*	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
 	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
 	tex->setPosition(146.0f/2.0f, newh-130.0f);
 	tex->setOrder(10);
@@ -495,10 +495,11 @@ int main(int argc, char *argv[])
 	water_tex.setPosition(neww/2, newh/2);
 	water_tex.setShader(water_shader);
 	water_tex.addUniformBuffer(std::move(water_uniforms));
+*/
 
 	auto tiled_map = tiled::Map::create();
 	tiled::TmxReader tmx_reader(tiled_map);
-	tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
+	tmx_reader.parseFile("data/small_isometric_grass_and_water.tmx");
 
 	SDL_Event e;
 	bool done = false;
@@ -518,9 +519,9 @@ int main(int argc, char *argv[])
 		main_wnd->clear(ClearFlags::ALL);
 
 		// Called once a cycle before rendering.
-		scene->process(SDL_GetTicks() / 1000.0f);
+		//scene->process(SDL_GetTicks() / 1000.0f);
 
-		tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
+		/*tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		new_tex->setRotation(360.0f - angle, glm::vec3(0.0f,0.0f,1.0f));
 		cairo_canvas->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		angle += angle_step;
@@ -554,9 +555,9 @@ int main(int argc, char *argv[])
 		}
 
 		water_tex.preRender(main_wnd);
-		main_wnd->render(&water_tex);
+		main_wnd->render(&water_tex);*/
 
-		tiled_map->draw();
+		tiled_map->draw(main_wnd);
 
 		/*scene->renderScene(rman);
 		rman->render(main_wnd);
