@@ -291,7 +291,9 @@ namespace tiled
 			case RenderOrder::RIGHT_DOWN: {
 				for(auto& r : tiles_) {
 					for(auto c = r.rbegin(); c != r.rend(); ++c) {
-						(*c)->draw();
+						if(*c) {
+							(*c)->draw();
+						}
 					}
 				}
 				break;
@@ -299,7 +301,9 @@ namespace tiled
 			case RenderOrder::RIGHT_UP: {
 				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
 					for(auto c = r->rbegin(); c != r->rend(); ++c) {
-						(*c)->draw();
+						if(*c) {
+							(*c)->draw();
+						}
 					}
 				}
 				break;
@@ -307,7 +311,9 @@ namespace tiled
 			case RenderOrder::LEFT_DOWN: {
 				for(auto& r : tiles_) {
 					for(auto& c : r) {
-						c->draw();
+						if(c) {
+							c->draw();
+						}
 					}
 				}
 				break;
@@ -315,7 +321,9 @@ namespace tiled
 			case RenderOrder::LEFT_UP: {
 				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
 					for(auto& c : *r) {
-						c->draw();
+						if(c) {
+							c->draw();
+						}
 					}
 				}
 				break;
