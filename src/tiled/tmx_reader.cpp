@@ -306,6 +306,7 @@ namespace tiled
 		auto trans = attributes.get_child_optional("trans");
 		if(trans) {
 			image.setTransparentColor(KRE::Color(trans->data()));
+			LOG_DEBUG("transparent color set to: " << trans->data() << " : " << KRE::Color(trans->data()));
 		}
 
 		auto format = attributes.get_child_optional("format");

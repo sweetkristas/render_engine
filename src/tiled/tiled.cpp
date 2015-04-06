@@ -62,6 +62,8 @@ namespace tiled
 			// shift half a screen to center in isometric mode.
 			//mm_ptr = std::make_unique<KRE::Canvas::ModelManager>(wnd->width()/2, 0);
 			mm_ptr = std::unique_ptr<KRE::Canvas::ModelManager>(new KRE::Canvas::ModelManager(wnd->width()/2, 0));
+		} else if(orientation_ == Orientation::HEXAGONAL) {
+			mm_ptr = std::unique_ptr<KRE::Canvas::ModelManager>(new KRE::Canvas::ModelManager(0, 0, 0.0f, 4.0f));
 		}
 		for(const auto& layer : layers_) {
 			layer.draw(orientation_, render_order_);
@@ -80,13 +82,13 @@ namespace tiled
 			break;
 		case Orientation::STAGGERED:
 			if(stagger_index_ == StaggerIndex::ODD) {
-				p = point((x + y % 2) * tile_width_, y * tile_height_);
+				p = point(x * tile_width_ + (y % 2) * tile_width_ / 2, y * tile_height_ / 2);
 			} else {
-				p = point((x + 1 - (y % 2)) * tile_width_, y * tile_height_);
+				p = point(x * tile_width_ + (1 - (y % 2)) * tile_width_ / 2, y * tile_height_ / 2);
 			};
 			break;
 		case Orientation::HEXAGONAL: {
-			const int length_one_and_a_half = (3 * hexside_length_) / 2;
+			const int length_one_and_a_half = y * (3 * hexside_length_) / 2;
 			const int even_length = hexside_length_ * (2 * x + y % 2);
 			const int odd_length = hexside_length_ * (2 * x + 1 - (y % 2));
 			if(stagger_index_ == StaggerIndex::ODD) {
@@ -153,6 +155,11 @@ namespace tiled
 	rect TileSet::getImageRect(int local_id) const
 	{		
 		// XXX we need to check use of margin and spacing for correctness
+		//
+		const int tiles_per_row = image_width_ / tile_width_;
+		const int row = ((local_id + spacing_) * tile_width_) / image_width_;
+		const int col = local_id - row * tiles_per_row  + spacing_;
+		return rect(col * tile_width_, row * tile_height_, tile_width_, tile_height_);
 		return rect(((local_id + spacing_) * tile_width_) % image_width_, (((local_id + spacing_) * tile_width_) / image_width_) * tile_height_, tile_width_, tile_height_);
 	}
 
@@ -188,7 +195,20 @@ namespace tiled
 	{
 		if(!source_.empty()) {
 			// is a file
-			return KRE::Texture::createTexture(source_);
+			auto old_filter = KRE::Surface::getAlphaFilter();
+			if(has_transparent_color_set_) {
+				LOG_DEBUG("transparent_color=" << transparent_color_);
+				KRE::Color c = transparent_color_;
+				KRE::Surface::setAlphaFilter([c](int r, int g, int b) {
+					return c.ri() == r && c.gi() == g && c.bi() == b;
+				});
+			}
+			auto tex = KRE::Texture::createTexture(source_);
+
+			if(has_transparent_color_set_) {
+				KRE::Surface::setAlphaFilter(old_filter);
+			}
+			return tex;
 		}
 		// is raw data.
 		SDL_Surface* image = IMG_Load_RW(SDL_RWFromConstMem(&data_[0], static_cast<int>(data_.size())), 1);
@@ -199,8 +219,19 @@ namespace tiled
 		Uint32 gmask = image->format->Gmask;
 		Uint32 bmask = image->format->Bmask;
 		Uint32 amask = image->format->Amask;
+		auto old_filter = KRE::Surface::getAlphaFilter();
+		if(has_transparent_color_set_) {
+			LOG_DEBUG("transparent_color=" << transparent_color_);
+			KRE::Color c = transparent_color_;
+			KRE::Surface::setAlphaFilter([c](int r, int g, int b) {
+				return c.ri() == r && c.gi() == g && c.bi() == b;
+			});
+		}
 		KRE::SurfacePtr surf = KRE::Surface::create(image->w, image->h, bpp, image->pitch, rmask, gmask, bmask, amask, image->pixels);		
 		SDL_FreeSurface(image);
+		if(has_transparent_color_set_) {
+			KRE::Surface::setAlphaFilter(old_filter);
+		}
 		return KRE::Texture::createTexture(surf);
 	}
 
@@ -258,7 +289,10 @@ namespace tiled
 		int yend = 0;
 		while(true) {
 			for(int x = xstart, y = ystart; x <= xend; ++x) {
-				tiles_[y][x]->draw();
+				auto& t = tiles_[y][x];
+				if(t) {
+					t->draw();
+				}
 				//LOG_DEBUG("draw tile at: (" << x << "," << y << "), id: " << tiles_[y][x]->gid() << ", src_rect=" << tiles_[y][x]->getSrcRect());
 				if(--y < yend) {
 					y = yend;
@@ -282,7 +316,13 @@ namespace tiled
 
 	void Layer::drawStaggered(RenderOrder render_order) const
 	{
-		ASSERT_LOG(false, "XXX Layer::drawHexagonal");
+		for(auto& r : tiles_) {
+			for(auto c = r.rbegin(); c != r.rend(); ++c) {
+				if(*c) {
+					(*c)->draw();
+				}
+			}
+		}
 	}
 
 	void Layer::drawOrthogonal(RenderOrder render_order) const
@@ -333,7 +373,13 @@ namespace tiled
 
 	void Layer::drawHexagonal(RenderOrder render_order) const
 	{
-		ASSERT_LOG(false, "XXX Layer::drawHexagonal");
+		for(auto& r : tiles_) {
+			for(auto c = r.rbegin(); c != r.rend(); ++c) {
+				if(*c) {
+					(*c)->draw();
+				}
+			}
+		}
 	}
 
 	void Layer::draw(Orientation orientation, RenderOrder render_order) const
