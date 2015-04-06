@@ -137,7 +137,7 @@ namespace json
 					return std::make_tuple(DOCUMENT_END, variant());
 				}
 				if(in_string) {
-					if(*it_ == '"') {
+					if(*it_ == '"' || *it_ == '\'') {
 						++it_;
 						variant string_node(new_string);
 						//if(new_string == "true") {
@@ -205,7 +205,7 @@ namespace json
 						new_string += *it_++;
 					}
 				} else {
-					if(*it_ == '{' || *it_ == '}' || *it_ == '[' || *it_ == ']' || *it_ == ',' || *it_ == ':' || *it_ == '"' || is_space(*it_)) {
+					if(*it_ == '{' || *it_ == '}' || *it_ == '[' || *it_ == ']' || *it_ == ',' || *it_ == ':' || *it_ == '"' || *it_ == '\'' || is_space(*it_)) {
 						if(new_string.empty() == false) {
 							if(new_string == "true") {
 								return std::make_tuple(LIT_TRUE, variant::from_bool(true));
@@ -236,7 +236,7 @@ namespace json
 					} else if(*it_ == ':') {
 						++it_;
 						return std::make_tuple(COLON, variant());
-					} else if(*it_ == '"') {
+					} else if(*it_ == '"' || *it_ == '\'') {
 						in_string = true;
 						++it_;
 					} else if(is_digit(*it_) || *it_ == '-') {
@@ -356,11 +356,11 @@ namespace json
 				if(tok == lexer::LITERAL || tok == lexer::STRING_LITERAL) {
 					key = token_value;
 				} else {
-					throw parse_error(formatter() << "Unexpected token type: " << lexer::token_as_string(tok) << " expected string or literal");
+					throw parse_error(formatter() << "Unexpected token type: " << lexer::token_as_string(tok) << " expected string or literal : " << token_value.to_debug_string());
 				}
 				std::tie(tok, token_value) = lex.get_next_token();
 				if(tok != lexer::COLON) {
-					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok));
+					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok) << " : " << token_value.to_debug_string());
 				}
 				std::tie(tok, token_value) = lex.get_next_token();
 				if(lexer::is_simple_value(tok)) {
@@ -370,7 +370,7 @@ namespace json
 				} else if(tok == lexer::LEFT_BRACKET) {
 					res[key] = read_array(lex);
 				} else {
-					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok));
+					throw parse_error(formatter() << "Expected colon ':' found " << lexer::token_as_string(tok) << " : " << token_value.to_debug_string());
 				}
 				std::tie(tok, token_value) = lex.get_next_token();
 				if(tok == lexer::RIGHT_BRACE) {
