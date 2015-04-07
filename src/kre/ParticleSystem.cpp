@@ -28,6 +28,7 @@
 #include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemParameters.hpp"
 #include "ParticleSystemEmitters.hpp"
+#include "SceneGraph.hpp"
 #include "Shaders.hpp"
 #include "spline.hpp"
 #include "WindowManager.hpp"
@@ -39,6 +40,8 @@ namespace KRE
 	{
 		namespace 
 		{
+			SceneNodeRegistrar<ParticleSystemContainer> psc_register("particle_system_container");
+
 			std::default_random_engine& get_rng_engine() 
 			{
 				static std::unique_ptr<std::default_random_engine> res;
@@ -148,17 +151,17 @@ namespace KRE
 			  scale_dimensions_(1.0f)
 		{
 			ASSERT_LOG(node.has_key("technique"), "Must have a list of techniques to create particles.");
-			ASSERT_LOG(node["technique"].is_map() || node["Technique"].is_list(), "'technique' attribute must be map or list.");
+			ASSERT_LOG(node["technique"].is_map() || node["technique"].is_list(), "'technique' attribute must be map or list." << node["technique"].to_debug_string());
 			if(node["technique"].is_map()) {
-				getParentContainer()->addTechnique(std::make_shared<Technique>(parent, node["technique"]));
+				getParentContainer()->addTechnique(Technique::create(parent, node["technique"]));
 			} else {
 				for(size_t n = 0; n != node["technique"].num_elements(); ++n) {
-					getParentContainer()->addTechnique(std::make_shared<Technique>(parent, node["technique"][n]));
+					getParentContainer()->addTechnique(Technique::create(parent, node["technique"][n]));
 				}
 			}
 			if(node.has_key("fast_forward")) {
 				float ff_time = float(node["fast_forward"]["time"].as_float());
-				float ff_interval = float(node["fast_forward"]["time"].as_float());
+				float ff_interval = float(node["fast_forward"]["interval"].as_float());
 				fast_forward_.reset(new std::pair<float,float>(ff_time, ff_interval));
 			}
 
@@ -169,8 +172,17 @@ namespace KRE
 				scale_time_ = float(node["scale_time"].as_float());
 			}
 			if(node.has_key("scale")) {
-				scale_dimensions_ = variant_to_vec3(node["scale"]);
+				if(node["scale"].is_list()) {
+					scale_dimensions_ = variant_to_vec3(node["scale"]);
+				} else {
+					float s = node["scale"].as_float();
+					scale_dimensions_ = glm::vec3(s, s, s);
+				}
 			}
+		}
+
+		void ParticleSystem::init(const variant& node)
+		{
 			// process "active_techniques" here
 			if(node.has_key("active_techniques")) {
 				if(node["active_techniques"].is_list()) {
@@ -199,6 +211,17 @@ namespace KRE
 			}
 		}
 
+		ParticleSystemPtr ParticleSystem::clone() const
+		{
+			//auto ps = std::make_shared<ParticleSystem>(*this);
+			auto psc = new ParticleSystem(*this);
+			auto ps = std::shared_ptr<ParticleSystem>(psc);
+			for(auto tq : active_techniques_) {
+				ps->active_techniques_.emplace_back(tq->clone());
+			}
+			return ps;
+		}
+
 		ParticleSystemPtr ParticleSystem::get_this_ptr()
 		{
 			return std::static_pointer_cast<ParticleSystem>(shared_from_this());
@@ -214,9 +237,6 @@ namespace KRE
 		{
 			if(ps.fast_forward_) {
 				fast_forward_.reset(new std::pair<float,float>(ps.fast_forward_->first, ps.fast_forward_->second));
-			}
-			for(auto tq : ps.active_techniques_) {
-				active_techniques_.emplace_back(TechniquePtr(new Technique(*tq)));
 			}
 		}
 
@@ -236,6 +256,7 @@ namespace KRE
 
 		void ParticleSystem::handleEmitProcess(float t)
 		{
+			t *= scale_time_;
 			update(static_cast<float>(t));
 			elapsed_time_ += static_cast<float>(t);
 		}
@@ -248,7 +269,17 @@ namespace KRE
 
 		ParticleSystemPtr ParticleSystem::factory(std::weak_ptr<ParticleSystemContainer> parent, const variant& node)
 		{
-			return std::make_shared<ParticleSystem>(parent, node);
+			auto ps = std::make_shared<ParticleSystem>(parent, node);
+			ps->init(node);
+			return ps;
+		}
+
+
+		TechniquePtr Technique::create(std::weak_ptr<ParticleSystemContainer> parent, const variant& node)
+		{
+			auto tq = std::make_shared<Technique>(parent, node);
+			tq->init(node);
+			return tq;
 		}
 
 		Technique::Technique(std::weak_ptr<ParticleSystemContainer> parent, const variant& node)
@@ -265,7 +296,7 @@ namespace KRE
 		{
 			ASSERT_LOG(node.has_key("visual_particle_quota"), "'Technique' must have 'visual_particle_quota' attribute.");
 			particle_quota_ = node["visual_particle_quota"].as_int32();
-			ASSERT_LOG(node.has_key("material"), "'Technique' must have 'material' attribute.");
+			ASSERT_LOG(node.has_key("texture"), "'Technique' must have 'material' attribute.");
 			//ASSERT_LOG(node.has_key("renderer"), "'Technique' must have 'renderer' attribute.");
 			//renderer_.reset(new renderer(node["renderer"]));
 			if(node.has_key("emitter")) {
@@ -294,6 +325,10 @@ namespace KRE
 				max_velocity_.reset(new float(node["max_velocity"].as_float()));
 			}
 
+		}
+
+		void Technique::init(const variant& node)
+		{
 			// conditional addition of emitters/affectors
 			if(node.has_key("active_emitters")) {
 				std::vector<std::string> active_emitters = node["active_emitters"].as_list_string();
@@ -325,7 +360,7 @@ namespace KRE
 			// In order to create as few re-allocations of particles, reserve space here
 			active_particles_.reserve(particle_quota_);
 
-			init();
+			initAttributes();
 		}
 
 		ParticleSystemPtr Technique::getParticleSystem() const
@@ -358,20 +393,8 @@ namespace KRE
 			if(tq.max_velocity_) {
 				max_velocity_.reset(new float(*tq.max_velocity_));
 			}
-			// XXX I'm not sure this should clone all the currently active 
-			// emitters/affectors, or whether we should maintain a list of 
-			// emitters/affectors that were initially specified.
-			for(auto e : tq.active_emitters_) {
-				active_emitters_.emplace_back(EmitterPtr(e->clone()));
-				active_emitters_.back()->setParentTechnique(shared_from_this());
-			}
-			for(auto a : tq.active_affectors_) {
-				active_affectors_.emplace_back(AffectorPtr(a->clone()));
-				active_affectors_.back()->setParentTechnique(shared_from_this());
-			}
-			active_particles_.reserve(particle_quota_);
 
-			init();
+			initAttributes();
 		}
 
 		void Technique::setParent(std::weak_ptr<ParticleSystem> parent)
@@ -433,7 +456,7 @@ namespace KRE
 				if(max_velocity_ && e->current.velocity*glm::length(e->current.direction) > *max_velocity_) {
 					e->current.direction *= *max_velocity_ / glm::length(e->current.direction);
 				}
-				e->current.position += e->current.direction * /*scale_velocity * */ static_cast<float>(t);
+				e->current.position += e->current.direction * getParticleSystem()->getScaleVelocity() * static_cast<float>(t);
 				//std::cerr << *e << std::endl;
 			}
 
@@ -443,7 +466,7 @@ namespace KRE
 					p.current.direction *= *max_velocity_ / glm::length(p.current.direction);
 				}
 
-				p.current.position += p.current.direction * /*scale_velocity * */ static_cast<float>(t);
+				p.current.position += p.current.direction * getParticleSystem()->getScaleVelocity() * static_cast<float>(t);
 
 				//std::cerr << p << std::endl;
 			}
@@ -452,7 +475,7 @@ namespace KRE
 			//std::cerr << "XXX: Active Emitter Count: " << active_emitters_.size() << std::endl;
 		}
 
-		void Technique::init()
+		void Technique::initAttributes()
 		{
 			// XXX We need to render to a billboard style renderer ala 
 			// http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/billboards/
@@ -461,9 +484,11 @@ namespace KRE
 			AddUniformRenderVariable(urv_);
 			urv_->Update(glm::vec4(1.0f,1.0f,1.0f,1.0f));*/
 
-			auto as = DisplayDevice::createAttributeSet(true, false ,true);
+			setShader(ShaderProgram::getProgram("vtc_shader"));
+
+			//auto as = DisplayDevice::createAttributeSet(true, false ,true);
+			auto as = DisplayDevice::createAttributeSet(true, false, false);
 			as->setDrawMode(DrawMode::TRIANGLES);
-			addAttributeSet(as);
 
 			arv_ = std::make_shared<Attribute<vertex_texture_color3>>(AccessFreqHint::DYNAMIC);
 			arv_->addAttributeDesc(AttributeDesc(AttrType::POSITION, 3, AttrFormat::FLOAT, false, sizeof(vertex_texture_color3), offsetof(vertex_texture_color3, vertex)));
@@ -471,6 +496,7 @@ namespace KRE
 			arv_->addAttributeDesc(AttributeDesc(AttrType::COLOR, 4, AttrFormat::UNSIGNED_BYTE, true, sizeof(vertex_texture_color3), offsetof(vertex_texture_color3, color)));
 
 			as->addAttribute(arv_);
+			addAttributeSet(as);
 
 			setOrder(1);
 		}
@@ -491,7 +517,7 @@ namespace KRE
 			}
 			arv_->update(&vtc);
 
-			getAttributeSet().back()->setCount(active_particles_.size());
+			//getAttributeSet().back()->setCount(active_particles_.size());
 		}
 
 		ParticleSystemContainer::ParticleSystemContainer(std::weak_ptr<SceneGraph> sg, const variant& node) 
@@ -545,9 +571,9 @@ namespace KRE
 
 		ParticleSystemContainerPtr ParticleSystemContainer::create(std::weak_ptr<SceneGraph> sg, const variant& node)
 		{
-			auto ps = new ParticleSystemContainer(sg, node);
+			auto ps = std::make_shared<ParticleSystemContainer>(sg, node);
 			ps->init(node);
-			return ParticleSystemContainerPtr(ps);
+			return ps;
 		}
 
 		void ParticleSystemContainer::process(float delta_time)
@@ -598,7 +624,7 @@ namespace KRE
 		{
 			for(auto tq : techniques_) {
 				if(tq->name() == name) {
-					return std::make_shared<Technique>(*tq);
+					return tq->clone();
 				}
 			}
 			ASSERT_LOG(false, "Technique not found: " << name);
@@ -631,16 +657,34 @@ namespace KRE
 		{
 			std::vector<ParticleSystemPtr> res;
 			for(auto ps : particle_systems_) {
-				res.emplace_back(std::make_shared<ParticleSystem>(*ps));
+				res.emplace_back(ps->clone());
 			}
 			return res;
+		}
+
+		TechniquePtr Technique::clone() const
+		{
+			auto tq = std::make_shared<Technique>(*this);
+			// XXX I'm not sure this should clone all the currently active 
+			// emitters/affectors, or whether we should maintain a list of 
+			// emitters/affectors that were initially specified.
+			for(auto e : active_emitters_) {
+				tq->active_emitters_.emplace_back(EmitterPtr(e->clone()));
+				tq->active_emitters_.back()->setParentTechnique(tq);
+			}
+			for(auto a : active_affectors_) {
+				tq->active_affectors_.emplace_back(AffectorPtr(a->clone()));
+				tq->active_affectors_.back()->setParentTechnique(tq);
+			}
+			tq->active_particles_.reserve(particle_quota_);
+			return tq;
 		}
 		
 		std::vector<TechniquePtr> ParticleSystemContainer::cloneTechniques()
 		{
 			std::vector<TechniquePtr> res;
 			for(auto tq : techniques_) {
-				res.emplace_back(std::make_shared<Technique>(*tq));
+				res.emplace_back(tq->clone());
 			}
 			return res;
 		}
@@ -669,6 +713,8 @@ namespace KRE
 			ASSERT_LOG(parent.lock() != nullptr, "parent is null");
 			if(node.has_key("name")) {
 				name_ = node["name"].as_string();
+			} else if(node.has_key("id")) {
+				name_ = node["id"].as_string();
 			} else {
 				std::stringstream ss;
 				ss << "emit_object_" << int(get_random_float());

@@ -40,7 +40,8 @@ namespace KRE
 				  circle_radius_(Parameter::factory(node["circle_radius"])),
 				  circle_step_(node["circle_step"].as_float(0.1f)), 
 				  circle_angle_(node["circle_angle"].as_float(0)), 
-				  circle_random_(node["emit_random"].as_bool(true)) {
+				  circle_random_(node["emit_random"].as_bool(true))
+			{
 			}
 		protected:
 			void internalCreate(Particle& p, float t) {
@@ -155,11 +156,11 @@ namespace KRE
 		public:
 			SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
 				: Emitter(parent, node), 
-				  radius_(node["radius"].as_float(1.0)) 
+				  radius_(node["radius"].as_float(1.0f)) 
 			{}
 		protected:
 			void internalCreate(Particle& p, float t) {
-				float theta = get_random_float(0, 2.0f*static_cast<float>(M_PI));
+				float theta = get_random_float(0, 2.0f * static_cast<float>(M_PI));
 				float phi = acos(get_random_float(-1.0f, 1.0f));
 				p.initial.position.x += radius_ * sin(phi) * cos(theta);
 				p.initial.position.y += radius_ * sin(phi) * sin(theta);

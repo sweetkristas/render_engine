@@ -39,7 +39,6 @@ namespace KRE
 		explicit Renderable();
 		explicit Renderable(size_t order);
 		explicit Renderable(const variant& node);
-		Renderable(const Renderable&);
 		virtual ~Renderable();
 
 		void setPosition(const glm::vec3& position);
@@ -56,6 +55,8 @@ namespace KRE
 		const glm::vec3& getScale() const { return scale_; }
 
 		glm::mat4 getModelMatrix() const;
+		bool ignoreGlobalModelMatrix() const { return ignore_global_model_; }
+		void useGlobalModelMatrix(bool en=true) { ignore_global_model_ = en; }
 
 		size_t getOrder() const { return order_; }
 		void setOrder(size_t o) { order_ = o; }
@@ -111,5 +112,6 @@ namespace KRE
 		std::vector<AttributeSetPtr> attributes_;
 		//std::vector<UniformBufferBase> uniforms_;
 		bool enabled_;
+		bool ignore_global_model_;
 	};
 }

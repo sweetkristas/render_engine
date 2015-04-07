@@ -42,7 +42,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
-		  enabled_(true)
+		  enabled_(true),
+		  ignore_global_model_(false)
 	{
 	}
 
@@ -52,7 +53,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
-		  enabled_(true)
+		  enabled_(true),
+		  ignore_global_model_(false)
 	{
 	}
 
@@ -62,7 +64,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
-		  enabled_(true)
+		  enabled_(true),
+		  ignore_global_model_(node["ignore_global_model"].as_bool(false))
 	{
 		if(node.has_key("order")) {
 			order_ = node["order"].as_int32();
@@ -138,27 +141,17 @@ namespace KRE
 		} else if(node.has_key("image")) {
 			texture_ = Texture::createTexture(node["image"]);			
 		}
-	}
 
-	Renderable::Renderable(const Renderable& r)
-		: order_(r.order_),
-		  position_(r.position_),
-		  rotation_(r.rotation_),
-		  scale_(r.scale_),
-		  camera_(r.camera_),
-		  lights_(),
-		  texture_(r.texture_ ? r.texture_->clone() : nullptr),
-		  render_target_(r.render_target_ ? r.render_target_->clone() : nullptr),
-		  shader_(r.shader_),
-		  attributes_(r.attributes_),
-		  enabled_(r.enabled_)
-	{
-		for(auto& l : r.lights_) {
-			lights_[l.first] = l.second->clone();
+		if(node.has_key("depth_check")) {
+			setDepthEnable(node["depth_check"].as_bool());
 		}
-		//for(auto& att : r.attributes_) {
-		//	attributes_.emplace_back(att->clone());
-		//}
+		if(node.has_key("depth_write")) {
+			setDepthWrite(node["depth_write"].as_bool());
+		}
+		// XXX add depth function.
+		if(node.has_key("use_lighting")) {
+			enableLighting(node["use_lighting"].as_bool());
+		}
 	}
 
 	Renderable::~Renderable()

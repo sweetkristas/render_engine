@@ -136,6 +136,7 @@
     <ClInclude Include="..\src\kre\SceneUtil.hpp" />
     <ClInclude Include="..\src\kre\Scissor.hpp" />
     <ClInclude Include="..\src\kre\ScissorOGL.hpp" />
+    <ClInclude Include="..\src\kre\ScopeableValue.hpp" />
     <ClInclude Include="..\src\kre\SDLWrapper.hpp" />
     <ClInclude Include="..\src\kre\Shaders.hpp" />
     <ClInclude Include="..\src\kre\ShadersOGL.hpp" />

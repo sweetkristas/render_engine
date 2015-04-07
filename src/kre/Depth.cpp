@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2003-2013 by Kristina Simpson <sweet.kristas@gmail.com>
+	Copyright (C) 2013-2014 by Kristina Simpson <sweet.kristas@gmail.com>
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -21,33 +21,8 @@
 	   distribution.
 */
 
-#pragma once
+#include "Depth.hpp"
 
-#include <vector>
-#include <string>
-
-#define DISALLOW_ASSIGN(TypeName) \
-	void operator=(const TypeName&)
-
-#define DISALLOW_ASSIGN_AND_DEFAULT(TypeName) \
-    TypeName();                                     \
-	void operator=(const TypeName&)
-
-#define DISALLOW_COPY_AND_ASSIGN(TypeName)  \
-    TypeName(const TypeName&);              \
-    void operator=(const TypeName&)
-
-#define DISALLOW_COPY_ASSIGN_AND_DEFAULT(TypeName)  \
-    TypeName();                                     \
-    TypeName(const TypeName&);                      \
-    void operator=(const TypeName&)
-
-namespace Util
+namespace KRE
 {
-	enum class SplitFlags {
-		NONE					= 0,
-		ALLOW_EMPTY_STRINGS		= 1,
-	};
-
-	std::vector<std::string> split(const std::string& s, const std::string& eol, SplitFlags flags=SplitFlags::NONE);
 }

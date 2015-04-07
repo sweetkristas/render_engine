@@ -13,6 +13,7 @@
 #include "Canvas.hpp"
 #include "Font.hpp"
 #include "LightObject.hpp"
+#include "ModelMatrixScope.hpp"
 #include "ParticleSystem.hpp"
 #include "Renderable.hpp"
 #include "RenderManager.hpp"
@@ -340,14 +341,14 @@ int main(int argc, char *argv[])
 	root->attachLight(0, sunlight);*/
 
 	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, neww, 0, newh));
-	
+
+	auto rman = std::make_shared<RenderManager>();
+	auto rq = rman->addQueue(0, "opaques");
+
 	/*SquareRenderablePtr square(std::make_shared<SquareRenderable>());
 	square->setPosition(600.0f, 400.0f);
 	square->setScale(2.0f,2.0f);
 	root->attachObject(square);
-
-	auto rman = std::make_shared<RenderManager>();
-	auto rq = rman->addQueue(0, "opaques");
 
 	auto cairo_canvas = Vector::Context::CreateInstance("cairo", 512, 512);
 	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
@@ -373,17 +374,22 @@ int main(int argc, char *argv[])
 #else
 	std::string psys_test_file = "../data/psystem1.cfg";
 #endif
-	//auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
-	//auto particle_cam = std::make_shared<Camera>("particle_cam");
-	//particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-	//psystem->attachCamera(particle_cam);
-	//root->attachNode(psystem);
-	//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
-	//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
-	//rt->SetDrawRect(rect(400,300,400,300));
-	//rt->Create();
-	//psystem->AttachRenderTarget(rt);
-	//root->AttachObject(rt);
+	try {
+		auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
+		//auto particle_cam = std::make_shared<Camera>("particle_cam");
+		//particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
+		//psystem->attachCamera(particle_cam);
+		root->attachNode(psystem);
+		//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
+		//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
+		//rt->SetDrawRect(rect(400,300,400,300));
+		//rt->Create();
+		//psystem->AttachRenderTarget(rt);
+		//root->AttachObject(rt);
+	} catch(json::parse_error& e) {
+		LOG_ERROR("parse error: " << e.what());
+		throw(e);
+	}
 
 #if defined(__linux__)
 	std::string shader_test_file = "data/shaders.cfg";
@@ -497,12 +503,14 @@ int main(int argc, char *argv[])
 	water_tex.addUniformBuffer(std::move(water_uniforms));
 */
 
-	auto tiled_map = tiled::Map::create();
+	/*auto tiled_map = tiled::Map::create();
 	tiled::TmxReader tmx_reader(tiled_map);
 	//tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
 	tmx_reader.parseFile("data/hex-mini.tmx");
 	//tmx_reader.parseFile("data/sewer_tileset.tmx");
-	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");
+	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");*/
+
+	Uint32 last_tick_time = SDL_GetTicks();
 
 	SDL_Event e;
 	bool done = false;
@@ -522,7 +530,9 @@ int main(int argc, char *argv[])
 		main_wnd->clear(ClearFlags::ALL);
 
 		// Called once a cycle before rendering.
-		//scene->process(SDL_GetTicks() / 1000.0f);
+		Uint32 current_tick_time = SDL_GetTicks();
+		scene->process((current_tick_time - last_tick_time) / 1000.0f);
+		last_tick_time = current_tick_time;
 
 		/*tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
 		new_tex->setRotation(360.0f - angle, glm::vec3(0.0f,0.0f,1.0f));
@@ -560,12 +570,13 @@ int main(int argc, char *argv[])
 		water_tex.preRender(main_wnd);
 		main_wnd->render(&water_tex);*/
 
-		tiled_map->draw(main_wnd);
+		//tiled_map->draw(main_wnd);
 
-		/*scene->renderScene(rman);
+		ModelManager2D mm(400,300);
+		scene->renderScene(rman);
 		rman->render(main_wnd);
 
-		free_tex->preRender(main_wnd);
+		/*free_tex->preRender(main_wnd);
 		main_wnd->render(free_tex.get());
 
 		text_tex->preRender(main_wnd);
