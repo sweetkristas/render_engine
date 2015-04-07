@@ -468,10 +468,10 @@ namespace KRE
 
 				p.current.position += p.current.direction * getParticleSystem()->getScaleVelocity() * static_cast<float>(t);
 
-				//std::cerr << p << std::endl;
+				std::cerr << p << std::endl;
 			}
 
-			//std::cerr << "XXX: Active Particle Count: " << active_particles_.size() << std::endl;
+			std::cerr << "XXX: Active Particle Count: " << active_particles_.size() << std::endl;
 			//std::cerr << "XXX: Active Emitter Count: " << active_emitters_.size() << std::endl;
 		}
 

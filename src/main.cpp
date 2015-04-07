@@ -370,9 +370,11 @@ int main(int argc, char *argv[])
 	root->attachObject(cairo_canvas);*/
 
 #if defined(__linux__)
-	std::string psys_test_file = "data/psystem1.cfg";
+	//std::string psys_test_file = "data/psystem1.cfg";
+	std::string psys_test_file = "data/psystem2.cfg";
 #else
-	std::string psys_test_file = "../data/psystem1.cfg";
+	//std::string psys_test_file = "../data/psystem1.cfg";
+	std::string psys_test_file = "../data/psystem2.cfg";
 #endif
 	try {
 		auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));

@@ -261,6 +261,9 @@ namespace KRE
 				end.a = node["end_colour_range"][3].as_int32();
 				color_range_.reset(new color_range(std::make_pair(start,end)));
 			}
+			if(node.has_key("all_dimensions")) {
+				particle_depth_ = particle_height_ = particle_width_ = Parameter::factory(node["all_dimensions"]);
+			}
 			if(node.has_key("particle_width")) {
 				particle_width_ = Parameter::factory(node["particle_width"]);
 			}

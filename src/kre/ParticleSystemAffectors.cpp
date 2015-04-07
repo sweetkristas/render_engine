@@ -564,8 +564,13 @@ namespace KRE
 			: Affector(parent, node), 
 			  operation_(TimeColorAffector::COLOR_OP_SET)
 		{
-			if(node.has_key("colour_operation")) {
-				const std::string& op = node["colour_operation"].as_string();
+			std::string op;
+			if(node.has_key("color_operation")) {
+				op = node["color_operation"].as_string();
+			} else if(node.has_key("colour_operation")) {
+				op = node["colour_operation"].as_string();
+			}
+			if(!op.empty()) {
 				if(op == "multiply") {
 					operation_ = COLOR_OP_MULTIPLY;
 				} else if(op == "set") {
