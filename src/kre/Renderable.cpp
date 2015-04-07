@@ -157,6 +157,7 @@ namespace KRE
 		// XXX add depth function.
 		if(node.has_key("use_lighting")) {
 			enableLighting(node["use_lighting"].as_bool());
+		}
 	}
 
 	Renderable::~Renderable()
