@@ -45,4 +45,8 @@
 namespace Util
 {
 	std::vector<std::string> split(const std::string& s, const std::string& eol);
+		NONE					= 0,
+		ALLOW_EMPTY_STRINGS		= 1,
+
+	std::vector<std::string> split(const std::string& s, const std::string& eol, SplitFlags flags=SplitFlags::NONE);
 }

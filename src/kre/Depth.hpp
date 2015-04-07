@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2003-2013 by Kristina Simpson <sweet.kristas@gmail.com>
+	Copyright (C) 2013-2014 by Kristina Simpson <sweet.kristas@gmail.com>
 	
 	This software is provided 'as-is', without any express or implied
 	warranty. In no event will the authors be held liable for any damages
@@ -21,25 +21,35 @@
 	   distribution.
 */
 
-#include "Util.hpp"
+#pragma once
 
-namespace Util
+#include "variant.hpp"
+
+namespace KRE
 {
-	std::vector<std::string> split(const std::string& str, const std::string& delimiters, SplitFlags flags)
-	{
-		std::vector<std::string> v;
-		std::string::size_type start = 0;
-		auto pos = str.find_first_of(delimiters, start);
-		while(pos != std::string::npos) {
-			if(pos != start && flags != SplitFlags::ALLOW_EMPTY_STRINGS) { // ignore empty tokens
-				v.emplace_back(str, start, pos - start);
-			}
-			start = pos + 1;
-			pos = str.find_first_of(delimiters, start);
-		}
-		if(start < str.length()) { // ignore trailing delimiter
-			v.emplace_back(str, start, str.length() - start); // add what's left of the string
-		}
-		return v;
-	}
+    class DepthRange
+    {
+    public:
+        
+    private:
+        float near_;
+        float far_;
+    };
+    
+    enum class DepthComparison {
+        NEVER,
+        LESS,
+        EQUAL,
+        LESS_OR_EQUAL,
+        GREATER,
+        NOT_EQUAL,
+        GREATER_OR_EQUAL,
+        ALWAYS,
+    };
+    
+    class DepthFunc
+    {
+    public:
+    private:
+    };
 }
