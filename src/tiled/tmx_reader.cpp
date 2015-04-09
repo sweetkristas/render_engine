@@ -463,23 +463,23 @@ namespace tiled
 		return res;
 	}
 
-	Layer TmxReader::parseLayerElement(const boost::property_tree::ptree& pt)
+	std::shared_ptr<Layer> TmxReader::parseLayerElement(const boost::property_tree::ptree& pt)
 	{
 		auto attributes = pt.get_child("<xmlattr>");
 		const std::string name = attributes.get_child("name").data();
-		Layer res(name, map_->getWidth(), map_->getHeight());
+		std::shared_ptr<Layer> res = std::make_shared<Layer>(map_, name);
 		auto opacity = attributes.get_child_optional("opacity");
 		if(opacity) {
-			res.setOpacity(opacity->get_value<float>());
+			res->setOpacity(opacity->get_value<float>());
 		}
 		auto visible = attributes.get_child_optional("visible");
 		if(visible) {
-			res.setVisibility(visible->get_value<int>() != 0 ? true : false);
+			res->setVisibility(visible->get_value<int>() != 0 ? true : false);
 		}
 		for(auto& v : pt) {
 			if(v.first == "properties") {
 				auto props = parseProperties(v.second);
-				res.setProperties(&props);
+				res->setProperties(&props);
 			} else if(v.first == "data") {
 				int row = 0;
 				int col = 0;
@@ -491,7 +491,7 @@ namespace tiled
 					if(tile_gid != 0) {
 						auto t = map_->createTileInstance(col, row, tile_gid);
 						t->setFlipFlags(flipped_h, flipped_v, flipped_d);
-						res.addTile(t);
+						res->addTile(t);
 					}
 
 					if(++col >= map_->getWidth()) {

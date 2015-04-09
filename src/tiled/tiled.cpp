@@ -25,16 +25,23 @@
 #include "SDL.h"
 #include "SDL_image.h"
 
-#include "Canvas.hpp"
+#include "Shaders.hpp"
+#include "SceneGraph.hpp"
 #include "WindowManager.hpp"
 
 #include "asserts.hpp"
 #include "tiled.hpp"
+#include "tmx_reader.hpp"
 
 namespace tiled
 {
-	Map::Map()
-		: width_(-1),
+	using namespace KRE;
+
+	SceneNodeRegistrar<Map> psc_register("tiled_map");
+
+	Map::Map(std::weak_ptr<KRE::SceneGraph> sg, const variant& node)
+		: SceneNode(sg, node),
+		  width_(-1),
 		  height_(-1),
 		  tile_width_(-1),
 		  tile_height_(-1),
@@ -50,23 +57,30 @@ namespace tiled
 	{
 	}
 
-	MapPtr Map::create()
+	MapPtr Map::get_this_pointer()
 	{
-		return std::make_shared<Map>();
+		return std::static_pointer_cast<Map>(shared_from_this());
 	}
 
-	void Map::draw(const KRE::WindowPtr& wnd) const
+	void Map::init(const variant& node)
 	{
-		std::unique_ptr<KRE::Canvas::ModelManager> mm_ptr;
-		if(orientation_ == Orientation::ISOMETRIC || orientation_ == Orientation::STAGGERED) {
-			// shift half a screen to center in isometric mode.
-			//mm_ptr = std::make_unique<KRE::Canvas::ModelManager>(wnd->width()/2, 0);
-			mm_ptr = std::unique_ptr<KRE::Canvas::ModelManager>(new KRE::Canvas::ModelManager(wnd->width()/2, 0));
-		} else if(orientation_ == Orientation::HEXAGONAL) {
-			mm_ptr = std::unique_ptr<KRE::Canvas::ModelManager>(new KRE::Canvas::ModelManager(0, 0, 0.0f, 4.0f));
+		if(node.has_key("tmx")) {
+			tiled::TmxReader tmx_reader(get_this_pointer());
+			tmx_reader.parseFile(node["tmx"].as_string());
 		}
-		for(const auto& layer : layers_) {
-			layer.draw(orientation_, render_order_);
+	}
+
+	MapPtr Map::create(std::weak_ptr<KRE::SceneGraph> sg, const variant& node)
+	{
+		auto map = std::make_shared<Map>(sg, node);
+		map->init(node);
+		return map;
+	}
+
+	void Map::notifyNodeAttached(std::weak_ptr<SceneNode> parent)
+	{
+		for(auto& layer : layers_) {
+			attachObject(layer);
 		}
 	}
 
@@ -251,20 +265,64 @@ namespace tiled
 		texture_ = image.getTexture();
 	}
 
-	Layer::Layer(const std::string& name, int w, int h)
-		: name_(name),
-		  width_(w),
-		  height_(h),
+	Layer::Layer(MapPtr parent, const std::string& name)
+		: SceneObject("tiled::Layer"),
+		  name_(name),
+		  width_(parent->getWidth()),
+		  height_(parent->getHeight()),
 		  properties_(),
 		  tiles_(),
 		  opacity_(1.0f),
 		  is_visible_(true),
 		  add_x_(0),
-		  add_y_(0)
+		  add_y_(0),
+		  tiles_changed_(true),
+		  parent_map_(parent),
+		  attr_()
 	{
 		tiles_.resize(height_);
 		for(auto& r : tiles_) {
 			r.resize(width_);
+		}
+
+		setShader(ShaderProgram::getSystemDefault());
+
+		//auto as = DisplayDevice::createAttributeSet(true, false ,true);
+		auto as = DisplayDevice::createAttributeSet(true, false, false);
+		as->setDrawMode(DrawMode::TRIANGLES);
+
+		attr_ = std::make_shared<Attribute<vertex_texcoord>>(AccessFreqHint::DYNAMIC);
+		attr_->addAttributeDesc(AttributeDesc(AttrType::POSITION, 2, AttrFormat::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, vtx)));
+		attr_->addAttributeDesc(AttributeDesc(AttrType::TEXTURE, 2, AttrFormat::FLOAT, false, sizeof(vertex_texcoord), offsetof(vertex_texcoord, tc)));
+
+		as->addAttribute(attr_);
+		addAttributeSet(as);
+	}
+
+	MapPtr Layer::getParentMap() const
+	{
+		auto parent = parent_map_.lock();
+		ASSERT_LOG(parent != nullptr, "Failed to lock parent map.");
+		return parent;
+	}
+
+	void Layer::preRender(const KRE::WindowPtr& wnd)
+	{
+		Renderable::enable(is_visible_);
+
+		if(tiles_changed_) {
+			tiles_changed_ = false;
+
+			std::vector<vertex_texcoord> tiles;
+			MapPtr parent = getParentMap();
+			switch(parent->getOrientation()) {
+				case Orientation::ISOMETRIC:	drawIsometic(parent->getRenderOrder(), &tiles); break;
+				case Orientation::ORTHOGONAL:	drawOrthogonal(parent->getRenderOrder(), &tiles); break;
+				case Orientation::STAGGERED:	drawStaggered(parent->getRenderOrder(), &tiles); break;
+				case Orientation::HEXAGONAL:	drawHexagonal(parent->getRenderOrder(), &tiles); break;
+				default: break;
+			}
+			attr_->update(&tiles);
 		}
 	}
 
@@ -277,9 +335,12 @@ namespace tiled
 			++add_y_;
 			add_x_ = 0;
 		}
+		// XXX this is a horribly hack. We really need a better way to deal with tiles with seperate textures than the tileset.
+		// Ideally they'd need to go on there own seperate layers.
+		setTexture(t->getTexture());
 	}
 
-	void Layer::drawIsometic(RenderOrder render_order) const
+	void Layer::drawIsometic(RenderOrder render_order, std::vector<vertex_texcoord>* tiles) const
 	{
 		int limit_x = width_ - 1;
 		int limit_y = height_ - 1;
@@ -291,7 +352,7 @@ namespace tiled
 			for(int x = xstart, y = ystart; x <= xend; ++x) {
 				auto& t = tiles_[y][x];
 				if(t) {
-					t->draw();
+					t->draw(tiles);
 				}
 				//LOG_DEBUG("draw tile at: (" << x << "," << y << "), id: " << tiles_[y][x]->gid() << ", src_rect=" << tiles_[y][x]->getSrcRect());
 				if(--y < yend) {
@@ -314,25 +375,25 @@ namespace tiled
 		}
 	}
 
-	void Layer::drawStaggered(RenderOrder render_order) const
+	void Layer::drawStaggered(RenderOrder render_order, std::vector<vertex_texcoord>* tiles) const
 	{
 		for(auto& r : tiles_) {
 			for(auto c = r.rbegin(); c != r.rend(); ++c) {
 				if(*c) {
-					(*c)->draw();
+					(*c)->draw(tiles);
 				}
 			}
 		}
 	}
 
-	void Layer::drawOrthogonal(RenderOrder render_order) const
+	void Layer::drawOrthogonal(RenderOrder render_order, std::vector<vertex_texcoord>* tiles) const
 	{
 		switch(render_order) {
 			case RenderOrder::RIGHT_DOWN: {
 				for(auto& r : tiles_) {
 					for(auto c = r.rbegin(); c != r.rend(); ++c) {
 						if(*c) {
-							(*c)->draw();
+							(*c)->draw(tiles);
 						}
 					}
 				}
@@ -342,7 +403,7 @@ namespace tiled
 				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
 					for(auto c = r->rbegin(); c != r->rend(); ++c) {
 						if(*c) {
-							(*c)->draw();
+							(*c)->draw(tiles);
 						}
 					}
 				}
@@ -352,7 +413,7 @@ namespace tiled
 				for(auto& r : tiles_) {
 					for(auto& c : r) {
 						if(c) {
-							c->draw();
+							c->draw(tiles);
 						}
 					}
 				}
@@ -362,7 +423,7 @@ namespace tiled
 				for(auto r = tiles_.rbegin(); r != tiles_.rend(); ++r) {
 					for(auto& c : *r) {
 						if(c) {
-							c->draw();
+							c->draw(tiles);
 						}
 					}
 				}
@@ -371,29 +432,14 @@ namespace tiled
 		}
 	}
 
-	void Layer::drawHexagonal(RenderOrder render_order) const
+	void Layer::drawHexagonal(RenderOrder render_order, std::vector<vertex_texcoord>* tiles) const
 	{
 		for(auto& r : tiles_) {
 			for(auto c = r.rbegin(); c != r.rend(); ++c) {
 				if(*c) {
-					(*c)->draw();
+					(*c)->draw(tiles);
 				}
 			}
-		}
-	}
-
-	void Layer::draw(Orientation orientation, RenderOrder render_order) const
-	{
-		if(!is_visible_) {
-			return;
-		}
-
-		// XXX apply opacity change here.
-		switch(orientation) {
-			case Orientation::ORTHOGONAL:	drawOrthogonal(render_order); break;
-			case Orientation::ISOMETRIC:	drawIsometic(render_order); break;
-			case Orientation::STAGGERED:	drawStaggered(render_order); break;
-			case Orientation::HEXAGONAL:	drawHexagonal(render_order); break;
 		}
 	}
 
@@ -408,10 +454,15 @@ namespace tiled
 	{
 	}
 
-	void Tile::draw() const
+	void Tile::draw(std::vector<vertex_texcoord>* tiles) const
 	{
-		auto canvas = KRE::Canvas::getInstance();
-		ASSERT_LOG(texture_ != nullptr, "texture was nullptr");
-		canvas->blitTexture(texture_, src_rect_, 0, dest_rect_);
+		rectf src = texture_->getTextureCoords<int>(0, src_rect_);
+		tiles->emplace_back(glm::vec2(dest_rect_.x1(), dest_rect_.y1()), glm::vec2(src.x1(), src.y1()));
+		tiles->emplace_back(glm::vec2(dest_rect_.x2(), dest_rect_.y1()), glm::vec2(src.x2(), src.y()));
+		tiles->emplace_back(glm::vec2(dest_rect_.x2(), dest_rect_.y2()), glm::vec2(src.x2(), src.y2()));
+
+		tiles->emplace_back(glm::vec2(dest_rect_.x2(), dest_rect_.y2()), glm::vec2(src.x2(), src.y2()));
+		tiles->emplace_back(glm::vec2(dest_rect_.x1(), dest_rect_.y1()), glm::vec2(src.x1(), src.y1()));
+		tiles->emplace_back(glm::vec2(dest_rect_.x1(), dest_rect_.y2()), glm::vec2(src.x1(), src.y2()));
 	}
 }

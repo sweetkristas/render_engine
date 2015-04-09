@@ -27,7 +27,11 @@
 #include <cstdint>
 #include <memory>
 
+#include "AttributeSet.hpp"
 #include "Color.hpp"
+#include "DisplayDeviceFwd.hpp"
+#include "SceneNode.hpp"
+#include "SceneObject.hpp"
 #include "Texture.hpp"
 
 namespace tiled
@@ -107,9 +111,11 @@ namespace tiled
 		const rect& getSrcRect() const { return src_rect_; }
 		const rect& getDestRect() const { return dest_rect_; }
 
+		KRE::TexturePtr getTexture() const { return texture_; }
+
 		int gid() const { return global_id_; }
 
-		void draw() const;
+		void draw(std::vector<KRE::vertex_texcoord>* tiles) const;
 	private:
 		int global_id_;
 		rect dest_rect_;
@@ -122,20 +128,21 @@ namespace tiled
 	typedef std::shared_ptr<Tile> TilePtr;
 	typedef std::weak_ptr<Tile> WeakTilePtr;
 
-	class Layer
+	class Layer : public KRE::SceneObject
 	{
 	public:
-		explicit Layer(const std::string& name, int w, int h);
+		explicit Layer(MapPtr parent, const std::string& name);
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
 		void setOpacity(float o) { opacity_ = o; }
 		void setVisibility(bool visible) { is_visible_ = visible; }
 		void addTile(TilePtr t);
-		void draw(Orientation orientation, RenderOrder render_order) const;
+		void preRender(const KRE::WindowPtr& wnd) override;
+		MapPtr getParentMap() const;
 	private:
-		void drawIsometic(RenderOrder render_order) const;
-		void drawStaggered(RenderOrder render_order) const;
-		void drawOrthogonal(RenderOrder render_order) const;
-		void drawHexagonal(RenderOrder render_order) const;
+		void drawIsometic(RenderOrder render_order, std::vector<KRE::vertex_texcoord>* tiles) const;
+		void drawStaggered(RenderOrder render_order, std::vector<KRE::vertex_texcoord>* tiles) const;
+		void drawOrthogonal(RenderOrder render_order, std::vector<KRE::vertex_texcoord>* tiles) const;
+		void drawHexagonal(RenderOrder render_order, std::vector<KRE::vertex_texcoord>* tiles) const;
 		std::string name_;
 		int width_;
 		int height_;
@@ -145,6 +152,11 @@ namespace tiled
 		bool is_visible_;
 		int add_x_;
 		int add_y_;
+		bool tiles_changed_;
+		
+		std::weak_ptr<Map> parent_map_;
+
+		std::shared_ptr<KRE::Attribute<KRE::vertex_texcoord>> attr_;
 	};
 
 	class TileImage
@@ -236,11 +248,11 @@ namespace tiled
 		int image_height_;
 	};
 
-	class Map
+	class Map : public KRE::SceneNode
 	{
 	public:
-		Map();
-		static MapPtr create();
+		explicit Map(std::weak_ptr<KRE::SceneGraph> sg, const variant& node);
+		static MapPtr create(std::weak_ptr<KRE::SceneGraph> sg, const variant& node);
 
 		void setDimensions(int w, int h) { width_ = w; height_ = h; }
 		void setTileDimensions(int w, int h) { tile_width_ = w; tile_height_ = h; }
@@ -251,8 +263,11 @@ namespace tiled
 		void setHexsideLength(int length) { hexside_length_ = length; }
 		void setBackgroundColor(const KRE::Color& color) { background_color_ = color; }
 		void setProperties(std::vector<Property>* props) { properties_.swap(*props); }
-		void addLayer(const Layer& layer) { layers_.emplace_back(layer); }
+		void addLayer(std::shared_ptr<Layer> layer) { layers_.emplace_back(layer); }
 		void addTileSet(const TileSet& ts) { tile_sets_.emplace_back(ts); }
+
+		Orientation getOrientation() const { return orientation_; }
+		RenderOrder getRenderOrder() const { return render_order_; }
 
 		int getTileWidth() const { return tile_width_; }
 		int getTileHeight() const { return tile_height_; }
@@ -262,8 +277,6 @@ namespace tiled
 
 		point getPixelPos(int x, int y) const;
 		TilePtr createTileInstance(int x, int y, int tile_gid);
-
-		void draw(const KRE::WindowPtr& wnd) const;
 	private:
 		int width_;
 		int height_;
@@ -278,6 +291,10 @@ namespace tiled
 
 		std::vector<TileSet> tile_sets_;
 		std::vector<Property> properties_;
-		std::vector<Layer> layers_;
+		std::vector<std::shared_ptr<Layer>> layers_;
+
+		MapPtr get_this_pointer();
+		void init(const variant& node);
+		void notifyNodeAttached(std::weak_ptr<SceneNode> parent);
 	};
 }
