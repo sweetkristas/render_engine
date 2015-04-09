@@ -546,11 +546,18 @@ std::ostream& operator<<(std::ostream& os, const variant& n)
 
 glm::vec3 variant_to_vec3(const variant& v)
 {
-	ASSERT_LOG(v.is_list() && v.num_elements() == 3, "Expected vec3 variant but found " << v);
-	glm::vec3 result;
+	if(v.is_numeric()) {
+		return glm::vec3(v.as_float(), 0.0f, 0.0f);
+	}
+	ASSERT_LOG(v.is_list() && v.num_elements() > 0 && v.num_elements() <= 3, "Expected vec3 variant but found " << v);
+	glm::vec3 result(0.0f);
 	result[0] = v[0].as_float();
-	result[1] = v[1].as_float();
-	result[2] = v[2].as_float();
+	if(v.num_elements() >= 2) {
+		result[1] = v[1].as_float();
+	}
+	if(v.num_elements() >= 3) {
+		result[2] = v[2].as_float();
+	}
 	return result;
 }
 

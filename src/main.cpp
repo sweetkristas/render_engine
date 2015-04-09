@@ -505,12 +505,16 @@ int main(int argc, char *argv[])
 	water_tex.addUniformBuffer(std::move(water_uniforms));
 */
 
-	/*auto tiled_map = tiled::Map::create();
-	tiled::TmxReader tmx_reader(tiled_map);
+	variant_builder tmxvar;
+	tmxvar.add("tmx", "data/isometric_grass_and_water.tmx");
+	auto tiled_map = scene->createNode("tiled_map", tmxvar.build());
+	tiled_map->setPosition(main_wnd->width() / 2, 0);
+	//tiled::TmxReader tmx_reader(std::dynamic_pointer_cast<tiled::Map>(tiled_map));
 	//tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
-	tmx_reader.parseFile("data/hex-mini.tmx");
+	//tmx_reader.parseFile("data/hex-mini.tmx");
 	//tmx_reader.parseFile("data/sewer_tileset.tmx");
-	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");*/
+	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");
+	root->attachNode(tiled_map);
 
 	Uint32 last_tick_time = SDL_GetTicks();
 
@@ -574,7 +578,7 @@ int main(int argc, char *argv[])
 
 		//tiled_map->draw(main_wnd);
 
-		ModelManager2D mm(400,300);
+		//ModelManager2D mm(400,300);
 		scene->renderScene(rman);
 		rman->render(main_wnd);
 
