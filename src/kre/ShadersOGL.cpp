@@ -830,7 +830,11 @@ namespace KRE
 			ASSERT_LOG(value != nullptr, "setUniformValue(): value is nullptr");
 			switch(u.type) {
 			case GL_FLOAT: {
-				glUniform1f(u.location, *value);
+				if(u.num_elements > 1) {
+					glUniform1fv(u.location, u.num_elements, value);
+				} else {
+					glUniform1f(u.location, *value);
+				}
 				break;
 			}
 			case GL_FLOAT_VEC2: {

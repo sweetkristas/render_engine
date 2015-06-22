@@ -333,7 +333,7 @@ namespace KRE
 		// XXX we should make this either or with setting the mvp/color uniforms above.
 		auto uniform_draw_fn = shader->getUniformDrawFunction();
 		if(uniform_draw_fn) {
-			uniform_draw_fn();
+			uniform_draw_fn(shader);
 		}
 
 		// Loop through uniform render variables and set them.
@@ -499,7 +499,7 @@ namespace KRE
 			// N.B. glViewPort has the origin in the bottom-left corner. Hence the modification
 			// to the y value.
 			auto wnd = getParentWindow();
-			glViewport(x, wnd->height() - (y + height), width, height);
+			glViewport(x, /*wnd->height() - (y + height)*/y, width, height);
 		}
 	}
 
@@ -508,7 +508,7 @@ namespace KRE
 		if(get_current_viewport() != vp && vp.w() != 0 && vp.h() != 0) {
 			get_current_viewport() = vp;
 			auto wnd = getParentWindow();
-			glViewport(vp.x(), wnd->height() - vp.y2(), vp.w(), vp.h());
+			glViewport(vp.x(), /*wnd->height() - vp.y2()*/vp.y(), vp.w(), vp.h());
 		}
 	}
 

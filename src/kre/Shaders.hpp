@@ -48,7 +48,7 @@ namespace KRE
 		ShaderAttributeError(const char* what) : std::runtime_error(what) {}
 	};
 	
-	typedef std::function<void()> UniformSetFn;
+	typedef std::function<void(ShaderProgramPtr shader)> UniformSetFn;
 
 	class ShaderProgram
 	{

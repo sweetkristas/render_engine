@@ -132,6 +132,49 @@ namespace
 	typedef std::shared_ptr<SquareRenderable> SquareRenderablePtr;
 }
 
+class SimpleRenderable : public KRE::SceneObject
+{
+public:
+	explicit SimpleRenderable(const rect& r, const KRE::Color& color)
+		: KRE::SceneObject("simple_renderable")
+	{
+		init();
+
+		setColor(color);
+
+		const float vx1 = static_cast<float>(r.x1());
+		const float vy1 = static_cast<float>(r.y1());
+		const float vx2 = static_cast<float>(r.x2());
+		const float vy2 = static_cast<float>(r.y2());
+
+		std::vector<glm::vec2> vc;
+		vc.emplace_back(vx1, vy2);
+		vc.emplace_back(vx1, vy1);
+		vc.emplace_back(vx2, vy1);
+
+		vc.emplace_back(vx2, vy1);
+		vc.emplace_back(vx2, vy2);
+		vc.emplace_back(vx1, vy2);
+		attribs_->update(&vc);
+	}
+	void init(KRE::DrawMode draw_mode = KRE::DrawMode::TRIANGLES)
+	{
+		using namespace KRE;
+		setShader(ShaderProgram::getProgram("simple"));
+
+		auto as = DisplayDevice::createAttributeSet();
+		attribs_.reset(new KRE::Attribute<glm::vec2>(AccessFreqHint::DYNAMIC, AccessTypeHint::DRAW));
+		attribs_->addAttributeDesc(AttributeDesc(AttrType::POSITION, 2, AttrFormat::FLOAT, false));
+		as->addAttribute(AttributeBasePtr(attribs_));
+		as->setDrawMode(draw_mode);
+		
+		addAttributeSet(as);
+	}
+private:
+	std::shared_ptr<KRE::Attribute<glm::vec2>> attribs_;
+};
+
+
 struct SimpleTextureHolder : public KRE::Blittable
 {
 	SimpleTextureHolder(const std::string& filename) {
@@ -369,6 +412,42 @@ void texture_packing_test()
 		LOG_DEBUG("New rect: " << r);
 	}
 	// output surface available as tp.getOutputSurface()
+}
+
+std::vector<float> generate_gaussian(float sigma, int radius = 4)
+{
+	std::vector<float> std_gaussian_weights;
+	float weights_sum = 0;
+	const float sigma_pow_2 = std::pow(sigma, 2.0f);
+	const float term1 = (1.0f / std::sqrt(2.0f * static_cast<float>(M_PI) * sigma_pow_2));
+	for(int n = 0; n < radius + 1; ++n) {
+		std_gaussian_weights.emplace_back(term1 * std::exp(-std::pow(static_cast<float>(n), 2.0f) / (2.0f * sigma_pow_2)));
+		weights_sum += (n == 0 ? 1.0f : 2.0f) * std_gaussian_weights.back();
+	}
+	// normalise weights
+	for(auto& weight : std_gaussian_weights) {
+		weight /= weights_sum;
+	}
+
+	std::vector<float> res;
+	for(auto it = std_gaussian_weights.crbegin(); it != std_gaussian_weights.crend(); ++it) {
+		res.emplace_back(*it);
+	}
+	for(auto it = std_gaussian_weights.cbegin()+1; it != std_gaussian_weights.cend(); ++it) {
+		res.emplace_back(*it);
+	}
+
+	std::stringstream ss;
+	ss << "Gaussian(sigma=" << sigma << ", radius=" << radius << "):";
+	for(auto it = std_gaussian_weights.crbegin(); it != std_gaussian_weights.crend(); ++it) {
+		ss << " " << (*it);
+	}
+	//ss << " " << std_gaussian_weights[0];
+	for(auto it = std_gaussian_weights.cbegin()+1; it != std_gaussian_weights.cend(); ++it) {
+		ss << " " << (*it);
+	}
+	LOG_DEBUG(ss.str());
+	return res;
 }
 
 int main(int argc, char *argv[])
@@ -612,25 +691,75 @@ int main(int argc, char *argv[])
 	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");
 	//root->attachNode(tiled_map);
 
+	//auto blue_box = std::make_shared<BlurredBlittable>("blue_box3.png");
+	//const int bbox_w = blue_box->getTexture()->width();
+	//const int bbox_h = blue_box->getTexture()->height();
+	//blue_box->setCentre(Blittable::Centre::TOP_LEFT);
+	//blue_box->setPosition(0, 0);
+	//blue_box->setCamera(std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h));
+	const int bbox_w = 512;
+	const int bbox_h = 256;
+	auto sr = std::make_shared<SimpleRenderable>(rect(24, 24, bbox_w-48, bbox_h-48), Color(0, 0, 0, 255));
+	CameraPtr box_cam = std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h);
+	sr->setCamera(box_cam);
+	RenderTargetPtr rt = RenderTarget::create(bbox_w, bbox_h);
+	rt->getTexture()->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+	rt->getTexture()->setAddressModes(-1, Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
+	rt->setCentre(Blittable::Centre::TOP_LEFT);
+		rt->setClearColor(Color(128,128,128,0));
+		rt->apply(rect(0, 0, bbox_w, bbox_h));
+		rt->clear();
+		//blue_box->preRender(main_wnd);
+		//main_wnd->render(blue_box.get());
+		sr->preRender(main_wnd);
+		main_wnd->render(sr.get());
+		rt->unapply();
+	//root->attachObject(rt);	
+	auto shader_blur = ShaderProgram::getProgram("blur2");
+	rt->setShader(shader_blur);
+	const int blur_two = shader_blur->getUniform("texel_width_offset");
+	const int blur_tho = shader_blur->getUniform("texel_height_offset");
+	const int u_gaussian = shader_blur->getUniform("gaussian");
+	std::vector<float> gaussian = generate_gaussian(20.0f, 7);//{ 0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f };
+	shader_blur->setUniformDrawFunction([blur_two, blur_tho, bbox_h, gaussian, u_gaussian](ShaderProgramPtr shader){ 
+		shader->setUniformValue(u_gaussian, &gaussian[0]);
+		shader->setUniformValue(blur_two, 0.0f);
+		shader->setUniformValue(blur_tho, 1.0f / (bbox_h - 1.0f));
+	});
+	//rt->setOrder(1);
+	RenderTargetPtr rt2 = RenderTarget::create(bbox_w, bbox_h);
+	rt2->setCentre(Blittable::Centre::TOP_LEFT);
+	rt2->setClearColor(Color(0,0,0,0));
+	{
+		rt->setCamera(box_cam);
+		RenderTarget::RenderScope rs(rt2, rect(0, 0, bbox_w, bbox_h));
+		rt->preRender(main_wnd);
+		main_wnd->render(rt.get());
+
+		rt2->setShader(shader_blur);
+		const int blur_two = shader_blur->getUniform("texel_width_offset");
+		const int blur_tho = shader_blur->getUniform("texel_height_offset");
+		shader_blur->setUniformDrawFunction([blur_two, blur_tho, bbox_w](ShaderProgramPtr shader){ 
+			shader->setUniformValue(blur_two, 1.0f / (bbox_w - 1.0f));
+			shader->setUniformValue(blur_tho, 0.0f);
+		});
+		//rt->setOrder(1);
+		//shader_blur->makeActive();
+		//shader_blur->setUniformValue(blur_two, 1.0f / (bbox_w - 1.0f));
+		//shader_blur->setUniformValue(blur_tho, 0.0f);
+	}
+	rt2->setOrder(1);
+	root->attachObject(rt2);
+
+	auto sr_blue = std::make_shared<SimpleRenderable>(rect(32, 32, bbox_w-64, bbox_h-64), Color::colorBlue());
+	sr_blue->setOrder(999);
+	root->attachObject(sr_blue);
+
+	//auto bb2 = std::make_shared<SimpleTextureHolder>("blue_box2.png");
+	//root->attachObject(bb2);	
 	{
 	//"deephelm-explorer.png"
-	auto blue_box = std::make_shared<BlurredBlittable>("blue_box2.png");
-	const int bbox_w = blue_box->getTexture()->width();
-	const int bbox_h = blue_box->getTexture()->height();
 	//root->attachObject(blue_box);
-	blue_box->setCentre(Blittable::Centre::TOP_LEFT);
-	blue_box->setPosition(0, 0);
-	//blue_box->setDrawRect(rect(0, 0, bbox_w, bbox_h));
-	RenderTargetPtr rt = RenderTarget::create(neww-100, newh-100);
-	blue_box->setCamera(std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h));
-	rt->setClearColor(Color(128,128,128,128));
-	rt->apply(/*rect(0, 0, neww-100, newh-100)*/);
-	rt->clear();
-	blue_box->preRender(main_wnd);
-	main_wnd->render(blue_box.get());
-	rt->unapply();
-	root->attachObject(rt);	
-	rt->setCentre(Blittable::Centre::TOP_LEFT);
 	//auto shader = ShaderProgram::getProgram("blur2");
 	//int two = shader->getUniform("texel_width_offset");
 	//int tho = shader->getUniform("texel_height_offset");
@@ -656,6 +785,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
+		main_wnd->setClearColor(KRE::Color(255, 255, 255, 255));
 		main_wnd->clear(ClearFlags::ALL);
 
 		// Called once a cycle before rendering.
