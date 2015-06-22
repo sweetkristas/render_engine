@@ -144,6 +144,102 @@ struct SimpleTextureHolder : public KRE::Blittable
 	}
 };
 
+KRE::ShaderProgramPtr generateBlurShader(const std::string& name, float sigma, int radius)
+{
+	using namespace KRE;
+
+	std::vector<float> std_gaussian_weights;
+	float weights_sum = 0;
+	const float sigma_pow_2 = std::pow(sigma, 2.0f);
+	const float term1 = (1.0f / std::sqrt(2.0f * static_cast<float>(M_PI) * sigma_pow_2));
+	for(int n = 0; n < radius + 2; ++n) {
+		std_gaussian_weights.emplace_back(term1 * std::exp(-std::pow(static_cast<float>(n), 2.0f) / (2.0f * sigma_pow_2)));
+		weights_sum += (n == 0 ? 1.0f : 2.0f) * std_gaussian_weights.back();
+	}
+	// normalise weights
+	for(auto& weight : std_gaussian_weights) {
+		weight /= weights_sum;
+	}
+
+	int optimized_offsets = std::min(radius/2 + (radius%2), 7);
+	std::vector<float> opt_gaussian_weights;
+	opt_gaussian_weights.resize(optimized_offsets);
+	for(int n = 0; n < optimized_offsets; ++n) {
+		const float first_weight = std_gaussian_weights[n * 2 + 1];
+		const float second_weight = std_gaussian_weights[n * 2 + 2];
+		const float sum_weights = first_weight + second_weight;
+		opt_gaussian_weights[n] = (first_weight * static_cast<float>(n * 2 + 1) + second_weight * static_cast<float>(n * 2 + 1)) / sum_weights;
+	}
+
+	std::stringstream v_shader;
+	v_shader << "uniform mat4 mvp_matrix;\n"
+			<< "attribute vec2 position;\n"
+			<< "attribute vec4 texcoord;\n"
+			<< "uniform float texel_width_offset;\n"
+			<< "uniform float texel_height_offset;\n"
+			<< "varying vec2 blur_coords[" << (optimized_offsets * 2 + 1) << "];\n"
+			<< "void main() {\n"
+			<< "    gl_Position = mvp_matrix * vec4(position, 0.0, 1.0);\n"
+			<< "    vec2 step_offset = vec2(texel_width_offset, texel_height_offset);\n"
+			<< "    blur_coords[0] = texcoord.xy;\n"
+			;
+	for(int n = 0; n < optimized_offsets; ++n) {
+		v_shader << "    blur_coords[" << (n * 2 + 1) << "] = texcoord.xy + step_offset * " << opt_gaussian_weights[n] << ";\n";
+		v_shader << "    blur_coords[" << (n * 2 + 2) << "] = texcoord.xy + step_offset * " << opt_gaussian_weights[n] << ";\n";
+	}
+	v_shader << "}\n";
+
+	std::stringstream f_shader;
+	f_shader << "uniform sampler2D tex_map;\n"
+		<< "varying highp vec2 blur_coords[" << (optimized_offsets * 2 + 1) << "];\n"
+		<< "void main() {\n"
+		<< "    lowp vec4 sum = vec4(0.0);\n"
+		<< "    sum += texture2D(tex_map, blur_coords[0]) * " << std_gaussian_weights[0] << ";\n"
+		;
+	for(int n = 0; n < optimized_offsets; ++n) {
+		const float first_weight = std_gaussian_weights[n * 2 + 1];
+		const float second_weight = std_gaussian_weights[n * 2 + 2];
+		const float sum_weights = first_weight + second_weight;
+		f_shader 
+			<< "    sum += texture2D(tex_map, blur_coords[" << (n * 2 + 1) << "]) * " << sum_weights << ";\n"
+			<< "    sum += texture2D(tex_map, blur_coords[" << (n * 2 + 2) << "]) * " << sum_weights << ";\n"
+			;
+	}
+	f_shader << "gl_FragColor = sum;\n}\n";
+
+	variant_builder sp;
+	sp.add("vertex", v_shader.str());
+	sp.add("fragment", f_shader.str());
+	sp.add("name", name);
+	ShaderProgram::loadFromVariant(sp.build());
+	return ShaderProgram::getProgram(name);
+}
+
+struct BlurredBlittable : public KRE::Blittable
+{
+	explicit BlurredBlittable(const std::string& filename) {
+		using namespace KRE;
+		setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		//auto shader = ShaderProgram::getProgram("blur1");
+		//auto shader = generateBlurShader("blur-5.0-4", 5.0f, 9);
+		auto shader = ShaderProgram::getProgram("blur2");
+		two_ = shader->getUniform("texel_width_offset");
+		tho_ = shader->getUniform("texel_height_offset");
+
+		setShader(shader);
+
+		auto tex = Texture::createTexture(filename, TextureType::TEXTURE_2D, 4);
+		tex->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
+		tex->setAddressModes(-1, Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
+		setTexture(tex);
+
+		shader->setUniformValue(two_, 1.0f / (tex->width()-1));
+		shader->setUniformValue(tho_, /*1.0f / (tex->height()-1)*/0.0f);
+	}
+	int two_;
+	int tho_;
+};
+
 struct FreeTextureHolder : public KRE::SceneObject
 {
 	FreeTextureHolder(KRE::SurfacePtr surface)
@@ -381,7 +477,7 @@ int main(int argc, char *argv[])
 		//auto particle_cam = std::make_shared<Camera>("particle_cam");
 		//particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
 		//psystem->attachCamera(particle_cam);
-		root->attachNode(psystem);
+		//root->attachNode(psystem);
 		//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
 		//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
 		//rt->SetDrawRect(rect(400,300,400,300));
@@ -514,7 +610,34 @@ int main(int argc, char *argv[])
 	//tmx_reader.parseFile("data/hex-mini.tmx");
 	//tmx_reader.parseFile("data/sewer_tileset.tmx");
 	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");
-	root->attachNode(tiled_map);
+	//root->attachNode(tiled_map);
+
+	{
+	//"deephelm-explorer.png"
+	auto blue_box = std::make_shared<BlurredBlittable>("blue_box2.png");
+	const int bbox_w = blue_box->getTexture()->width();
+	const int bbox_h = blue_box->getTexture()->height();
+	//root->attachObject(blue_box);
+	blue_box->setCentre(Blittable::Centre::TOP_LEFT);
+	blue_box->setPosition(0, 0);
+	//blue_box->setDrawRect(rect(0, 0, bbox_w, bbox_h));
+	RenderTargetPtr rt = RenderTarget::create(neww-100, newh-100);
+	blue_box->setCamera(std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h));
+	rt->setClearColor(Color(128,128,128,128));
+	rt->apply(/*rect(0, 0, neww-100, newh-100)*/);
+	rt->clear();
+	blue_box->preRender(main_wnd);
+	main_wnd->render(blue_box.get());
+	rt->unapply();
+	root->attachObject(rt);	
+	rt->setCentre(Blittable::Centre::TOP_LEFT);
+	//auto shader = ShaderProgram::getProgram("blur2");
+	//int two = shader->getUniform("texel_width_offset");
+	//int tho = shader->getUniform("texel_height_offset");
+	//rt->setShader(shader);
+	//shader->setUniformValue(two, 0.0f);
+	//shader->setUniformValue(tho, 1.0f/(bbox_h-1));
+	}
 
 	Uint32 last_tick_time = SDL_GetTicks();
 

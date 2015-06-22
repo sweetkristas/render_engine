@@ -505,7 +505,7 @@ namespace KRE
 
 	void DisplayDeviceOpenGL::setViewPort(const rect& vp)
 	{
-		if(get_current_viewport() != vp) {
+		if(get_current_viewport() != vp && vp.w() != 0 && vp.h() != 0) {
 			get_current_viewport() = vp;
 			auto wnd = getParentWindow();
 			glViewport(vp.x(), wnd->height() - vp.y2(), vp.w(), vp.h());
