@@ -42,6 +42,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
+		  stencil_settings_(false, StencilFace::FRONT_AND_BACK, StencilFunc::EQUAL, 0x01, 0x01, 0xff, StencilOperation::KEEP, StencilOperation::KEEP, StencilOperation::KEEP),
+		  stencil_mask_(nullptr),
 		  enabled_(true),
 		  ignore_global_model_(false),
 		  derived_position_(0.0f),
@@ -56,6 +58,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
+		  stencil_settings_(false, StencilFace::FRONT_AND_BACK, StencilFunc::EQUAL, 0x01, 0x01, 0xff, StencilOperation::KEEP, StencilOperation::KEEP, StencilOperation::KEEP),
+		  stencil_mask_(nullptr),
 		  enabled_(true),
 		  ignore_global_model_(false),
 		  derived_position_(0.0f),
@@ -70,6 +74,8 @@ namespace KRE
 		  rotation_(1.0f, 0.0f, 0.0f, 0.0f),
 		  scale_(1.0f),
 		  shader_(ShaderProgram::getSystemDefault()),
+		  stencil_settings_(false, StencilFace::FRONT_AND_BACK, StencilFunc::EQUAL, 0x01, 0x01, 0xff, StencilOperation::KEEP, StencilOperation::KEEP, StencilOperation::KEEP),
+		  stencil_mask_(nullptr),
 		  enabled_(true),
 		  ignore_global_model_(false),
 		  derived_position_(0.0f),
@@ -80,6 +86,15 @@ namespace KRE
 			return;
 		}
 
+		setFromVariant(node);
+	}
+
+	Renderable::~Renderable()
+	{
+	}
+
+	void Renderable::setFromVariant(const variant& node)
+	{
 		if(node.has_key("ignore_global_model")) {
 			ignore_global_model_ = node["ignore_global_model"].as_bool(false);
 		}
@@ -89,6 +104,9 @@ namespace KRE
 		// XXX set other stuff here, tbd
 		if(node.has_key("blend")) {
 			setBlendMode(KRE::BlendMode(node["blend"]));
+		}
+		if(node.has_key("blend_enable")) {
+			setBlendState(node["blend_enable"].as_bool());
 		}
 		if(node.has_key("blend_equation")) {
 			setBlendEquation(KRE::BlendEquation(node["blend_equation"]));
@@ -153,9 +171,13 @@ namespace KRE
 			setColor(KRE::Color(node["color"]));
 		}
 		if(node.has_key("texture")) {
-			texture_ = Texture::createTexture(node["texture"]);
+			if(node["texture"].is_string() && (node["texture"].as_string() != "fbo" && node["texture"].as_string() != "svg")) {
+				texture_ = Texture::createTexture(node["texture"]);
+			}
 		} else if(node.has_key("image")) {
-			texture_ = Texture::createTexture(node["image"]);			
+			if(node["image"].is_string() && (node["image"].as_string() != "fbo" && node["image"].as_string() != "svg")) {
+				texture_ = Texture::createTexture(node["image"]);
+			}
 		}
 		if(node.has_key("depth_check")) {
 			setDepthEnable(node["depth_check"].as_bool());
@@ -167,10 +189,6 @@ namespace KRE
 		if(node.has_key("use_lighting")) {
 			enableLighting(node["use_lighting"].as_bool());
 		}
-	}
-
-	Renderable::~Renderable()
-	{
 	}
 
 	void Renderable::setDerivedModel(const glm::vec3& p, const glm::quat& r, const glm::vec3& s)
@@ -277,6 +295,12 @@ namespace KRE
 		//for(auto& ub : uniforms_) {
 		//	shader_->configureUniforms(ub);
 		//}
+	}
+
+	void Renderable::setClipSettings(const StencilSettings& settings, RenderablePtr mask)
+	{
+		stencil_settings_ = settings;
+		stencil_mask_  = mask;
 	}
 
 	//void Renderable::clearUniformSets()

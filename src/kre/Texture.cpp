@@ -62,21 +62,38 @@ namespace KRE
 				initFromVariant(texture_params_.begin() + n, node[n]);
 			}
 		} else {
+			SurfaceFlags flags = SurfaceFlags::NONE;
+
+			if(node.is_map()) {
+				variant flags_list = node["surface_flags"];
+				if(flags_list.is_list()) {
+					for(const std::string& f : flags_list.as_list_string()) {
+						if(f == "NO_CACHE") {
+							flags = flags | SurfaceFlags::NO_CACHE;
+						} else if(f == "NO_ALPHA_FILTER") {
+							flags = flags | SurfaceFlags::NO_ALPHA_FILTER;
+						} else {
+							ASSERT_LOG(false, "Illegal surface flag: " << f);
+						}
+					}
+				}
+			}
+
 			if(surfaces.size() == 0 && node.is_string()) {
 				texture_params_.resize(1);
-				texture_params_[0].surface = Surface::create(node.as_string());
+				texture_params_[0].surface = Surface::create(node.as_string(), static_cast<SurfaceFlags>(flags));
 				texture_params_[0].surface_width = texture_params_[0].surface->width();
 				texture_params_[0].surface_height = texture_params_[0].surface->height();
 			} else if(surfaces.size() == 0 && node.has_key("image") && node["image"].is_string()) {
 				texture_params_.resize(1);
-				texture_params_[0].surface = Surface::create(node["image"].as_string());
+				texture_params_[0].surface = Surface::create(node["image"].as_string(), flags);
 				texture_params_[0].surface_width = texture_params_[0].surface->width();
 				texture_params_[0].surface_height = texture_params_[0].surface->height();
 			} else if(surfaces.size() == 0 && node.has_key("images") && node["images"].is_list()) {
 				texture_params_.resize(node["images"].num_elements());
 				int n = 0;
 				for(auto s : node["images"].as_list_string()) {
-					texture_params_[n].surface = Surface::create(s);
+					texture_params_[n].surface = Surface::create(s, flags);
 					texture_params_[n].surface_width = texture_params_[n].surface->width();
 					texture_params_[n].surface_height = texture_params_[n].surface->height();
 				}
@@ -127,15 +144,17 @@ namespace KRE
 		  mix_palettes_(false)
 	{
 		palette_[0] = palette_[1] = 0;
-		texture_params_.resize(1);
-		texture_params_[0].surface = Surface::create(width, height, fmt);
-		texture_params_[0].surface_width = width;
-		texture_params_[0].surface_height = height;
-		texture_params_[0].width = width;
-		texture_params_[0].height = height;
-		texture_params_[0].depth = depth;
-		texture_params_[0].type = type;
-		internalInit(texture_params_.begin());
+		texture_params_.resize(count);
+		for(int n = 0; n != count; ++n) {
+			texture_params_[n].surface = Surface::create(width, height, fmt);
+			texture_params_[n].surface_width = width;
+			texture_params_[n].surface_height = height;
+			texture_params_[n].width = width;
+			texture_params_[n].height = height;
+			texture_params_[n].depth = depth;
+			texture_params_[n].type = type;
+			internalInit(texture_params_.begin() + n);
+		}
 	}
 
 	Texture::~Texture()
@@ -161,7 +180,7 @@ namespace KRE
 		}
 		if(node.has_key("mipmaps")) {
 			ASSERT_LOG(node["mipmaps"].is_int(), "'mipmaps' not an integer type, found: " << node["mipmaps"].to_debug_string());
-			tp->mipmaps = int(node["mipmaps"].as_int());
+			tp->mipmaps = node["mipmaps"].as_int32();
 		}
 		if(node.has_key("lod_bias")) {
 			ASSERT_LOG(node["lod_bias"].is_numeric(), "'lod_bias' not a numeric type, found: " << node["lod_bias"].to_debug_string());
@@ -169,7 +188,7 @@ namespace KRE
 		}
 		if(node.has_key("max_anisotropy")) {
 			ASSERT_LOG(node["max_anisotropy"].is_int(), "'max_anisotropy' not an integer type, found: " << node["max_anisotropy"].to_debug_string());
-			tp->max_anisotropy = int(node["max_anisotropy"].as_int());
+			tp->max_anisotropy = node["max_anisotropy"].as_int32();
 		}
 		if(node.has_key("filtering")) {
 			if(node["filtering"].is_string()) {
@@ -351,11 +370,24 @@ namespace KRE
 				tp.filtering[0] = min;
 				tp.filtering[1] = max;
 				tp.filtering[2] = mip;
+				// If you enable bilinear/trilinear/aniso filtering on an image then it must have mipmaps.
+				if((min != Texture::Filtering::LINEAR || min != Texture::Filtering::ANISOTROPIC
+					|| max == Texture::Filtering::LINEAR || max == Texture::Filtering::ANISOTROPIC
+					|| mip == Texture::Filtering::LINEAR) && tp.mipmaps == 0) {
+					tp.mipmaps = 2;
+				}
 			}
 		} else {
 			texture_params_[n].filtering[0] = min;
 			texture_params_[n].filtering[1] = max;
 			texture_params_[n].filtering[2] = mip;
+
+			// If you enable bilinear/trilinear/aniso filtering on an image then it must have mipmaps.
+			if((min != Texture::Filtering::LINEAR || min != Texture::Filtering::ANISOTROPIC
+				|| max == Texture::Filtering::LINEAR || max == Texture::Filtering::ANISOTROPIC
+				|| mip == Texture::Filtering::LINEAR) && texture_params_[n].mipmaps == 0) {
+				texture_params_[n].mipmaps = 2;
+			}
 		}
 		init(n);
 	}
@@ -375,6 +407,13 @@ namespace KRE
 			}
 		}
 		init(n);
+	}
+
+	void Texture::clearSurfaces()
+	{
+		for(auto& tp : texture_params_) {
+			tp.surface.reset();
+		}
 	}
 
 	void Texture::rebuildAll()

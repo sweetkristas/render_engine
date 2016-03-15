@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include "AttributeSet.hpp"
 #include "RenderTarget.hpp"
@@ -49,17 +50,19 @@ namespace KRE
 		void handleApply(const rect& r) const override;
 		void handleUnapply() const override;
 		void handleClear() const override;
+		void handleSizeChange(int width, int height) override;
 		RenderTargetPtr handleClone() override;
+		std::vector<uint8_t> handleReadPixels() const override;
+		SurfacePtr handleReadToSurface(SurfacePtr s) const override;
 		void getDSInfo(GLenum& ds_attachment, GLenum& depth_stencil_internal_format);
 		bool uses_ext_;
 		std::shared_ptr<GLuint> depth_stencil_buffer_id_;
 		std::shared_ptr<GLuint> framebuffer_id_;
 		std::shared_ptr<GLuint> sample_framebuffer_id_;
-		std::shared_ptr<std::vector<GLuint>> render_buffer_id_;
+		std::shared_ptr<std::vector<GLuint>> renderbuffer_id_;
 
 		int tex_width_;
 		int tex_height_;
-		mutable GLint viewport_[4];
 		mutable bool applied_;
 
 		FboOpenGL();

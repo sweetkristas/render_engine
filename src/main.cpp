@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
 	WindowManager wm("SDL");
 
 	variant_builder hints;
-	hints.add("renderer", "opengl");
+	hints.add("renderer", "GLESv2");
 	hints.add("dpi_aware", true);
 	hints.add("use_vsync", true);
 	int neww = 1600, newh = 900;
@@ -564,8 +564,7 @@ int main(int argc, char *argv[])
 		//psystem->AttachRenderTarget(rt);
 		//root->AttachObject(rt);
 	} catch(json::parse_error& e) {
-		LOG_ERROR("parse error: " << e.what());
-		throw(e);
+		ASSERT_LOG(true, "parse error: " << e.what());
 	}
 
 #if defined(__linux__)
@@ -720,7 +719,7 @@ int main(int argc, char *argv[])
 	const int blur_two = shader_blur->getUniform("texel_width_offset");
 	const int blur_tho = shader_blur->getUniform("texel_height_offset");
 	const int u_gaussian = shader_blur->getUniform("gaussian");
-	std::vector<float> gaussian = generate_gaussian(20.0f, 7);//{ 0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f };
+	std::vector<float> gaussian = KRE::generate_gaussian(20.0f, 7);//{ 0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f };
 	shader_blur->setUniformDrawFunction([blur_two, blur_tho, bbox_h, gaussian, u_gaussian](ShaderProgramPtr shader){ 
 		shader->setUniformValue(u_gaussian, &gaussian[0]);
 		shader->setUniformValue(blur_two, 0.0f);

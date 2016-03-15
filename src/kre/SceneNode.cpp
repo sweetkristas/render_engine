@@ -29,6 +29,7 @@
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
 #include "SceneObject.hpp"
+#include "variant_utils.hpp"
 
 namespace KRE
 {
@@ -139,6 +140,11 @@ namespace KRE
 	void SceneNode::attachNode(const SceneNodePtr& node)
 	{
 		getParentGraph()->attachNode(shared_from_this(), node);
+	}
+
+	void SceneNode::removeNode(const SceneNodePtr& node)
+	{
+		getParentGraph()->removeNode(shared_from_this(), node);
 	}
 
 	void SceneNode::attachObject(const SceneObjectPtr& obj)

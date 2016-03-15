@@ -28,6 +28,7 @@
 #include "RenderQueue.hpp"
 #include "SceneFwd.hpp"
 #include "ScopeableValue.hpp"
+#include "StencilSettings.hpp"
 #include "UniformBuffer.hpp"
 #include "variant.hpp"
 
@@ -40,6 +41,8 @@ namespace KRE
 		explicit Renderable(size_t order);
 		explicit Renderable(const variant& node);
 		virtual ~Renderable();
+
+		void setFromVariant(const variant& node);
 
 		void setPosition(const glm::vec3& position);
 		void setPosition(float x, float y, float z=0.0f);
@@ -79,6 +82,11 @@ namespace KRE
 		void setShader(ShaderProgramPtr shader);
 		ShaderProgramPtr getShader() const { return shader_; }
 
+		void setClipSettings(const StencilSettings& settings, RenderablePtr mask);
+		bool hasClipSettings() const { return stencil_mask_ != nullptr; }
+		const StencilSettings& getStencilSettings() const { return stencil_settings_; }
+		RenderablePtr getStencilMask() const { return stencil_mask_; }
+
 		void addAttributeSet(const AttributeSetPtr& attrset);
 		//void addUniformSet(const UniformSetPtr& uniset);
 		const std::vector<AttributeSetPtr>& getAttributeSet() const { return attributes_; }
@@ -111,6 +119,9 @@ namespace KRE
 		TexturePtr texture_;
 		RenderTargetPtr render_target_;
 		ShaderProgramPtr shader_;
+		
+		StencilSettings stencil_settings_;
+		RenderablePtr stencil_mask_;
 
 		glm::vec3 derived_position_;
 		glm::quat derived_rotation_;

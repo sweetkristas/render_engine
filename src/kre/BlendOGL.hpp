@@ -55,6 +55,6 @@ namespace KRE
 		bool state_stored_;
 	};
 
-	void set_blend_mode(const BlendMode& bm);
-	void set_blend_equation(const BlendEquation& eqn);
+	//void set_blend_mode(const BlendMode& bm);
+	//void set_blend_equation(const BlendEquation& eqn);
 }
