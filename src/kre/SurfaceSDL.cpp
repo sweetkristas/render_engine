@@ -31,12 +31,16 @@
 #include "SDL_image.h"
 
 #include "asserts.hpp"
+#include "formatter.hpp"
 #include "SurfaceSDL.hpp"
 
 enum {
 	SDL_PIXELFORMAT_XRGB8888 = 
         SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_PACKED32, SDL_PACKEDORDER_XRGB,
                                SDL_PACKEDLAYOUT_8888, 32, 4),
+	SDL_PIXELFORMAT_R8 = 
+        SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_PACKED8, SDL_PACKEDORDER_NONE,
+                               SDL_PACKEDLAYOUT_NONE, 8, 1),
 };
 
 namespace KRE
@@ -88,8 +92,9 @@ namespace KRE
 				case PixelFormat::PF::PIXELFORMAT_YUY2:	        return SDL_PIXELFORMAT_YUY2;
 				case PixelFormat::PF::PIXELFORMAT_UYVY:	        return SDL_PIXELFORMAT_UYVY;
 				case PixelFormat::PF::PIXELFORMAT_YVYU:	        return SDL_PIXELFORMAT_YVYU;
+				case PixelFormat::PF::PIXELFORMAT_R8:			return SDL_PIXELFORMAT_R8;
 				default:
-					ASSERT_LOG(false, "Unknown pixel format given");
+					ASSERT_LOG(false, "Unknown pixel format given: " << static_cast<unsigned>(fmt));
 			}
 			return SDL_PIXELFORMAT_ABGR8888;
 		}
@@ -101,10 +106,13 @@ namespace KRE
 		uint32_t rmask, 
 		uint32_t gmask, 
 		uint32_t bmask, 
-		uint32_t amask) : has_data_(false)
+		uint32_t amask)
+		: surface_(nullptr),
+		  has_data_(false),
+		  palette_()
 	{
 		surface_ = SDL_CreateRGBSurface(0, width, height, bpp, rmask, gmask, bmask, amask);
-		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
+		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << width << "x" << height << "x" << bpp << ": " << SDL_GetError());
 		
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
@@ -119,47 +127,82 @@ namespace KRE
 		uint32_t gmask, 
 		uint32_t bmask, 
 		uint32_t amask, 
-		const void* pixels) : has_data_(true)
+		const void* pixels)
+		: surface_(nullptr),
+		  has_data_(true),
+		  palette_()
 	{
 		ASSERT_LOG(pixels != nullptr, "nullptr value for pixels while creating surface.");
-		surface_ = SDL_CreateRGBSurfaceFrom(const_cast<void*>(pixels), width, height, bpp, row_pitch, rmask, gmask, bmask, amask);
-		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
+
+		//Note this temporary surface MUST be destroyed before the pixel
+		//data is. We destroy it just below. After converting to
+		//our final surface.
+		SDL_Surface* tmp = SDL_CreateRGBSurfaceFrom(const_cast<void*>(pixels), width, height, bpp, row_pitch, rmask, gmask, bmask, amask);
+		ASSERT_LOG(tmp != nullptr, "Error creating surface: " << width << "x" << height << "x" << bpp << ": " << SDL_GetError());
+
+		surface_ = SDL_ConvertSurface(tmp, tmp->format, 0);
+		SDL_FreeSurface(tmp);
+
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
 		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(const std::string& filename)
+		: surface_(nullptr),
+		  has_data_(false),
+		  palette_()
 	{
 		auto filter = Surface::getFileFilter(FileFilterType::LOAD);
-		auto surface_ = IMG_Load(filter(filename).c_str());
-		if(surface_ == nullptr) {
+		auto surf = IMG_Load(filter(filename).c_str());
+		if(surf == nullptr) {
 			LOG_ERROR("Failed to load image file: '" << filename << "' : " << IMG_GetError());
-			throw ImageLoadError();
+			std::stringstream ss;
+			ss << "Failed to load image file: '" << filename << "' : " << IMG_GetError();
+			throw ImageLoadError(ss.str());
 		}
+		
+		surface_ = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGBA8888, 0);
+		if(surface_ == nullptr) {
+			std::stringstream ss;
+			ss << "Failed to convert image file format: '" << filename << "' : " << IMG_GetError();
+			throw ImageLoadError(ss.str());
+		}
+
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
 		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(SDL_Surface* surface)
-		: surface_(surface)
+		: surface_(surface),
+		  has_data_(false),
+		  palette_()
 	{
-		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
+		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << surface->w << "x" << surface->h << ": " << SDL_GetError());
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
 		createPalette();
 	}
 
 	SurfaceSDL::SurfaceSDL(int width, int height, PixelFormat::PF format)
+		: surface_(nullptr),
+		  has_data_(false),
+		  palette_()
 	{
 		int bpp;
 		uint32_t rmask, gmask, bmask, amask;
-		SDL_bool ret = SDL_PixelFormatEnumToMasks(get_sdl_pixel_format(format), &bpp, &rmask, &gmask, &bmask, &amask);
-		ASSERT_LOG(ret != SDL_FALSE, "Unable to convert pixel format to masks: " << SDL_GetError());
+		if(format == PixelFormat::PF::PIXELFORMAT_R8) {
+			return;
+		} else if(format == PixelFormat::PF::PIXELFORMAT_YV12) {
+			return;
+		} else {
+			SDL_bool ret = SDL_PixelFormatEnumToMasks(get_sdl_pixel_format(format), &bpp, &rmask, &gmask, &bmask, &amask);
+			ASSERT_LOG(ret != SDL_FALSE, "Unable to convert pixel format to masks: " << SDL_GetError());
+		}
 
 		surface_ = SDL_CreateRGBSurface(0, width, height, bpp, rmask, gmask, bmask, amask);
-		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
+		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << width << "x" << height << "x" << bpp << ": " << SDL_GetError());
 		auto pf = std::make_shared<SDLPixelFormat>(surface_->format->format);
 		setPixelFormat(PixelFormatPtr(pf));
 		createPalette();
@@ -167,8 +210,10 @@ namespace KRE
 
 	SurfaceSDL::~SurfaceSDL()
 	{
-		ASSERT_LOG(surface_ != nullptr, "surface_ is null in destructor");
-		SDL_FreeSurface(surface_);
+		//ASSERT_LOG(surface_ != nullptr, "surface_ is null in destructor");
+		if(surface_ != nullptr) {
+			SDL_FreeSurface(surface_);
+		}
 	}
 
 	SurfacePtr SurfaceSDL::createFromPixels(int width, 
@@ -237,7 +282,10 @@ namespace KRE
 
 	const void* SurfaceSDL::pixels() const
 	{
-		ASSERT_LOG(surface_ != nullptr, "surface_ is null");
+		if(surface_ == nullptr) {
+			return nullptr;
+		}
+		//ASSERT_LOG(surface_ != nullptr, "surface_ is null");
 		// technically surface_->locked is an internal implementation detail.
 		// but we'll live with using it.
 		if(SDL_MUSTLOCK(surface_) && !surface_->locked) {
@@ -317,8 +365,12 @@ namespace KRE
 	{
 		SDL_FreeSurface(surface_);
 		ASSERT_LOG(pixels != nullptr, "nullptr value for pixels while creating surface.");
-		surface_ = SDL_CreateRGBSurfaceFrom(const_cast<void*>(pixels), width(), height(), bpp, rowPitch(), rmask, gmask, bmask, amask);
-		ASSERT_LOG(surface_ != nullptr, "Error creating surface: " << SDL_GetError());
+		SDL_Surface* tmp = SDL_CreateRGBSurfaceFrom(const_cast<void*>(pixels), width(), height(), bpp, rowPitch(), rmask, gmask, bmask, amask);
+		ASSERT_LOG(tmp != nullptr, "Error creating surface: " << width() << "x" << height() << "x" << bpp << ": " << SDL_GetError());
+
+		surface_ = SDL_ConvertSurface(tmp, tmp->format, 0);
+		SDL_FreeSurface(tmp);
+
 		setPixelFormat(PixelFormatPtr(new SDLPixelFormat(surface_->format->format)));
 	}
 
@@ -334,25 +386,27 @@ namespace KRE
 
 	void SurfaceSDL::setBlendMode(Surface::BlendMode bm) 
 	{
-		SDL_BlendMode sdl_bm;
+		SDL_BlendMode sdl_bm = SDL_BLENDMODE_NONE;
 		switch(bm) {
 			case BLEND_MODE_NONE:	sdl_bm = SDL_BLENDMODE_NONE; break;
 			case BLEND_MODE_BLEND:	sdl_bm = SDL_BLENDMODE_BLEND; break;
 			case BLEND_MODE_ADD:	sdl_bm = SDL_BLENDMODE_ADD; break;
 			case BLEND_MODE_MODULATE:	sdl_bm = SDL_BLENDMODE_MOD; break;
+			default: break;
 		}
 		SDL_SetSurfaceBlendMode(surface_, sdl_bm);
 	}
 
 	Surface::BlendMode SurfaceSDL::getBlendMode() const 
 	{
-		SDL_BlendMode sdl_bm;
+		SDL_BlendMode sdl_bm = SDL_BLENDMODE_NONE;
 		SDL_GetSurfaceBlendMode(surface_, &sdl_bm);
 		switch(sdl_bm) {
 		case SDL_BLENDMODE_NONE:	return BLEND_MODE_NONE;
 		case SDL_BLENDMODE_BLEND:	return BLEND_MODE_BLEND;
 		case SDL_BLENDMODE_ADD:		return BLEND_MODE_ADD;
 		case SDL_BLENDMODE_MOD:		return BLEND_MODE_MODULATE;
+		default: break;
 		}
 		ASSERT_LOG(false, "Unrecognised SDL blend mode: " << sdl_bm);
 		return BLEND_MODE_NONE;
@@ -372,7 +426,7 @@ namespace KRE
 		{
 			v = v - ((v >> 1) & 0x55555555);
 			v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-			return uint8_t(((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24);
+			return uint8_t((((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24);
 		}
 	}
 
@@ -642,6 +696,8 @@ namespace KRE
 			case SDL_PIXELFORMAT_YUY2:	        return PF::PIXELFORMAT_YUY2;
 			case SDL_PIXELFORMAT_UYVY:	        return PF::PIXELFORMAT_UYVY;
 			case SDL_PIXELFORMAT_YVYU:	        return PF::PIXELFORMAT_YVYU;
+			case SDL_PIXELFORMAT_R8:			return PF::PIXELFORMAT_R8;
+			default: break;
 		}
 		return PF::PIXELFORMAT_UNKNOWN;
 	}
@@ -651,16 +707,23 @@ namespace KRE
 		auto filter = Surface::getFileFilter(FileFilterType::LOAD);
 		auto s = IMG_Load(filter(filename).c_str());
 		if(s == nullptr) {
-			LOG_ERROR("Failed to load image file: '" << filename << "' : " << IMG_GetError());
-			throw ImageLoadError();
+			std::stringstream ss;
+			ss << "Failed to load image file: '" << filename << "' : " << IMG_GetError();
+			LOG_ERROR(ss.str());
+			throw ImageLoadError(ss.str());
 		}
-		auto surf = std::make_shared<SurfaceSDL>(s);
-		surf->setFlags(flags);
-		// format means don't convert the surface from the loaded format.
-		if(fmt != PixelFormat::PF::PIXELFORMAT_UNKNOWN) {
-			return surf->convert(fmt, fn)->runGlobalAlphaFilter();
+		try {
+			auto surf = std::make_shared<SurfaceSDL>(s);
+			surf->setFlags(flags);
+			// format means don't convert the surface from the loaded format.
+			if(fmt != PixelFormat::PF::PIXELFORMAT_UNKNOWN) {
+				return surf->convert(fmt, fn)->runGlobalAlphaFilter();
+			}
+			return surf->runGlobalAlphaFilter();
+		} catch(ImageLoadError& e) {
+			throw ImageLoadError(formatter() << "Failed to load image file: '" << filename << "' : " << e.what());
 		}
-		return surf->runGlobalAlphaFilter();
+		return nullptr;
 	}
 
 	void SDLPixelFormat::extractRGBA(const void* pixels, int ndx, int& red, int& green, int& blue, int& alpha)
@@ -725,6 +788,12 @@ namespace KRE
 				green = color.g;
 				blue = color.b;
 				alpha = color.a;
+				break;
+			}
+
+			case PixelFormat::PF::PIXELFORMAT_R8: {
+				alpha = green = blue = 0;
+				red = *reinterpret_cast<const uint8_t*>(pixels);
 				break;
 			}
 
@@ -840,6 +909,12 @@ namespace KRE
 				}
 				uint32_t* px = static_cast<uint32_t*>(pixels);
 				*px = pixel;
+				break;
+			}
+
+			case PixelFormat::PF::PIXELFORMAT_R8: {
+				uint8_t* px = static_cast<uint8_t*>(pixels);
+				*px = red;
 				break;
 			}
 

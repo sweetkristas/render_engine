@@ -33,9 +33,10 @@ namespace KRE
 		explicit ClipScopeOGL(const rect& r);
 		virtual ~ClipScopeOGL();
 
-		void apply() const override;
+		void apply(const CameraPtr& cam) const override;
 		void clear() const override;
 	private:
 		DISALLOW_COPY_ASSIGN_AND_DEFAULT(ClipScopeOGL);
+		mutable StencilScopePtr stencil_scope_;
 	};
 }

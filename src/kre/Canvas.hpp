@@ -31,6 +31,7 @@
 #include "CameraObject.hpp"
 #include "Color.hpp"
 #include "geometry.hpp"
+#include "ModelMatrixScope.hpp"
 #include "Texture.hpp"
 #include "Util.hpp"
 #include "VGraph.hpp"
@@ -118,35 +119,29 @@ namespace KRE
 		{
 			CameraScope(CameraPtr cam) 
 				: canvas_(Canvas::getInstance()), 
-				  saved_pvmat_(canvas_->mvp_) 
+				  saved_cam_(canvas_->camera_)
 			{
-				canvas_->mvp_ = cam->getProjectionMat() * cam->getViewMat();
+				canvas_->camera_ = cam;
 			}
 			~CameraScope()
 			{
-				canvas_->mvp_ = saved_pvmat_;
+				canvas_->camera_ = saved_cam_;
 			}
 			CanvasPtr canvas_;
-			glm::mat4 saved_pvmat_;
+			CameraPtr saved_cam_;
 		};
 
-		struct ModelManager
+		struct ShaderScope
 		{
-			ModelManager();
-			explicit ModelManager(int tx, int ty, float angle=0.0f, float scale=1.0f);
-			~ModelManager();
-			void setIdentity();
-			void translate(int tx, int ty);
-			void rotate(float angle);
-			void scale(float sx, float sy);
-			void scale(float s);
+			ShaderScope(ShaderProgramPtr shader) : canvas_(KRE::Canvas::getInstance()) {
+				canvas_->shader_stack_.push(shader);
+			}
+			~ShaderScope()
+			{
+				canvas_->shader_stack_.pop();
+			}
 			CanvasPtr canvas_;
 		};
-
-		static glm::vec2 getCurrentTranslation();
-		static float getCurrentRotation();
-		static glm::vec2 getCurrentScale();
-		glm::mat4 getModelMatrix() const;
 
 		const Color getColor() const {
 			if(color_stack_.empty()) {
@@ -158,7 +153,16 @@ namespace KRE
 		WindowPtr getWindow() const;
 		void setWindow(WindowPtr wnd);
 
-		const glm::mat4& getMvpMatrix() const { return mvp_; }
+		const glm::mat4& getPVMatrix() const { return pv_; }
+
+		const CameraPtr& getCamera() const { return camera_; }
+
+		ShaderProgramPtr getCurrentShader() const {
+			if(shader_stack_.empty()) {
+				return ShaderProgram::getSystemDefault();
+			}
+			return shader_stack_.top();
+		}
 	protected:
 		Canvas();
 	private:
@@ -167,11 +171,13 @@ namespace KRE
 		unsigned height_;
 		virtual void handleDimensionsChanged() = 0;
 		std::stack<Color> color_stack_;
+		std::stack<ShaderProgramPtr> shader_stack_;
 		mutable glm::mat4 model_matrix_;
 		mutable bool model_changed_;
 		std::weak_ptr<Window> window_;
 		int size_change_key_;
-		glm::mat4 mvp_;
+		CameraPtr camera_;
+		glm::mat4 pv_;
 	};
 
 	// Helper function to generate a color wheel between the given hue values.

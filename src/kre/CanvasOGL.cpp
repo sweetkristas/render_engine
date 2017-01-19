@@ -90,13 +90,17 @@ namespace KRE
 		glm::mat4 mvp;
 		if(std::abs(rotation) > FLT_EPSILON) {
 			glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vx2)/2.0f,-(vy1+vy2)/2.0f,0.0f));
-			mvp = getMvpMatrix() * model * getModelMatrix();
+			mvp = getPVMatrix() * model * get_global_model_matrix();
 		} else {
-			mvp = getMvpMatrix() * getModelMatrix();
+			mvp = getPVMatrix() * get_global_model_matrix();
 		}
-		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
+		auto shader = getCurrentShader();
 		shader->makeActive();
 		shader->setUniformsForTexture(texture);
+		auto uniform_draw_fn = shader->getUniformDrawFunction();
+		if(uniform_draw_fn) {
+			uniform_draw_fn(shader);
+		}
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 		if(color != KRE::Color::colorWhite()) {
 			shader->setUniformValue(shader->getColorUniform(), (color*getColor()).asFloatVector());
@@ -119,10 +123,14 @@ namespace KRE
 	void CanvasOGL::blitTexture(const TexturePtr& tex, const std::vector<vertex_texcoord>& vtc, float rotation, const Color& color)
 	{
 		glm::mat4 model = glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0, 0, 1.0f));
-		glm::mat4 mvp = getMvpMatrix() * model * getModelMatrix();
-		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
+		glm::mat4 mvp = getPVMatrix() * model * get_global_model_matrix();
+		auto shader = getCurrentShader();
 		shader->makeActive();
 		shader->setUniformsForTexture(tex);
+		auto uniform_draw_fn = shader->getUniformDrawFunction();
+		if(uniform_draw_fn) {
+			uniform_draw_fn(shader);
+		}
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
 		if(color != KRE::Color::colorWhite()) {
 			shader->setUniformValue(shader->getColorUniform(), (color*getColor()).asFloatVector());
@@ -153,7 +161,7 @@ namespace KRE
 		};
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(vtx.mid_x(),vtx.mid_y(),0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-vtx.mid_x(),-vtx.mid_y(),0.0f));
-		glm::mat4 mvp = getMvpMatrix() * model * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * model * get_global_model_matrix();
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
@@ -192,7 +200,7 @@ namespace KRE
 		};
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(vtx.mid_x(),vtx.mid_y(),0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-vtx.mid_x(),-vtx.mid_y(),0.0f));
-		glm::mat4 mvp = getMvpMatrix() * model * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * model * get_global_model_matrix();
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
 		shader->setUniformValue(shader->getMvpUniform(), glm::value_ptr(mvp));
@@ -217,7 +225,7 @@ namespace KRE
 		};
 
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(vtx.mid_x(),vtx.mid_y(),0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-vtx.mid_x(),-vtx.mid_y(),0.0f));
-		glm::mat4 mvp = getMvpMatrix() * model * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * model * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -239,7 +247,7 @@ namespace KRE
 			static_cast<float>(p2.x), static_cast<float>(p2.y),
 		};
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -252,17 +260,11 @@ namespace KRE
 		glDisableVertexAttribArray(shader->getVertexAttribute());
 	}
 
-	std::ostream& operator<<(std::ostream& os, const glm::vec2& v)
-	{
-		os << "(" << v.x << "," << v.y << ")";
-		return os;
-	}
-
 	void CanvasOGL::drawLines(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
 		/*static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("complex");
 		shader->makeActive();
-		shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(getModelMatrix()));
+		shader->setUniformValue(shader->getMvUniform(), glm::value_ptr(get_global_model_matrix()));
 		shader->setUniformValue(shader->getPUniform(), glm::value_ptr(mvp_));
 
 		if(shader->getNormalAttribute() == ShaderProgram::INVALID_ATTRIBUTE 
@@ -303,7 +305,7 @@ namespace KRE
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
 		glDisableVertexAttribArray(shader->getNormalAttribute());
 		glDisableVertexAttribArray(shader->getVertexAttribute());*/
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -321,7 +323,7 @@ namespace KRE
 	{
 		ASSERT_LOG(varray.size() == carray.size(), "Vertex and color array sizes don't match.");
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("attr_color_shader");
 		shader->makeActive();
@@ -342,7 +344,7 @@ namespace KRE
 	void CanvasOGL::drawLineStrip(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -359,7 +361,7 @@ namespace KRE
 	void CanvasOGL::drawLineLoop(const std::vector<glm::vec2>& varray, float line_width, const Color& color) const 
 	{
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -380,7 +382,7 @@ namespace KRE
 			p2.x, p2.y,
 		};
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -396,7 +398,7 @@ namespace KRE
 	void CanvasOGL::drawPolygon(const std::vector<glm::vec2>& varray, const Color& color) const 
 	{
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();
@@ -427,7 +429,7 @@ namespace KRE
 
 	void CanvasOGL::drawSolidCircle(const pointf& centre, float radius, const Color& color) const 
 	{
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		rectf vtx(centre.x - radius - 2, centre.y - radius - 2, 2 * radius + 4, 2 * radius + 4);
 		const float vtx_coords[] = {
@@ -470,7 +472,7 @@ namespace KRE
 
 	void CanvasOGL::drawSolidCircle(const pointf& centre, float radius, const std::vector<glm::u8vec4>& color) const 
 	{
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("attr_color_shader");
 		shader->makeActive();
@@ -501,7 +503,7 @@ namespace KRE
 
 	void CanvasOGL::drawHollowCircle(const pointf& centre, float outer_radius, float inner_radius, const Color& color) const 
 	{
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		rectf vtx(centre.x - outer_radius - 2, centre.y - outer_radius - 2, 2 * outer_radius + 4, 2 * outer_radius + 4);
 		const float vtx_coords[] = {
@@ -545,7 +547,7 @@ namespace KRE
 	void CanvasOGL::drawPoints(const std::vector<glm::vec2>& varray, float radius, const Color& color) const 
 	{
 		// This draws an aliased line -- consider making this a nicer unaliased line.
-		glm::mat4 mvp = getMvpMatrix() * getModelMatrix();
+		glm::mat4 mvp = getPVMatrix() * get_global_model_matrix();
 
 		static OpenGL::ShaderProgramPtr shader = OpenGL::ShaderProgram::factory("simple");
 		shader->makeActive();

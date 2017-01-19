@@ -69,6 +69,13 @@ namespace KRE
 
 		RenderTargetPtr clone();
 
+		// N.B. these function might be slow, not recommend for use in render pipeline.
+		// will only work if the framebuffer has been written, obviously.
+		std::vector<uint8_t> readPixels() const;
+		SurfacePtr readToSurface(SurfacePtr s=nullptr) const;
+
+		void onSizeChange(int width, int height, int flags);
+
 		static RenderTargetPtr create(int width, int height, 
 			unsigned color_plane_count=1, 
 			bool depth=false, 
@@ -89,7 +96,10 @@ namespace KRE
 		virtual void handleApply(const rect& r) const = 0;
 		virtual void handleUnapply() const = 0;
 		virtual void handleClear() const = 0;
+		virtual void handleSizeChange(int width, int height) = 0;
 		virtual RenderTargetPtr handleClone() = 0;
+		virtual std::vector<uint8_t> handleReadPixels() const = 0;
+		virtual SurfacePtr handleReadToSurface(SurfacePtr s) const = 0;
 
 		int width_;
 		int height_;
@@ -100,6 +110,8 @@ namespace KRE
 		int multi_samples_;
 
 		Color clear_color_;
+
+		int size_change_observer_handle_;
 
 		RenderTarget();
 	};

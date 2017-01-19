@@ -36,8 +36,24 @@
     <ClCompile Include="..\src\kre\EffectsOGL.cpp" />
     <ClCompile Include="..\src\kre\FboOGL.cpp" />
     <ClCompile Include="..\src\kre\Font.cpp" />
+    <ClCompile Include="..\src\kre\FontDriver.cpp" />
+    <ClCompile Include="..\src\kre\FontFreetype.cpp" />
     <ClCompile Include="..\src\kre\FontSDL.cpp" />
+    <ClCompile Include="..\src\kre\FontSTB.cpp" />
     <ClCompile Include="..\src\kre\Frustum.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\AttributeSetGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\BlendGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\CanvasGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\ClipScopeGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\DisplayDeviceGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\EffectsGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\FboGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\ScissorGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\ShadersGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\StencilScopeGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\TextureGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\UniformBufferGLES2.cpp" />
+    <ClCompile Include="..\src\kre\GLES2\VGraphGLES2.cpp" />
     <ClCompile Include="..\src\kre\LightObject.cpp" />
     <ClCompile Include="..\src\kre\ModelMatrixScope.cpp" />
     <ClCompile Include="..\src\kre\ParticleSystem.cpp" />
@@ -110,9 +126,25 @@
     <ClInclude Include="..\src\kre\EffectsOGL.hpp" />
     <ClInclude Include="..\src\kre\FboOGL.hpp" />
     <ClInclude Include="..\src\kre\Font.hpp" />
+    <ClInclude Include="..\src\kre\FontDriver.hpp" />
+    <ClInclude Include="..\src\kre\FontImpl.hpp" />
     <ClInclude Include="..\src\kre\FontSDL.hpp" />
     <ClInclude Include="..\src\kre\Frustum.hpp" />
     <ClInclude Include="..\src\kre\geometry.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\AttributeSetGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\BlendGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\CanvasGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\ClipScopeGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\DisplayDeviceGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\EffectsGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\FboGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\ScissorGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\ShadersGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\StencilScopeGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\TextureGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\UniformBufferGLES2.hpp" />
+    <ClInclude Include="..\src\kre\GLES2\VGraphGLES2.hpp" />
+    <ClInclude Include="..\src\kre\Gradients.hpp" />
     <ClInclude Include="..\src\kre\lexical_cast.hpp" />
     <ClInclude Include="..\src\kre\LightObject.hpp" />
     <ClInclude Include="..\src\kre\ModelMatrixScope.hpp" />
@@ -141,6 +173,8 @@
     <ClInclude Include="..\src\kre\Shaders.hpp" />
     <ClInclude Include="..\src\kre\ShadersOGL.hpp" />
     <ClInclude Include="..\src\kre\spline.hpp" />
+    <ClInclude Include="..\src\kre\stb_rect_pack.h" />
+    <ClInclude Include="..\src\kre\stb_truetype.h" />
     <ClInclude Include="..\src\kre\StencilScope.hpp" />
     <ClInclude Include="..\src\kre\StencilScopeOGL.hpp" />
     <ClInclude Include="..\src\kre\StencilSettings.hpp" />
@@ -215,7 +249,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_VARIADIC_MAX=10;_USE_MATH_DEFINES;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src;..\src\kre;..\src\tiled;..\external\include\SDL;..\external\include;c:\projects\boost\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src;..\src\kre;..\src\tiled;..\external\include\SDL;..\external\include;c:\projects\boost\;..\external\include\win</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
