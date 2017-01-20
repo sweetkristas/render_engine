@@ -43,12 +43,6 @@
     <Filter Include="Header Files\tmx">
       <UniqueIdentifier>{79dda40f-1438-427a-9338-1f0e477ad771}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\GLES2">
-      <UniqueIdentifier>{b52ce8ca-6506-4910-9b4d-a3858e661289}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GLES2">
-      <UniqueIdentifier>{4d2c4548-c5db-4372-bc2e-64d1fdc2e38a}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\kre\VGraphCairo.cpp">
@@ -263,45 +257,6 @@
     </ClCompile>
     <ClCompile Include="..\src\kre\FontSTB.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\TextureGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\UniformBufferGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\VGraphGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\AttributeSetGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\BlendGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\CanvasGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\ClipScopeGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\DisplayDeviceGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\EffectsGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\FboGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\ScissorGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\ShadersGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\kre\GLES2\StencilScopeGLES2.cpp">
-      <Filter>Source Files\GLES2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -583,45 +538,6 @@
     </ClInclude>
     <ClInclude Include="..\src\kre\stb_truetype.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\AttributeSetGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\BlendGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\CanvasGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\ClipScopeGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\DisplayDeviceGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\EffectsGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\FboGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\ScissorGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\ShadersGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\StencilScopeGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\TextureGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\UniformBufferGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\kre\GLES2\VGraphGLES2.hpp">
-      <Filter>Header Files\GLES2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

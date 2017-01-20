@@ -58,15 +58,29 @@ namespace KRE
 		const int max_surface_height = 4096;
 	}
 
+	namespace {
+		std::set<const Surface*>& getAllSurfacesMutable() {
+			static std::set<const Surface*>* all_surfaces = new std::set<const Surface*>;
+			return *all_surfaces;
+		}
+	}
+
+	const std::set<const Surface*>& Surface::getAllSurfaces() { return getAllSurfacesMutable(); }
+
 	Surface::Surface()
 		: flags_(SurfaceFlags::NONE),
+		  pf_(nullptr),
+		  alpha_map_(nullptr),
 		  name_(),
-		  id_(get_next_id())
+		  id_(get_next_id()),
+		  alpha_borders_{}
 	{
+		getAllSurfacesMutable().insert(this);
 	}
 
 	Surface::~Surface()
 	{
+		getAllSurfacesMutable().erase(this);
 	}
 
 	PixelFormatPtr Surface::getPixelFormat()

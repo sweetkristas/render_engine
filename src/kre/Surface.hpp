@@ -27,10 +27,12 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <tuple>
 #include <unordered_map>
 
 #include "geometry.hpp"
+#include "Cursor.hpp"
 #include "PixelFormat.hpp"
 #include "WindowManagerFwd.hpp"
 
@@ -49,6 +51,10 @@ namespace KRE
 		// If this is supplied then any rows/columns of the image that contain pure alpha pixels are stripped
 		// until we generate an image that is minimal in size.
 		STRIP_ALPHA_BORDERS = 4,
+
+		// Special internal code to indicate that we are not loading from a file, but the image data is inside
+		// the passed in string.
+		FROM_DATA			= 128,
 	};
 
 	typedef std::function<void(int&,int&,int&,int&)> SurfaceConvertFn;
@@ -108,6 +114,7 @@ namespace KRE
 	class Surface : public std::enable_shared_from_this<Surface>
 	{
 	public:
+		static const std::set<const Surface*>& getAllSurfaces();
 		virtual ~Surface();
 		unsigned id() const { return id_; }
 		virtual const void* pixels() const = 0;
@@ -226,6 +233,8 @@ namespace KRE
 		void setAlphaMap(std::shared_ptr<std::vector<bool>> am) { alpha_map_ = am; }
 
 		const std::array<int, 4>& getAlphaBorders() const { return alpha_borders_; }
+
+		virtual CursorPtr createCursorFromSurface(int hot_x, int hot_y) = 0;
 
 		static int setAlphaStripThreshold(int threshold);
 		static int getAlphaStripThreshold();

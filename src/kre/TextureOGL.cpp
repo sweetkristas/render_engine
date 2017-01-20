@@ -61,6 +61,24 @@ namespace KRE
 			return res;
 		}
 
+		void check_purge_texture_id_cache()
+		{
+			static int ncheck = 0;
+			if(get_id_cache().size() > 512) {
+				if(++ncheck%512 == 0) {
+					auto it = get_id_cache().begin();
+					auto end_it = get_id_cache().end();
+					while(it != end_it) {
+						if(it->second.expired()) {
+							get_id_cache().erase(it++);
+						} else {
+							++it;
+						}
+					}
+				}
+			}
+		}
+
 		GLuint& get_current_bound_texture()
 		{
 			static GLuint res = -1;
@@ -86,6 +104,7 @@ namespace KRE
 			init(n);
 			++n;
 		}
+		clearSurfaces();
 	}
 
 	OpenGLTexture::OpenGLTexture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
@@ -105,6 +124,7 @@ namespace KRE
 			init(n);
 			++n;
 		}
+		clearSurfaces();
 	}
 
 	OpenGLTexture::OpenGLTexture(int count, int width, int height, int depth, PixelFormat::PF fmt, TextureType type)
@@ -122,6 +142,7 @@ namespace KRE
 			createTexture(n);
 			init(n);
 		}
+		clearSurfaces();
 	}
 
 	OpenGLTexture::~OpenGLTexture()
@@ -272,7 +293,7 @@ namespace KRE
 		ASSERT_LOG(is_yuv_planar_ == false, "Can't create a palette for a YUV surface.");
 		ASSERT_LOG(index < maximum_palette_variations, "index of (" << index << ") exceeds the maximum soft palette limit: " << maximum_palette_variations);
 
-		if(PixelFormat::isIndexedFormat(getFrontSurface()->getPixelFormat()->getFormat())) {
+		if(PixelFormat::isIndexedFormat(getPixelFormat())) {
 			// Is already an indexed format.
 			// Which means that texture_data_[0].palette should be already valid.
 			const auto num_colors = texture_data_[0].palette.size();
@@ -404,6 +425,8 @@ namespace KRE
 		//LOG_INFO("Mapped " << colors_mapped << " out of " << palette_width << " colors from palette");
 
 		updatePaletteRow(index, new_palette_surface, static_cast<int>(palette_width), new_pixels);
+
+		clearSurfaces();
 	}
 
 	void OpenGLTexture::createTexture(int n)
@@ -593,14 +616,16 @@ namespace KRE
 				ASSERT_LOG(false, "Unrecognised pixel format");
 		}
 
-		auto it = get_id_cache().find(surf->id());
-		if(it != get_id_cache().end()) {
-			auto cached_id = it->second.lock();
-			if(cached_id != nullptr) {
-				texture_data_[n].id = cached_id;
-				return;
+		if(surf != nullptr) {
+			auto it = get_id_cache().find(surf->id());
+			if(it != get_id_cache().end()) {
+				auto cached_id = it->second.lock();
+				if(cached_id != nullptr) {
+					texture_data_[n].id = cached_id;
+					return;
+				}
+				// if we couldn't lock the id fall through and create a new one
 			}
-			// if we couldn't lock the id fall through and create a new one
 		}
 
 		GLuint new_id;
@@ -609,6 +634,7 @@ namespace KRE
 		td.id = id_ptr;
 		if(surf) {
 			get_id_cache()[surf->id()] = id_ptr;
+			check_purge_texture_id_cache();
 		}
 
 		glBindTexture(GetGLTextureType(getType(n)), *td.id);

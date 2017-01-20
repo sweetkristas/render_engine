@@ -155,7 +155,7 @@ namespace KRE
 			if(surface_ == nullptr) {
 				return false;
 			}
-			return has_data_;
+			return true;
 		}
 
 		void blit(SurfacePtr src, const rect& src_rect) override;
@@ -198,6 +198,8 @@ namespace KRE
 		void unlock() override;
 
 		std::string savePng(const std::string& filename) override;
+
+		CursorPtr createCursorFromSurface(int hot_x, int hot_y) override;
 
 		SDL_Surface* get() { return surface_; }
 		const SDL_Surface* get() const { return surface_; }

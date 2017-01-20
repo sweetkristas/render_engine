@@ -405,8 +405,11 @@ namespace KRE
 		// Need to figure the interaction with shaders.
 		/// XXX Need to create a mapping between attributes and the index value below.
 		for(auto as : r->getAttributeSet()) {
+			if(!as->isEnabled()) {
+				continue;
+			}
 			//ASSERT_LOG(as->getCount() > 0, "No (or negative) number of vertices in attribute set. " << as->getCount());
-			if(as->getCount() <= 0) {
+			if((!as->isMultiDrawEnabled() && as->getCount() <= 0) || (as->isMultiDrawEnabled() && as->getMultiDrawCount() <= 0)) {
 				//LOG_WARN("No (or negative) number of vertices in attribute set. " << as->getCount());
 				continue;
 			}
@@ -442,7 +445,11 @@ namespace KRE
 					glDrawElements(draw_mode, static_cast<GLsizei>(as->getCount()), convert_index_type(as->getIndexType()), as->getIndexArray());
 					as->unbindIndex();
 				} else {
-					glDrawArrays(draw_mode, static_cast<GLint>(as->getOffset()), static_cast<GLsizei>(as->getCount()));
+					if(as->isMultiDrawEnabled()) {
+						glMultiDrawArrays(draw_mode, as->getMultiOffsetArray().data(), as->getMultiCountArray().data(), as->getMultiDrawCount());
+					} else {
+						glDrawArrays(draw_mode, static_cast<GLint>(as->getOffset()), static_cast<GLsizei>(as->getCount()));
+					}
 				}
 			}
 
@@ -536,6 +543,11 @@ namespace KRE
 	ClipScopePtr DisplayDeviceOpenGL::createClipScope(const rect& r)
 	{
 		return ClipScopePtr(new ClipScopeOGL(r));
+	}
+
+	ClipShapeScopePtr DisplayDeviceOpenGL::createClipShapeScope(const RenderablePtr& r)
+	{
+		return ClipShapeScopePtr(new ClipShapeScopeOGL(r));
 	}
 
 	StencilScopePtr DisplayDeviceOpenGL::createStencilScope(const StencilSettings& settings)
@@ -648,7 +660,7 @@ namespace KRE
 		BlendEquationScopeOGL be_scope(*tex);
 		BlendModeScopeOGL bm_scope(*tex);
 
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vy1)/2.0f,-(vy1+vy1)/2.0f,0.0f));
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3((vx1+vx2)/2.0f,(vy1+vy2)/2.0f,0.0f)) * glm::rotate(glm::mat4(1.0f), glm::radians(rotation), glm::vec3(0.0f,0.0f,1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-(vx1+vy1)/2.0f,-(vy1+vy1)/2.0f,0.0f));
 		glm::mat4 mvp = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f) * model;
 		auto shader = OpenGL::ShaderProgram::defaultSystemShader();
 		shader->makeActive();

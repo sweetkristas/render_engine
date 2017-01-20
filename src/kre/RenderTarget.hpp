@@ -46,10 +46,15 @@ namespace KRE
 
 		struct RenderScope {
 			RenderScope(RenderTargetPtr rt, const rect& r=rect()) : rt_(rt) {
-				rt_->apply(r);
+				if(rt_) {
+					rt_->clear();
+					rt_->apply(r);
+				}
 			}
 			~RenderScope() {
-				rt_->unapply();
+				if(rt_) {
+					rt_->unapply();
+				}
 			}
 			RenderTargetPtr rt_;
 		};
@@ -66,6 +71,9 @@ namespace KRE
 		void setClearColor(float r, float g, float b, float a=1.0f);
 		void setClearColor(const Color& color);
 		const Color& getClearColor() const { return clear_color_; }
+
+		bool needsRebuild() const { return needs_rebuild_; }
+		void rebuild(int width, int height);
 
 		RenderTargetPtr clone();
 
@@ -112,6 +120,7 @@ namespace KRE
 		Color clear_color_;
 
 		int size_change_observer_handle_;
+		bool needs_rebuild_;
 
 		RenderTarget();
 	};

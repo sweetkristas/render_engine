@@ -37,6 +37,17 @@ using std::round;
 
 namespace KRE
 {
+	namespace {
+		std::set<Texture*>& allTextures() {
+			static std::set<Texture*>* value = new std::set<Texture*>;
+			return *value;
+		}
+	}
+
+	const std::set<Texture*>& Texture::getAllTextures() {
+		return allTextures();
+	}
+
 	Texture::Texture(const variant& node, const std::vector<SurfacePtr>& surfaces)
 		: is_paletteized_(false),
 		  mix_ratio_(0.0f),
@@ -51,11 +62,16 @@ namespace KRE
 			for(int n = 0; n != node.num_elements(); ++n) {
 				if(surfaces.size() == 0) {
 					ASSERT_LOG(node[n].has_key("image") && node[n]["image"].is_string(), "No 'image' attribute found");
-					texture_params_[n].surface = Surface::create(node.as_string());
-					texture_params_[n].surface_width = texture_params_[n].surface->width();
-					texture_params_[n].surface_height = texture_params_[n].surface->height();
+					auto surf = Surface::create(node.as_string());
+					texture_params_[n].filename = node.as_string();
+					texture_params_[n].fmt = surf->getPixelFormat() ? surf->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+					texture_params_[n].surface = surf;
+					texture_params_[n].surface_width = surf->width();
+					texture_params_[n].surface_height = surf->height();
 				} else {
 					texture_params_[n].surface = surfaces[n];
+					texture_params_[n].filename = surfaces[n]->getName();
+					texture_params_[n].fmt = surfaces[n]->getPixelFormat() ? surfaces[n]->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
 					texture_params_[n].surface_width = texture_params_[n].surface->width();
 					texture_params_[n].surface_height = texture_params_[n].surface->height();
 				}
@@ -81,28 +97,39 @@ namespace KRE
 
 			if(surfaces.size() == 0 && node.is_string()) {
 				texture_params_.resize(1);
-				texture_params_[0].surface = Surface::create(node.as_string(), static_cast<SurfaceFlags>(flags));
-				texture_params_[0].surface_width = texture_params_[0].surface->width();
-				texture_params_[0].surface_height = texture_params_[0].surface->height();
+				auto surf = Surface::create(node.as_string(), static_cast<SurfaceFlags>(flags));
+				texture_params_[0].surface = surf;
+				texture_params_[0].filename = node.as_string();
+				texture_params_[0].fmt = surf->getPixelFormat() ? surf->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+				texture_params_[0].surface_width = surf->width();
+				texture_params_[0].surface_height = surf->height();
 			} else if(surfaces.size() == 0 && node.has_key("image") && node["image"].is_string()) {
 				texture_params_.resize(1);
-				texture_params_[0].surface = Surface::create(node["image"].as_string(), flags);
-				texture_params_[0].surface_width = texture_params_[0].surface->width();
-				texture_params_[0].surface_height = texture_params_[0].surface->height();
+				auto surf = Surface::create(node["image"].as_string(), flags);
+				texture_params_[0].surface = surf;
+				texture_params_[0].filename = node["image"].as_string();
+				texture_params_[0].fmt = surf->getPixelFormat() ? surf->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+				texture_params_[0].surface_width = surf->width();
+				texture_params_[0].surface_height = surf->height();
 			} else if(surfaces.size() == 0 && node.has_key("images") && node["images"].is_list()) {
 				texture_params_.resize(node["images"].num_elements());
 				int n = 0;
 				for(auto s : node["images"].as_list_string()) {
-					texture_params_[n].surface = Surface::create(s, flags);
-					texture_params_[n].surface_width = texture_params_[n].surface->width();
-					texture_params_[n].surface_height = texture_params_[n].surface->height();
+					auto surf = Surface::create(s, flags);
+					texture_params_[n].surface = surf;
+					texture_params_[n].filename = s;
+					texture_params_[n].fmt = surf->getPixelFormat() ? surf->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+					texture_params_[n].surface_width = surf->width();
+					texture_params_[n].surface_height = surf->height();
 				}
 			} else if(surfaces.size() > 0) {
 				texture_params_.resize(surfaces.size());
 				for(int n = 0; n != surfaces.size(); ++n) {
 					texture_params_[n].surface = surfaces[n];
-					texture_params_[n].surface_width = texture_params_[n].surface->width();
-					texture_params_[n].surface_height = texture_params_[n].surface->height();
+					texture_params_[n].filename = surfaces[n]->getName();
+					texture_params_[n].fmt = surfaces[n]->getPixelFormat() ? surfaces[n]->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+					texture_params_[n].surface_width = surfaces[n]->width();
+					texture_params_[n].surface_height = surfaces[n]->height();
 				}
 			}
 
@@ -113,6 +140,8 @@ namespace KRE
 				initFromVariant(tp, node);
 			}
 		}
+
+		allTextures().insert(this);
 	}
 
 	Texture::Texture(const std::vector<SurfacePtr>& surfaces, TextureType type, int mipmap_levels)
@@ -125,12 +154,15 @@ namespace KRE
 		for(auto s : surfaces) {
 			texture_params_.emplace_back(TextureParams());
 			texture_params_.back().surface = s;
+			texture_params_.back().filename = s->getName();
+			texture_params_.back().fmt = s->getPixelFormat() ? s->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
 			texture_params_.back().surface_width = s->width();
 			texture_params_.back().surface_height = s->height();
 			texture_params_.back().type = type;
 			texture_params_.back().mipmaps = mipmap_levels;
 			internalInit(texture_params_.begin() + (texture_params_.size() - 1));
 		}
+		allTextures().insert(this);
 	}
 
 	Texture::Texture(int count, 
@@ -143,22 +175,40 @@ namespace KRE
 		  mix_ratio_(0.0f),
 		  mix_palettes_(false)
 	{
+		ASSERT_LOG(count > 0, "Insufficient number of textures specified: " << count);
 		palette_[0] = palette_[1] = 0;
 		texture_params_.resize(count);
 		for(int n = 0; n != count; ++n) {
-			texture_params_[n].surface = Surface::create(width, height, fmt);
-			texture_params_[n].surface_width = width;
-			texture_params_[n].surface_height = height;
-			texture_params_[n].width = width;
-			texture_params_[n].height = height;
-			texture_params_[n].depth = depth;
-			texture_params_[n].type = type;
-			internalInit(texture_params_.begin() + n);
+			auto& tp = texture_params_[n];
+			auto surf = Surface::create(width, height, fmt);
+			tp.surface = surf;
+			tp.fmt = surf->getPixelFormat() ? surf->getPixelFormat()->getFormat() : PixelFormat::PF::PIXELFORMAT_UNKNOWN;
+			//tp.filename.clear();
+			tp.surface_width = width;
+			tp.surface_height = height;
+			tp.width = width;
+			tp.height = height;
+			tp.depth = depth;
+			tp.type = type;
+			internalInit(texture_params_.begin()+n);
 		}
+		allTextures().insert(this);
+	}
+
+	Texture::Texture(const Texture& o)
+	  : texture_params_(o.texture_params_),
+		is_paletteized_(o.is_paletteized_),
+		mix_ratio_(o.mix_ratio_),
+		mix_palettes_(o.mix_palettes_),
+		palette_row_map_(o.palette_row_map_)
+	{
+		memcpy(palette_, o.palette_, sizeof(palette_));
+		allTextures().insert(this);
 	}
 
 	Texture::~Texture()
 	{
+		allTextures().erase(this);
 	}
 
 	void Texture::initFromVariant(texture_params_iterator tp, const variant& node)
@@ -584,6 +634,18 @@ namespace KRE
 		return DisplayDevice::createTextureArray(surfaces, node);
 	}
 
+	TexturePtr Texture::createFromImage(const std::string& image_data, const variant& node)
+	{
+		auto surface = Surface::create(image_data, SurfaceFlags::FROM_DATA | SurfaceFlags::NO_CACHE);
+		return DisplayDevice::createTexture(surface, node);
+	}
+
+	TexturePtr Texture::createFromImage(const std::string& image_data, TextureType type, int mipmap_levels)
+	{
+		auto surface = Surface::create(image_data, SurfaceFlags::FROM_DATA | SurfaceFlags::NO_CACHE);
+		return DisplayDevice::createTexture(surface, type, mipmap_levels);
+	}
+
 	void Texture::clearTextures()
 	{
 		DisplayDevice::getCurrent()->clearTextures();
@@ -603,10 +665,30 @@ namespace KRE
 		return res;
 	}
 
+	SurfacePtr Texture::getFrontSurface() const
+	{
+		if (texture_params_[0].filename.empty()) {
+			return nullptr;
+		}
+		auto surf = Surface::create(texture_params_[0].filename);
+		return surf;
+	}
+	
+	SurfacePtr Texture::getSurface(int n) const
+	{
+		ASSERT_LOG(n < static_cast<int>(texture_params_.size()), "index out of bounds. " << n << " >= " << texture_params_.size());
+		if (texture_params_[n].filename.empty()) {
+			return nullptr;
+		}
+		auto surf = Surface::create(texture_params_[n].filename);
+		return surf;
+	}
+
 	void Texture::addSurface(SurfacePtr surf)
 	{
 		texture_params_.emplace_back(TextureParams());
 		texture_params_.back().surface = surf;
+		texture_params_.back().filename = surf->getName();
 		texture_params_.back().surface_width = surf->width();
 		texture_params_.back().surface_height = surf->height();
 		internalInit(texture_params_.begin() + (texture_params_.size() - 1));

@@ -98,6 +98,19 @@ namespace KRE
 			}
 			return SDL_PIXELFORMAT_ABGR8888;
 		}
+
+		class CursorSDL : public Cursor
+		{
+			public:
+				explicit CursorSDL(SDL_Cursor* p) : cursor_(p) {}
+				~CursorSDL() { SDL_FreeCursor(cursor_); }
+				void setCursor() override { SDL_SetCursor(cursor_); }
+			private:
+				SDL_Cursor* cursor_;
+				CursorSDL() = delete;
+				CursorSDL(const CursorSDL&) = delete;
+				CursorSDL& operator=(const CursorSDL&) = delete;
+		};
 	}
 
 	SurfaceSDL::SurfaceSDL(int width, 
@@ -704,8 +717,13 @@ namespace KRE
 
 	SurfacePtr SurfaceSDL::createFromFile(const std::string& filename, PixelFormat::PF fmt, SurfaceFlags flags, SurfaceConvertFn fn)
 	{
-		auto filter = Surface::getFileFilter(FileFilterType::LOAD);
-		auto s = IMG_Load(filter(filename).c_str());
+		SDL_Surface* s = nullptr;
+		if(flags & SurfaceFlags::FROM_DATA) {
+			s = IMG_Load_RW(SDL_RWFromConstMem(filename.c_str(), static_cast<int>(filename.size())), 0);
+		} else {
+			auto filter = Surface::getFileFilter(FileFilterType::LOAD);
+			s = IMG_Load(filter(filename).c_str());
+		}
 		if(s == nullptr) {
 			std::stringstream ss;
 			ss << "Failed to load image file: '" << filename << "' : " << IMG_GetError();
@@ -1004,5 +1022,11 @@ namespace KRE
 		ASSERT_LOG(src_ptr != nullptr, "Source pointer was wrong type is not SurfaceSDL");
 		SDL_Rect dr = {dst_rect.x(), dst_rect.y(), dst_rect.w(), dst_rect.h()};
 		SDL_BlitScaled(src_ptr->surface_, nullptr, surface_, &dr);
+	}
+
+	CursorPtr SurfaceSDL::createCursorFromSurface(int hot_x, int hot_y)
+	{
+		auto s = SDL_CreateColorCursor(get(), hot_x, hot_y);
+		return std::unique_ptr<CursorSDL>(new CursorSDL(s));
 	}
 }

@@ -46,7 +46,7 @@ namespace KRE
 			{
 			}
 		protected:
-			void internalCreate(Particle& p, float t) {
+			void internalCreate(Particle& p, float t) override {
 				float angle = 0.0f;
 				if(circle_random_) {
 					angle = get_random_float(0.0f, float(2.0 * M_PI));
@@ -58,7 +58,7 @@ namespace KRE
 				p.initial.position.x += r * sin(angle + circle_angle_);
 				p.initial.position.y += r * cos(angle + circle_angle_);
 			}
-			virtual EmitterPtr clone() {
+			virtual EmitterPtr clone() override {
 				return std::make_shared<CircleEmitter>(*this);
 			}
 		private:
@@ -90,12 +90,12 @@ namespace KRE
 				}
 			}
 		protected:
-			void internalCreate(Particle& p, float t) {
+			void internalCreate(Particle& p, float t) override {
 				p.initial.position.x += get_random_float(0.0f, box_dimensions_.x) - box_dimensions_.x/2;
 				p.initial.position.y += get_random_float(0.0f, box_dimensions_.y) - box_dimensions_.y/2;
 				p.initial.position.z += get_random_float(0.0f, box_dimensions_.z) - box_dimensions_.z/2;
 			}
-			virtual EmitterPtr clone() {
+			virtual EmitterPtr clone() override {
 				return std::make_shared<BoxEmitter>(*this);
 			}
 		private:
@@ -146,10 +146,10 @@ namespace KRE
 				: Emitter(parent, node) 
 			{}
 		protected:
-			void internalCreate(Particle& p, float t) {
+			void internalCreate(Particle& p, float t) override {
 				// intentionally does nothing.
 			}
-			virtual EmitterPtr clone() {
+			virtual EmitterPtr clone() override {
 				return std::make_shared<PointEmitter>(*this);
 			}
 		private:
@@ -164,14 +164,14 @@ namespace KRE
 				  radius_(node["radius"].as_float(1.0f)) 
 			{}
 		protected:
-			void internalCreate(Particle& p, float t) {
+			void internalCreate(Particle& p, float t) override {
 				float theta = get_random_float(0, 2.0f * static_cast<float>(M_PI));
 				float phi = acos(get_random_float(-1.0f, 1.0f));
 				p.initial.position.x += radius_ * sin(phi) * cos(theta);
 				p.initial.position.y += radius_ * sin(phi) * sin(theta);
 				p.initial.position.z += radius_ * cos(phi);
 			}
-			virtual EmitterPtr clone() {
+			virtual EmitterPtr clone() override {
 				return std::make_shared<SphereSurfaceEmitter>(*this);
 			}
 		private:
@@ -244,8 +244,8 @@ namespace KRE
 				color_ = variant_to_vec4(node["colour"]);
 			}
 			if(node.has_key("start_colour_range") && node.has_key("end_colour_range")) {
-				glm::detail::tvec4<unsigned char> start;
-				glm::detail::tvec4<unsigned char> end;
+				glm::tvec4<unsigned char> start;
+				glm::tvec4<unsigned char> end;
 				ASSERT_LOG(node["start_colour_range"].is_list() && node["start_colour_range"].num_elements() == 4,
 					"'start_colour_range' should be a list of 4 elements.");
 				start.r = node["start_colour_range"][0].as_int32();
@@ -581,7 +581,7 @@ namespace KRE
 		color_vector Emitter::getColor() const
 		{
 			if(color_range_) {
-				return glm::detail::tvec4<unsigned char>(
+				return glm::tvec4<unsigned char>(
 					get_random_float(color_range_->first.r,color_range_->second.r),
 					get_random_float(color_range_->first.g,color_range_->second.g),
 					get_random_float(color_range_->first.b,color_range_->second.b),

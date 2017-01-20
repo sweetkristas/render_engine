@@ -41,19 +41,6 @@
     <ClCompile Include="..\src\kre\FontSDL.cpp" />
     <ClCompile Include="..\src\kre\FontSTB.cpp" />
     <ClCompile Include="..\src\kre\Frustum.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\AttributeSetGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\BlendGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\CanvasGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\ClipScopeGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\DisplayDeviceGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\EffectsGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\FboGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\ScissorGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\ShadersGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\StencilScopeGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\TextureGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\UniformBufferGLES2.cpp" />
-    <ClCompile Include="..\src\kre\GLES2\VGraphGLES2.cpp" />
     <ClCompile Include="..\src\kre\LightObject.cpp" />
     <ClCompile Include="..\src\kre\ModelMatrixScope.cpp" />
     <ClCompile Include="..\src\kre\ParticleSystem.cpp" />
@@ -131,19 +118,6 @@
     <ClInclude Include="..\src\kre\FontSDL.hpp" />
     <ClInclude Include="..\src\kre\Frustum.hpp" />
     <ClInclude Include="..\src\kre\geometry.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\AttributeSetGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\BlendGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\CanvasGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\ClipScopeGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\DisplayDeviceGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\EffectsGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\FboGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\ScissorGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\ShadersGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\StencilScopeGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\TextureGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\UniformBufferGLES2.hpp" />
-    <ClInclude Include="..\src\kre\GLES2\VGraphGLES2.hpp" />
     <ClInclude Include="..\src\kre\Gradients.hpp" />
     <ClInclude Include="..\src\kre\lexical_cast.hpp" />
     <ClInclude Include="..\src\kre\LightObject.hpp" />
@@ -216,7 +190,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

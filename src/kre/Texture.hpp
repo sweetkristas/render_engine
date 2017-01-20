@@ -25,6 +25,7 @@
 
 #include <array>
 #include <memory>
+#include <set>
 #include <string>
 #include "geometry.hpp"
 #include "ScopeableValue.hpp"
@@ -42,9 +43,11 @@ namespace KRE
 	// unpack image height
 	// unpack skip rows, skip pixels
 
-	class Texture : public ScopeableValue
+	class Texture : public ScopeableValue, public std::enable_shared_from_this<Texture>
 	{
 	public:
+		static const std::set<Texture*>& getAllTextures();
+
 		enum class AddressMode {
 			WRAP,
 			CLAMP,
@@ -78,6 +81,7 @@ namespace KRE
 		Filtering getFilteringMip(int n = 0) const { return texture_params_[n].filtering[2]; }
 		const Color& getBorderColor(int n = 0) const { return texture_params_[n].border_color; }
 		float getLodBias(int n = 0) const { return texture_params_[n].lod_bias; }
+		PixelFormat::PF getPixelFormat(int n = 0) const { return texture_params_[n].fmt; }
 
 		int actualWidth(int n = 0) const { return texture_params_[n].width; }
 		int actualHeight(int n = 0) const { return texture_params_[n].height; }
@@ -89,8 +93,6 @@ namespace KRE
 
 		int surfaceWidth(int n = 0) const { return texture_params_[n].surface_width; }
 		int surfaceHeight(int n = 0) const { return texture_params_[n].surface_height; }
-
-		virtual void clearSurfaces();
 
 		virtual void init(int n) = 0;
 		virtual void bind(int binding_point=0) = 0;
@@ -113,6 +115,8 @@ namespace KRE
 		static TexturePtr createTexture(const std::string& filename, const variant& node);
 		static TexturePtr createTexture(const SurfacePtr& surface, const variant& node);
 		static TexturePtr createTexture(const SurfacePtr& surface);
+		static TexturePtr createFromImage(const std::string& image_data, const variant& node);
+		static TexturePtr createFromImage(const std::string& image_data, TextureType type=TextureType::TEXTURE_2D, int mipmap_levels=0);
 		
 		static TexturePtr createTexture1D(int width, PixelFormat::PF fmt);
 		static TexturePtr createTexture2D(int width, int height, PixelFormat::PF fmt);
@@ -124,9 +128,10 @@ namespace KRE
 		void addPalette(int index, const SurfacePtr& palette);
 
 		int getTextureCount() const { return static_cast<int>(texture_params_.size()); }
-		const SurfacePtr& getFrontSurface() const { return texture_params_.front().surface; }
-		const SurfacePtr& getSurface(int n) const { return texture_params_[n].surface; }
+		SurfacePtr getFrontSurface() const;
+		SurfacePtr getSurface(int n) const;
 		std::vector<SurfacePtr> getSurfaces() const;
+		void clearSurfaces();
 
 		int getUnpackAlignment(int n = 0) const { return texture_params_[n].unpack_alignment; }
 		void setUnpackAlignment(int n, int align);
@@ -237,6 +242,7 @@ namespace KRE
 
 		// Helper function to extract all the image names out of a node and return them.
 		static std::vector<std::string> findImageNames(const variant& node);
+
 	protected:
 		explicit Texture(const variant& node, const std::vector<SurfacePtr>& surfaces);
 		explicit Texture(const std::vector<SurfacePtr>& surfaces,
@@ -248,6 +254,7 @@ namespace KRE
 			int depth,
 			PixelFormat::PF fmt, 
 			TextureType type);
+		Texture(const Texture& other);
 		void addSurface(SurfacePtr surf);
 		void replaceSurface(int n, SurfacePtr surf);
 	private:
@@ -258,6 +265,8 @@ namespace KRE
 		struct TextureParams {
 			TextureParams()
 				: surface(),
+				  filename(),
+				  fmt(PixelFormat::PF::PIXELFORMAT_UNKNOWN),
 				  type(TextureType::TEXTURE_2D),
 				  mipmaps(0),
 				  address_mode(),
@@ -278,7 +287,9 @@ namespace KRE
 			{
 			}
 			SurfacePtr surface;
-			
+			std::string filename;
+			PixelFormat::PF fmt;
+
 			TextureType type;
 			int mipmaps;
 			std::array<AddressMode, 3> address_mode; // u,v,w
