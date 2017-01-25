@@ -51,6 +51,29 @@ namespace KRE
 
 			void setEmissionRate(variant node);
 
+			const ParameterPtr& getEmissionRate() const { return emission_rate_; }
+			const ParameterPtr& getTimeToLive() const { return time_to_live_; }
+			const ParameterPtr& getVelocity() const { return velocity_; }
+			const ParameterPtr& getAngle() const { return angle_; }
+			const ParameterPtr& getMass() const { return mass_; }
+
+			const ParameterPtr& getDuration() const { return duration_; }
+			const ParameterPtr& getRepeatDelay() const { return repeat_delay_; }
+
+
+			const ParameterPtr& getParticleWidth() const { return particle_width_; }
+			const ParameterPtr& getParticleHeight() const { return particle_height_; }
+			const ParameterPtr& getParticleDepth() const { return particle_depth_; }
+
+			bool getForceEmission() const { return force_emission_; }
+			void setForceEmission(bool f) { force_emission_ = f; }
+
+			bool getCanBeDeleted() const { return can_be_deleted_; }
+			void setCanBeDeleted(bool f) { can_be_deleted_ = f; }
+
+			const glm::vec4& getColorFloat() const { return color_; }
+			void setColor(const glm::vec4& col) { color_ = col; }
+
 			virtual EmitterPtr clone() = 0;
 			static EmitterPtr factory(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 		protected:

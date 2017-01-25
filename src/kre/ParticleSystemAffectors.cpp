@@ -100,7 +100,7 @@ namespace KRE
 				if(node.has_key("force")) {
 					force_ = Parameter::factory(node["force"]);
 				} else {
-					force_.reset(new FixedParameter(1.0f));
+					force_.reset(new Parameter(1.0f));
 				}
 
 				direction_ = variant_to_vec3(node["direction"]);
@@ -762,7 +762,7 @@ namespace KRE
 			if(node.has_key("acceleration")) {
 				acceleration_ = Parameter::factory(node["acceleration"]);
 			} else {
-				acceleration_.reset(new FixedParameter(1.0f));
+				acceleration_.reset(new Parameter(1.0f));
 			}
 		}
 
@@ -788,7 +788,7 @@ namespace KRE
 			if(node.has_key("rotation_speed")) {
 				rotation_speed_ = Parameter::factory(node["rotation_speed"]);
 			} else {
-				rotation_speed_.reset(new FixedParameter(1.0f));
+				rotation_speed_.reset(new Parameter(1.0f));
 			}
 			if(node.has_key("rotation_axis")) {
 				rotation_axis_ = variant_to_vec3(node["rotation_axis"]);
@@ -816,7 +816,7 @@ namespace KRE
 			if(node.has_key("gravity")) {
 				gravity_ = Parameter::factory(node["gravity"]);
 			} else {
-				gravity_ .reset(new FixedParameter(1.0f));
+				gravity_ .reset(new Parameter(1.0f));
 			}
 		}
 

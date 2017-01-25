@@ -203,22 +203,22 @@ namespace KRE
 			if(node.has_key("time_to_live")) {
 				time_to_live_ = Parameter::factory(node["time_to_live"]);
 			} else {
-				time_to_live_.reset(new FixedParameter(10.0f));
+				time_to_live_.reset(new Parameter(10.0f));
 			}
 			if(node.has_key("velocity")) {
 				velocity_ = Parameter::factory(node["velocity"]);
 			} else {
-				velocity_.reset(new FixedParameter(100.0f));
+				velocity_.reset(new Parameter(100.0f));
 			}
 			if(node.has_key("angle")) {
 				angle_ = Parameter::factory(node["angle"]);
 			} else {
-				angle_.reset(new FixedParameter(20.0f));
+				angle_.reset(new Parameter(20.0f));
 			}
 			if(node.has_key("mass")) {
 				mass_ = Parameter::factory(node["mass"]);
 			} else {
-				mass_.reset(new FixedParameter(1.0f));
+				mass_.reset(new Parameter(1.0f));
 			}
 			if(node.has_key("duration")) {
 				duration_ = Parameter::factory(node["duration"]);
@@ -351,7 +351,7 @@ namespace KRE
 			if(node.is_null() == false) {
 				emission_rate_ = Parameter::factory(node);
 			} else {
-				emission_rate_.reset(new FixedParameter(10));
+				emission_rate_.reset(new Parameter(10));
 			}
 		}
 
@@ -562,7 +562,7 @@ namespace KRE
 		float Emitter::generateAngle() const
 		{
 			float angle = angle_->getValue(getTechnique()->getParticleSystem()->getElapsedTime());
-			if(angle_->type() == ParameterType::FIXED) {
+			if(angle_->getType() == ParameterType::FIXED) {
 				return get_random_float() * angle;
 			}
 			return angle;

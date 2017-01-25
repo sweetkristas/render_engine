@@ -31,6 +31,7 @@
 #include <glm/gtx/perpendicular.hpp>
 
 #include "variant.hpp"
+#include "variant_utils.hpp"
 
 namespace KRE
 {

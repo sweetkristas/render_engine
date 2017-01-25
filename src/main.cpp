@@ -15,12 +15,15 @@
 #include "LightObject.hpp"
 #include "ModelMatrixScope.hpp"
 #include "ParticleSystem.hpp"
+#include "ParticleSystemEmitters.hpp"
+#include "ParticleSystemParameters.hpp"
 #include "Renderable.hpp"
 #include "RenderManager.hpp"
 #include "RenderQueue.hpp"
 #include "RenderTarget.hpp"
 #include "SceneGraph.hpp"
 #include "SceneNode.hpp"
+#include "SceneTree.hpp"
 #include "Shaders.hpp"
 #include "Surface.hpp"
 #include "TexPack.hpp"
@@ -32,10 +35,23 @@
 
 #include "variant_utils.hpp"
 
+#ifdef USE_IMGUI
+#include "imgui.h"
+#include "imgui_impl_sdl_gl3.h"
+#endif
+
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
+
+namespace ImGui
+{
+	int Curve(const char *label, const ImVec2& size, int maxpoints, ImVec2 *points);
+	float CurveValue(float p, int maxpoints, const ImVec2 *points);
+
+	bool Spline(const char *label, const ImVec2& size, int maxpoints, ImVec2 *points);
+};
 
 namespace
 {	
@@ -450,6 +466,144 @@ std::vector<float> generate_gaussian(float sigma, int radius = 4)
 	return res;
 }
 
+
+void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
+{
+	// XXX we need to deal with this condition. Probably add another option to type.
+	if(param == nullptr) {
+		return;
+	}
+
+	using namespace KRE::Particles;
+	ImGui::Text(label);
+	const char* const ptype[] = { "Fixed", "Random", "Linear", "Spline", "Oscillate" };
+	int current_type = static_cast<int>(param->getType());
+	std::string combo_label = "Type#";
+	combo_label += label;
+	if(ImGui::Combo(combo_label.c_str(), &current_type, ptype, 5)) {
+		param->setType(static_cast<ParameterType>(current_type));
+	}
+
+	switch(param->getType()){
+		case ParameterType::FIXED: {
+			FixedParams fp;
+			param->getFixedValue(&fp);
+			std::string fixed_label = "Value#";
+			fixed_label += label;
+			if(ImGui::DragFloat(fixed_label.c_str(), &fp.value, 1.0f, 0.0f, 1000.0f)) {
+				param->setFixedValue(fp);
+			}
+			break;
+		}
+		case ParameterType::RANDOM: {
+			RandomParams rp;
+			param->getRandomRange(&rp);
+			std::string min_label = "Min Value#";
+			min_label += label;
+			if(ImGui::DragFloat(min_label.c_str(), &rp.min_value, 1.0f, 0.0f, 1000.0f)) {
+				param->setRandomRange(rp);
+			}
+			std::string max_label = "Max Value#";
+			max_label += label;
+			if(ImGui::DragFloat(max_label.c_str(), &rp.max_value, 1.0f, 0.0f, 1000.0f)) {
+				param->setRandomRange(rp);
+			}
+			break;
+		}
+		case ParameterType::CURVED_LINEAR: {
+			CurvedParams cp;
+			param->getCurvedParams(&cp);
+			ImVec2 points[10];
+			std::fill(points, points+10, ImVec2(-1.0f, 0.0f));
+			if(cp.control_points.size() < 2) {
+				points[0].x = -1.0f;
+			} else {
+				int n = 0;
+				for(auto& p : cp.control_points) {
+					points[n].x = static_cast<float>(p.first);
+					points[n].y = static_cast<float>(p.second);
+					if(++n >= 10) {
+						break;
+					}
+				}
+			}
+			std::string linear_label = "Linear#";
+			linear_label += label;
+			if(ImGui::Curve(linear_label.c_str(), ImVec2(300, 200), 10, points)) {
+				cp.control_points.clear();
+				for(int n = 0; n != 10 && points[n].x >= 0; ++n) {
+					cp.control_points.emplace_back(points[n].x, points[n].y);
+				}
+				param->setControlPoints(InterpolationType::LINEAR,  cp);
+			}
+			break;
+		}
+		case ParameterType::CURVED_SPLINE: {
+			CurvedParams cp;
+			param->getCurvedParams(&cp);
+			ImVec2 points[10];
+			std::fill(points, points+10, ImVec2(-1.0f, 0.0f));
+			if(cp.control_points.size() < 2) {
+				points[0].x = -1.0f;
+			} else {
+				int n = 0;
+				for(auto& p : cp.control_points) {
+					points[n].x = static_cast<float>(p.first);
+					points[n].y = static_cast<float>(p.second);
+					if(++n >= 10) {
+						break;
+					}
+				}
+			}
+			std::string spline_label = "Spline#";
+			spline_label += label;
+			if(ImGui::Spline(spline_label.c_str(), ImVec2(300.0f, 200.0f), 10, points)) {
+				cp.control_points.clear();
+				for(int n = 0; n != 10 && points[n].x >= 0; ++n) {
+					cp.control_points.emplace_back(points[n].x, points[n].y);
+				}
+				param->setControlPoints(InterpolationType::SPLINE,  cp);
+			}
+			break;
+		}
+
+		case ParameterType::OSCILLATE: {
+			OscillationParams op;
+			param->getOscillation(&op);
+			const char* const osc_items[] = { "Sine", "Square" };
+			int otype = static_cast<int>(op.osc_type);
+			std::string wtype_label = "Wave Type#";
+			wtype_label += label;
+			if(ImGui::Combo(wtype_label.c_str(), &otype, osc_items, 2)) {
+				op.osc_type = static_cast<WaveType>(otype);
+				param->setOscillation(op);
+			}
+			std::string freq_label = "Frequency#";
+			freq_label += label;
+			if(ImGui::DragFloat(freq_label.c_str(), &op.frequency, 1.0f, 1.0f, 10000.0f)) {
+				param->setOscillation(op);
+			}
+			std::string phase_label = "Phase#";
+			phase_label += label;
+			if(ImGui::DragFloat(phase_label.c_str(), &op.phase, 1.0f, 0.0f, 360.0f)) {
+				param->setOscillation(op);
+			}
+			std::string base_label = "Base#";
+			base_label += label;
+			if(ImGui::DragFloat(base_label.c_str(), &op.base, 1.0f, 0.0f, 1000.0f)) {
+				param->setOscillation(op);
+			}
+			std::string amplitude_label = "Amplitude#";
+			amplitude_label += label;
+			if(ImGui::DragFloat(amplitude_label.c_str(), &op.amplitude, 1.0f, 0.0f, 1000.0f)) {
+				param->setOscillation(op);
+			}
+			break;
+		}
+	default: break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef _MSC_VER
@@ -472,7 +626,7 @@ int main(int argc, char *argv[])
 	hints.add("renderer", "GLESv2");
 	hints.add("dpi_aware", true);
 	hints.add("use_vsync", true);
-	int neww = 1600, newh = 900;
+	int neww = 2560, newh = 1440;
 	//if(!autoWindowSize(neww, newh)) {
 	//	LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
 	//}
@@ -497,75 +651,18 @@ int main(int argc, char *argv[])
 #endif
 	Font::setAvailableFonts(font_paths);
 
-	/*auto surf = Surface::create("test_image.png");
-	for(auto col : *surf) {
-		LOG_DEBUG(col.red << "," << col.green << "," << col.blue << "," << col.alpha);
-	}*/
-	
 	set_alpha_masks();	
 	
 	// XXX should a scenegraph be created from a specific window? It'd solve a couple of issues
 	SceneGraphPtr scene = SceneGraph::create("main");
 	SceneNodePtr root = scene->getRootNode();
 	root->setNodeName("root_node");
-	/*auto scenecam = std::make_shared<Camera>("cam0", 0, neww, 0, newh);
-	scenecam->attachFrustum(std::make_shared<Frustum>());
-	root->attachCamera(scenecam);
-	auto sunlight = std::make_shared<Light>("the_sun", glm::vec3(1.0f, 1.0f, 1.0f));
-	sunlight->setAmbientColor(Color(1.0f,1.0f,1.0f,1.0f));
-	root->attachLight(0, sunlight);*/
 
 	DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("ortho1", 0, neww, 0, newh));
+	//DisplayDevice::getCurrent()->setDefaultCamera(std::make_shared<Camera>("xxx", 45.0f, aspect_ratio, 0.01f, 99.0f));
 
 	auto rman = std::make_shared<RenderManager>();
 	auto rq = rman->addQueue(0, "opaques");
-
-	/*SquareRenderablePtr square(std::make_shared<SquareRenderable>());
-	square->setPosition(600.0f, 400.0f);
-	square->setScale(2.0f,2.0f);
-	root->attachObject(square);
-
-	auto cairo_canvas = Vector::Context::CreateInstance("cairo", 512, 512);
-	cairo_canvas->SetSourceColor(0.0, 1.0, 0.0);
-	cairo_canvas->Paint();
-	cairo_canvas->Fill();
-	auto path = cairo_canvas->NewPath();
-	path->Circle(256, 256, 100);
-	cairo_canvas->AddPath(path);
-	cairo_canvas->SetSourceColor(0.0, 0.0, 1.0);
-	cairo_canvas->Fill();
-	auto text = cairo_canvas->NewPath();
-	text->MoveTo(10, 10);
-	text->TextPath("ABCDabcde");
-	cairo_canvas->AddPath(text);
-	cairo_canvas->Fill();
-	cairo_canvas->setOrder(5);
-	cairo_canvas->setPosition(256.0f,256.0f);
-	cairo_canvas->setColor(1.0f,1.0f,1.0f,1.0f);
-	root->attachObject(cairo_canvas);*/
-
-#if defined(__linux__)
-	//std::string psys_test_file = "data/psystem1.cfg";
-	std::string psys_test_file = "data/psystem2.cfg";
-#else
-	//std::string psys_test_file = "../data/psystem1.cfg";
-	std::string psys_test_file = "../data/psystem4.cfg";
-#endif
-	try {
-		auto psystem = scene->createNode("particle_system_container", json::parse_from_file(psys_test_file));
-		//auto particle_cam = std::make_shared<Camera>("particle_cam");
-		//particle_cam->lookAt(glm::vec3(0.0f, 10.0f, 20.0f), glm::vec3(0.0f), glm::vec3(0.0f,1.0f,0.0f));
-		//psystem->attachCamera(particle_cam);
-		//root->attachNode(psystem);
-		//auto rt = DisplayDevice::RenderTargetInstance(400, 300);
-		//rt->SetClearColor(0.0f,0.0f,0.0f,0.0f);
-		//rt->SetDrawRect(rect(400,300,400,300));
-		//rt->Create();
-		//psystem->AttachRenderTarget(rt);
-		//root->AttachObject(rt);
-	} catch(json::parse_error& e) {
-		ASSERT_LOG(true, "parse error: " << e.what());
-	}
 
 #if defined(__linux__)
 	std::string shader_test_file = "data/shaders.cfg";
@@ -574,207 +671,36 @@ int main(int argc, char *argv[])
 #endif
 	ShaderProgram::loadFromVariant(json::parse_from_file(shader_test_file));
 
-/*	auto tex = std::make_shared<SimpleTextureHolder>("card-back.png");
-	tex->setDrawRect(rectf(0.0f,0.0f,146.0f,260.0f));
-	tex->setPosition(146.0f/2.0f, newh-130.0f);
-	tex->setOrder(10);
-	root->attachObject(tex);
+#if defined(__linux__)
+	std::string psys_test_file = "data/psystem4.cfg";
+#else
+	std::string psys_test_file = "../data/psystem4.cfg";
+#endif
 
-	// test cloning
-	auto new_tex = std::make_shared<SimpleTextureHolder>(*tex);
-	new_tex->setOrder(tex->getOrder()+1);
-	new_tex->setPosition(neww/2.0f, newh/2.0f);
-	root->attachObject(new_tex);
+	Particles::ParticleSystemContainerPtr psystem = nullptr;
 
-	auto free_surf = Surface::create("editor-tools.png", SurfaceFlags::NO_ALPHA_FILTER);
-	//auto free_tex = std::make_shared<FreeTextureHolder>("editor-tools.png");
-	auto free_tex = std::make_shared<FreeTextureHolder>(free_surf);
-	free_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
-	free_tex->setPosition(neww - 256.0f, 0.0f);
+	try {
+		psystem = Particles::ParticleSystemContainer::create(scene, json::parse_from_file(psys_test_file));
+		root->attachNode(psystem);
 
-	// Test that cache surfaces and textures is working.
-	std::vector<std::shared_ptr<FreeTextureHolder>> texture_list;		
-	for(int n = 0; n != 100; ++n) {
-		auto surf2 = Surface::create("editor-tools.png");
-		auto tex1 = std::make_shared<FreeTextureHolder>(surf2);
-		texture_list.emplace_back(tex1);
+		for(auto& p : psystem->getActiveParticleSystems()) {
+			p->fastForward();
+		}
+	} catch(json::parse_error& e) {
+		ASSERT_LOG(true, "parse error: " << e.what());
 	}
 
-	auto fnt_surf = Font::getInstance()->renderText("test", Color::colorOrange(), 20, false, "FreeSans.ttf");
-	auto text_tex = std::make_shared<FreeTextureHolder>(fnt_surf);
-	//text_tex->setDrawRect(rect(0, 0, fnt_surf->surfaceWidth(), fnt_surf->surfaceHeight()));
-	text_tex->setPosition(fnt_surf->surfaceWidth()/2, fnt_surf->surfaceHeight()/2);
-	//text_tex->setPosition(fnt_surf->surfaceWidth()/2, fnt_surf->surfaceHeight()/2);
-	//text_tex->setDrawRect(rectf(0.0f, 0.0f, fnt_surf->surfaceWidth(), fnt_surf->surfaceHeight()));
-	//text_tex->setDrawRect(rectf(0.0f,0.0f,256.0f,256.0f));
-	//text_tex->setPosition(128.0f,128.0f);
+	ASSERT_LOG(psystem != nullptr, "No particle system loaded.");
 
-	float angle = 1.0f;
-	float angle_step = 0.5f;
-
-	auto canvas = Canvas::getInstance();
-	canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));
-
-	auto canvas_texture = Texture::createTexture("widgets.png");
-	canvas_texture->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::NONE);
-	
-	texture_packing_test();
-
-	// render target test.
-	auto rt1 = RenderTarget::create(300, 300);
-	{
-		RenderTarget::RenderScope render_scope(rt1);
-		//rt1->setClearColor(Color::colorRed());
-		rt1->setClearColor(Color(0,0,0,0));
-		rt1->clear();
-		canvas->setDimensions(300, 300);
-		std::vector<glm::u8vec4> circle_colors2;
-		generate_color_wheel(60, &circle_colors2, Color(0,0,0,0), 0.8f, 0.8f);
-		canvas->drawSolidCircle(point(150, 150), 150.0f, circle_colors2);
-		canvas->drawSolidRect(rect(50, 50, 200, 200), Color::colorGrey());
-		canvas->drawSolidCircle(point(150, 150), 20.0f, Color::colorCyan());
-		rt1->setCentre(Blittable::Centre::TOP_LEFT);
-		rt1->preRender(main_wnd);
-		canvas->setDimensions(800, static_cast<int>(800/aspect_ratio));//(neww, newh);
-	}
-
-	auto test1 = std::make_shared<FreeTextureHolder>("cave2.png");
-	test1->setPosition(0,512);
-	auto palette_tex = std::make_shared<FreeTextureHolder>("cave2.png");
-	palette_tex->getTexture()->addPalette(1, Surface::create("cave_pearl.png"));
-	palette_tex->getTexture()->addPalette(2, Surface::create("cave_mossy.png"));
-	
-	//auto test1 = std::make_shared<FreeTextureHolder>("sand.png");
-	//test1->setPosition(0,512);
-	//auto palette_tex = std::make_shared<FreeTextureHolder>("sand.png");
-	//palette_tex->getTexture()->addPalette(Surface::create("seaside_stormy.png"));
-
-	palette_tex->getTexture()->setPalette(0);
-	//auto palette_tex = std::make_shared<FreeTextureHolder>("checkerboard1.png");
-	//palette_tex->getTexture()->addPalette(Surface::create("checkerboard-palette.png"));
-	palette_tex->setPosition(0, 0);
-	auto palette_cam = std::make_shared<Camera>("palette_cam", 0, 800, 0, 800);
-	palette_tex->setCamera(palette_cam);
-	test1->setCamera(palette_cam);
-	
-	//auto rt2 = RenderTarget::create(palette_tex->getTexture()->width(), palette_tex->getTexture()->height());
-	//rt2->setCentre(Blittable::Centre::TOP_LEFT);
-
-	// Test code for setting shader uniforms.
-	auto water_shader = ShaderProgram::getProgram("water_distort");
-	water_distort_uniforms wd;
-	uniform_mapping wd_mapping;
-	UniformBuffer<water_distort_uniforms> water_uniforms("anura_uniforms", wd);
-	wd_mapping["u_anura_tex_map"] = offsetof(water_distort_uniforms, texture);
-	wd_mapping["u_anura_mvp_matrix"] = offsetof(water_distort_uniforms, mvp);
-	wd_mapping["u_anura_cycle"] = offsetof(water_distort_uniforms, cycle);
-	wd_mapping["u_anura_sprite_area"] = offsetof(water_distort_uniforms, sprite_area);
-	wd_mapping["u_anura_draw_area"] = offsetof(water_distort_uniforms, draw_area);
-	wd_mapping["u_intensity"] = offsetof(water_distort_uniforms, intensity);
-	wd_mapping["u_water_area"] = offsetof(water_distort_uniforms, water_area);
-	water_uniforms.setMapping(&wd_mapping);
-	auto water_tex = SimpleTextureHolder("checkerboard1.png");
-	water_tex.setPosition(neww/2, newh/2);
-	water_tex.setShader(water_shader);
-	water_tex.addUniformBuffer(std::move(water_uniforms));
-*/
-
-	variant_builder tmxvar;
-	tmxvar.add("tmx", "data/isometric_grass_and_water.tmx");
-	auto tiled_map = scene->createNode("tiled_map", tmxvar.build());
-	tiled_map->setPosition(main_wnd->width() / 2, 0);
-	//tiled::TmxReader tmx_reader(std::dynamic_pointer_cast<tiled::Map>(tiled_map));
-	//tmx_reader.parseFile("data/isometric_grass_and_water.tmx");
-	//tmx_reader.parseFile("data/hex-mini.tmx");
-	//tmx_reader.parseFile("data/sewer_tileset.tmx");
-	//tmx_reader.parseFile("data/small_isometric_staggered_grass_and_water.tmx");
-	//root->attachNode(tiled_map);
-
-	//auto blue_box = std::make_shared<BlurredBlittable>("blue_box3.png");
-	//const int bbox_w = blue_box->getTexture()->width();
-	//const int bbox_h = blue_box->getTexture()->height();
-	//blue_box->setCentre(Blittable::Centre::TOP_LEFT);
-	//blue_box->setPosition(0, 0);
-	//blue_box->setCamera(std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h));
-	const int bbox_w = 512;
-	const int bbox_h = 256;
-	auto sr = std::make_shared<SimpleRenderable>(rect(24, 24, bbox_w-48, bbox_h-48), Color(0, 0, 0, 255));
-	CameraPtr box_cam = std::make_shared<Camera>("ortho999", 0, bbox_w, 0, bbox_h);
-	sr->setCamera(box_cam);
-	RenderTargetPtr rt = RenderTarget::create(bbox_w, bbox_h);
-	rt->getTexture()->setFiltering(-1, Texture::Filtering::LINEAR, Texture::Filtering::LINEAR, Texture::Filtering::POINT);
-	rt->getTexture()->setAddressModes(-1, Texture::AddressMode::CLAMP, Texture::AddressMode::CLAMP);
-	rt->setCentre(Blittable::Centre::TOP_LEFT);
-		rt->setClearColor(Color(128,128,128,0));
-		rt->apply(rect(0, 0, bbox_w, bbox_h));
-		rt->clear();
-		//blue_box->preRender(main_wnd);
-		//main_wnd->render(blue_box.get());
-		sr->preRender(main_wnd);
-		main_wnd->render(sr.get());
-		rt->unapply();
-	//root->attachObject(rt);	
-	auto shader_blur = ShaderProgram::getProgram("blur2");
-	rt->setShader(shader_blur);
-	const int blur_two = shader_blur->getUniform("texel_width_offset");
-	const int blur_tho = shader_blur->getUniform("texel_height_offset");
-	const int u_gaussian = shader_blur->getUniform("gaussian");
-	std::vector<float> gaussian = KRE::generate_gaussian(20.0f, 7);//{ 0.05f, 0.09f, 0.12f, 0.15f, 0.16f, 0.15f, 0.12f, 0.09f, 0.05f };
-	shader_blur->setUniformDrawFunction([blur_two, blur_tho, bbox_h, gaussian, u_gaussian](ShaderProgramPtr shader){ 
-		shader->setUniformValue(u_gaussian, &gaussian[0]);
-		shader->setUniformValue(blur_two, 0.0f);
-		shader->setUniformValue(blur_tho, 1.0f / (bbox_h - 1.0f));
-	});
-	//rt->setOrder(1);
-	RenderTargetPtr rt2 = RenderTarget::create(bbox_w, bbox_h);
-	rt2->setCentre(Blittable::Centre::TOP_LEFT);
-	rt2->setClearColor(Color(0,0,0,0));
-	{
-		rt->setCamera(box_cam);
-		RenderTarget::RenderScope rs(rt2, rect(0, 0, bbox_w, bbox_h));
-		rt->preRender(main_wnd);
-		main_wnd->render(rt.get());
-
-		rt2->setShader(shader_blur);
-		const int blur_two = shader_blur->getUniform("texel_width_offset");
-		const int blur_tho = shader_blur->getUniform("texel_height_offset");
-		shader_blur->setUniformDrawFunction([blur_two, blur_tho, bbox_w](ShaderProgramPtr shader){ 
-			shader->setUniformValue(blur_two, 1.0f / (bbox_w - 1.0f));
-			shader->setUniformValue(blur_tho, 0.0f);
-		});
-		//rt->setOrder(1);
-		//shader_blur->makeActive();
-		//shader_blur->setUniformValue(blur_two, 1.0f / (bbox_w - 1.0f));
-		//shader_blur->setUniformValue(blur_tho, 0.0f);
-	}
-	rt2->setOrder(1);
-	root->attachObject(rt2);
-
-	auto sr_blue = std::make_shared<SimpleRenderable>(rect(32, 32, bbox_w-64, bbox_h-64), Color::colorBlue());
-	sr_blue->setOrder(999);
-	root->attachObject(sr_blue);
-
-	//auto bb2 = std::make_shared<SimpleTextureHolder>("blue_box2.png");
-	//root->attachObject(bb2);	
-	{
-	//"deephelm-explorer.png"
-	//root->attachObject(blue_box);
-	//auto shader = ShaderProgram::getProgram("blur2");
-	//int two = shader->getUniform("texel_width_offset");
-	//int tho = shader->getUniform("texel_height_offset");
-	//rt->setShader(shader);
-	//shader->setUniformValue(two, 0.0f);
-	//shader->setUniformValue(tho, 1.0f/(bbox_h-1));
-	}
-
-	Uint32 last_tick_time = SDL_GetTicks();
+	Uint32 t = SDL_GetTicks();
 
 	SDL_Event e;
 	bool done = false;
-	profile::timer timer;
 	while(!done) {
-		timer.start();
 		while(SDL_PollEvent(&e)) {
+#ifdef USE_IMGUI
+			ImGui_ImplSdlGL3_ProcessEvent(&e);
+#endif
 			if(e.type == SDL_KEYUP && e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
 				done = true;
 			} else if(e.type == SDL_KEYDOWN) {
@@ -784,122 +710,60 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		main_wnd->setClearColor(KRE::Color(255, 255, 255, 255));
+		Uint32 cur_time = SDL_GetTicks();
+		scene->process((cur_time - t) / 1000.0f);
+		t = cur_time;
+
+		//main_wnd->setClearColor(KRE::Color(255, 255, 255, 255));
+		main_wnd->setClearColor(KRE::Color::colorBlack());
 		main_wnd->clear(ClearFlags::ALL);
 
-		// Called once a cycle before rendering.
-		Uint32 current_tick_time = SDL_GetTicks();
-		scene->process((current_tick_time - last_tick_time) / 1000.0f);
-		last_tick_time = current_tick_time;
-
-		/*tex->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
-		new_tex->setRotation(360.0f - angle, glm::vec3(0.0f,0.0f,1.0f));
-		cairo_canvas->setRotation(angle, glm::vec3(0.0f,0.0f,1.0f));
-		angle += angle_step;
-		while(angle >= 360.0f) {
-			angle -= 360.0f;
-		}
-
-		canvas->blitTexture(rt1->getTexture(), 0.0f, 800-rt1->getTexture()->surfaceWidth(), 0);
-
-		{
-			//RenderTarget::RenderScope render_scope(rt2);
-			//rt2->setClearColor(Color(0,0,0,0));
-			//rt2->clear();
-			palette_tex->preRender(main_wnd);
-			main_wnd->render(palette_tex.get());
-
-			test1->preRender(main_wnd);
-			main_wnd->render(test1.get());
-		}
-		//rt2->preRender(main_wnd);
-		//canvas->blitTexture(rt2->getTexture(), 0.0f, 0, 0);
-
-		static int counter_pal = 0;
-		static int pal = -1;
-		if(++counter_pal >= 60*2) {
-			counter_pal = 0;
-			if(++pal >= 2) {
-				pal = -1;
-			}
-			palette_tex->getTexture()->setPalette(pal);
-		}
-
-		water_tex.preRender(main_wnd);
-		main_wnd->render(&water_tex);*/
-
-		//tiled_map->draw(main_wnd);
-
-		//ModelManager2D mm(400,300);
 		scene->renderScene(rman);
 		rman->render(main_wnd);
 
-		/*free_tex->preRender(main_wnd);
-		main_wnd->render(free_tex.get());
+#ifdef USE_IMGUI
+		{
+			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiSetCond_Always);
+			ImGui::Begin("some");
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::End();
 
-		text_tex->preRender(main_wnd);
-		main_wnd->render(text_tex.get());*/
+			int n = 1;
+			
+			for(auto e : psystem->getEmitters()) {
+				std::stringstream ss;
+				ss << "Emitter " << n++;
+				ImGui::Begin(ss.str().c_str());
+				ParameterGui("Emission Rate", e->getEmissionRate());
+				ParameterGui("Time to live", e->getTimeToLive());
+				ParameterGui("Velocity", e->getVelocity());
+				ParameterGui("Angle", e->getAngle());
+				ParameterGui("Mass", e->getMass());
+				ParameterGui("Duration", e->getDuration());
+				ParameterGui("Repeat Delay", e->getRepeatDelay());
+				//orientation_range_
+				//color_range_
+				float col[4] = { e->getColorFloat().r, e->getColorFloat().g, e->getColorFloat().b, e->getColorFloat().a };
+				if(ImGui::ColorEdit4("color", col, true)) {
+					e->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
+				}
+				ParameterGui("Width", e->getParticleWidth());
+				ParameterGui("Height", e->getParticleHeight());
+				ParameterGui("Depth", e->getParticleDepth());
 
-		//canvas->drawSolidCircle(point(canvas->width()/2, canvas->height()/2), 50.0f, Color::colorGold());
-		//canvas->drawHollowCircle(pointf(400.0f, 400.0f), 150.0f, 150.0f-1.0f,Color::colorAqua());
-
-		//std::vector<glm::u8vec4> circle_colors;
-		//generate_color_wheel(60, &circle_colors, Color(0,0,0,0), 0.1f, 0.1f);
-		//canvas->drawSolidCircle(point(400, 300), 150.0f, circle_colors);
-
-
-		/*{
-			Canvas::ModelManager mm(0, 0, 10.0f, 1.0f);
-			canvas->drawSolidRect(rect(600, 400, 100, 100), Color::colorCoral());
-			{
-				Canvas::ModelManager mm(500, 300, 20.0f, 3.0f);*/
-				/*mm.setIdentity();
-				mm.translate(700, 500);
-				mm.translate(-200, -200);
-				mm.rotate(20);
-				mm.scale(1.5f);
-				mm.scale(2.0f);*/
-				/*canvas->drawSolidRect(rect(0, 0, 100, 100), Color::colorChartreuse());
+				bool force_emission = e->getForceEmission();
+				if(ImGui::Checkbox("Force Emission", &force_emission)) {
+					e->setForceEmission(force_emission);
+				}
+				bool can_be_deleted = e->getCanBeDeleted();
+				if(ImGui::Checkbox("Can Be Deleted", &can_be_deleted)) {
+					e->setCanBeDeleted(can_be_deleted);
+				}
+				ImGui::End();
 			}
-		}*/
-
-		/*canvas->blitTexture(canvas_texture, 
-			rect(3,4,56,22), 
-			0.0f, 
-			//rect(800-56, 0, 56, 22), 
-			rect(0,0,112,44),
-			Color(1.0f,1.0f,1.0f,0.5f));
-		canvas->drawSolidRect(rect(100, 100, 100, 100), Color("red"));
-		canvas->drawHollowRect(rect(125, 125, 50, 50), Color("blue"));
-		canvas->drawLine(point(95,95), point(205,205), Color("yellow"));
-		std::vector<glm::vec2> varray;
-		//varray.emplace_back(400, 400);
-		//varray.emplace_back(500, 500);
-		varray.emplace_back(400, 400);
-		varray.emplace_back(500, 400);
-		varray.emplace_back(400, 400);
-		varray.emplace_back(500, 500);
-		varray.emplace_back(400, 400);
-		varray.emplace_back(400, 500);
-		canvas->drawLines(varray, 10.0f, Color("pink"));*/
-
-		double t1 = timer.check();
-		if(t1 < 1.0/50.0) {
-		//	SDL_Delay(Uint32((1.0/50.0-t1)*1000.0));
+			
 		}
-		double t = timer.check();
-
-		smoothed_time.push_back(t);
-		cumulative_time += t;
-		if(++cnt > 10) {
-			cnt = 0;
-			//LOG_DEBUG("FPS: " << (smoothed_time.size()/cumulative_time) << ", Time: " << t1*1000.0);
-			LOG_DEBUG("Draw Time: " << (t * 1000000.0) << " us.");
-		}
-		if(smoothed_time.size() > 50) {
-			cumulative_time -= smoothed_time.front();
-			smoothed_time.pop_front();
-		}
+#endif
 
 		main_wnd->swap();
 	}

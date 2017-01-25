@@ -68,7 +68,7 @@ namespace geometry
  
 				// back-substitution loop
 				for(i = n - 1; i > 0; i--) {
-					z_prime_prime_[i] = z_prime_prime_[i] * z_prime_prime_[i+1] + u[i];
+					z_prime_prime_[i-1] = z_prime_prime_[i-1] * z_prime_prime_[i] + u[i-1];
 				}
 			}
 			double interpolate(double x)

@@ -146,11 +146,11 @@ namespace KRE
 			}
 		}
 		if(node.has_key("ortho_window")) {
-			ASSERT_LOG(node["ortho_window"].is_list() && node["ortho_window"].num_elements() == 4, "Attribute 'ortho_window' must be a 4 element list. left,right,top,bottom");
-			ortho_left_ = node["ortho_window"][0].as_int32();
-			ortho_right_ = node["ortho_window"][1].as_int32();
-			ortho_top_ = node["ortho_window"][2].as_int32();
-			ortho_bottom_ = node["ortho_window"][3].as_int32();
+			auto ortho_rect = rect(node["ortho_window"]);
+			ortho_left_ = ortho_rect.x1();
+			ortho_top_ = ortho_rect.y1();
+			ortho_right_ = ortho_rect.x2();
+			ortho_bottom_ = ortho_rect.y2();
 		}
 
 		// If lookat key is specified it overrides the normal compute.
