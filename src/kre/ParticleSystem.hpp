@@ -88,6 +88,7 @@ namespace KRE
 		class EmitObject : public Particle
 		{
 		public:
+			explicit EmitObject(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit EmitObject(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			virtual ~EmitObject() {}
 			const std::string& name() const { return name_; }
@@ -101,8 +102,11 @@ namespace KRE
 			virtual const glm::vec3& getPosition() const;
 			virtual void setPosition(const glm::vec3& pos) {}
 			bool isEnabled() const { return enabled_; }
-			void enable(bool en) { enabled_ = en; handleEnable(); }
+			void setEnable(bool en) { enabled_ = en; handleEnable(); }
 			bool doDebugDraw() const { return do_debug_draw_; }
+
+			void setDebugDraw(bool f) { do_debug_draw_ = f; }
+			void setName(const std::string& name) { name_ = name; }
 		protected:
 			virtual bool durationExpired() { return false; }
 		private:

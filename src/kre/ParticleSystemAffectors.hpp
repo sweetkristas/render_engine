@@ -50,6 +50,7 @@ namespace KRE
 		class Affector : public EmitObject
 		{
 		public:
+			explicit Affector(std::weak_ptr<ParticleSystemContainer> parent, AffectorType type);
 			explicit Affector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node, AffectorType type);
 			virtual ~Affector();
 			virtual AffectorPtr clone() const = 0;
@@ -81,6 +82,7 @@ namespace KRE
 			void setNode(const variant& new_node) { node_ = new_node; init(new_node); }
 
 			static AffectorPtr factory(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+			static AffectorPtr factory(std::weak_ptr<ParticleSystemContainer> parent, AffectorType type);
 		protected:
 			virtual void handleEmitProcess(float t) override;
 		private:
@@ -107,6 +109,7 @@ namespace KRE
 			};
 			typedef std::pair<float,glm::vec4> tc_pair;
 
+			explicit TimeColorAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit TimeColorAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -115,8 +118,9 @@ namespace KRE
 
 			const std::vector<tc_pair>& getTimeColorData() const { return tc_data_; }
 			void clearTimeColorData() { tc_data_.clear(); }
-			void addTimecolorData(const tc_pair& tc) { tc_data_.emplace_back(tc); sort_tc_data(); }
+			void addTimecolorEntry(const tc_pair& tc) { tc_data_.emplace_back(tc); sort_tc_data(); }
 			void setTimeColorData(const std::vector<tc_pair>& tc) { tc_data_ = tc; sort_tc_data(); }
+			void removeTimeColorEntry(const tc_pair& f);
 		private:
 			void internalApply(Particle& p, float t) override;
 			AffectorPtr clone() const override {
@@ -135,6 +139,7 @@ namespace KRE
 		class JetAffector : public Affector
 		{
 		public:
+			explicit JetAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit JetAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -152,6 +157,7 @@ namespace KRE
 		class GravityAffector : public Affector
 		{
 		public:
+			explicit GravityAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit GravityAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -169,6 +175,7 @@ namespace KRE
 		class LinearForceAffector : public Affector
 		{
 		public:
+			explicit LinearForceAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit LinearForceAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -189,6 +196,7 @@ namespace KRE
 		class ScaleAffector : public Affector
 		{
 		public:
+			explicit ScaleAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit ScaleAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -216,6 +224,7 @@ namespace KRE
 		class VortexAffector : public Affector
 		{
 		public:
+			explicit VortexAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit VortexAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -236,13 +245,24 @@ namespace KRE
 		class ParticleFollowerAffector : public Affector
 		{
 		public:
+			explicit ParticleFollowerAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit ParticleFollowerAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
 			float getMinDistance() const { return min_distance_; }
-			void setMinDistance(float min_dist) { min_distance_ = min_dist; }
+			void setMinDistance(float min_dist) { 
+				min_distance_ = min_dist; 
+				if(min_distance_ > max_distance_ ) {
+					min_distance_ = max_distance_;
+				}
+			}
 			float getMaxDistance() const { return max_distance_; }
-			void setMaxDistance(float max_dist) { max_distance_ = max_dist; }
+			void setMaxDistance(float max_dist) { 
+				max_distance_ = max_dist; 
+				if(max_distance_ < min_distance_) {
+					max_distance_ = min_distance_;
+				}
+			}
 		private:
 			void handleEmitProcess(float t) override;
 			void internalApply(Particle& p, float t) override;
@@ -260,6 +280,7 @@ namespace KRE
 		class AlignAffector : public Affector
 		{
 		public:
+			explicit AlignAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit AlignAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -280,6 +301,7 @@ namespace KRE
 		class FlockCenteringAffector : public Affector
 		{
 		public:
+			explicit FlockCenteringAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit FlockCenteringAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 		private:
@@ -297,13 +319,12 @@ namespace KRE
 		class BlackHoleAffector : public Affector
 		{
 		public:
+			explicit BlackHoleAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit BlackHoleAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
-			float getVelocity() const { return velocity_; };
-			void setVelocity(float v) { velocity_ = v; }
-			float getAcceleration() const { return acceleration_; }
-			void setAcceleration(float a) { acceleration_ = a; }
+			const ParameterPtr& getVelocity() const { return velocity_; };
+			const ParameterPtr& getAcceleration() const { return acceleration_; }
 		private:
 			void handleEmitProcess(float t) override;
 			void internalApply(Particle& p, float t) override;
@@ -311,14 +332,17 @@ namespace KRE
 				return std::make_shared<BlackHoleAffector>(*this);
 			}
 
-			float velocity_;
-			float acceleration_;
+			ParameterPtr velocity_;
+			ParameterPtr acceleration_;
+			// working
+			float wvelocity_;
 			BlackHoleAffector() = delete;
 		};
 
 		class PathFollowerAffector : public Affector
 		{
 		public:
+			explicit PathFollowerAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit PathFollowerAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -343,11 +367,14 @@ namespace KRE
 		class RandomiserAffector : public Affector
 		{
 		public:
+			explicit RandomiserAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit RandomiserAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
 			const glm::vec3& getDeviation() const { return max_deviation_; }
-			bool IsRandomDirection() const { return random_direction_; }
+			void setDeviation(const glm::vec3& d) { max_deviation_ = d; }
+			void setDeviation(float x, float y, float z) { max_deviation_ = glm::vec3(x, y, z); }
+			bool isRandomDirection() const { return random_direction_; }
 			void setRandomDirection(bool f) { random_direction_ = f; }
 			float getTimeStep() const { return time_step_; }
 			void setTimeStep(float step) { time_step_ = step; }
@@ -376,6 +403,7 @@ namespace KRE
 				FA_AVERAGE,
 			};
 
+			explicit SineForceAffector(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit SineForceAffector(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			void init(const variant& node) override;
 
@@ -383,6 +411,7 @@ namespace KRE
 			void setForceApplication(ForceApplication fa) { fa_ = fa; }
 			const glm::vec3& getForceVector() const { return force_vector_; }
 			void setForceVector(const glm::vec3& fv) { force_vector_ = fv; }
+			void setForceVector(float x, float y, float z) { force_vector_ = glm::vec3(x, y, z); }
 			const glm::vec3& getScaleVector() const { return scale_vector_; }
 			void setScaleVector(const glm::vec3& sv) { scale_vector_ = sv; }
 			float getMinFrequency() const { return min_frequency_; }
@@ -403,10 +432,10 @@ namespace KRE
 			glm::vec3 scale_vector_;
 			float min_frequency_;
 			float max_frequency_;
-			float angle_;
 			ForceApplication fa_;
 			// working variable
 			float frequency_;
+			float angle_;
 			SineForceAffector() = delete;
 		};
 

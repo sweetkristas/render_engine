@@ -37,12 +37,25 @@ namespace KRE
 			SYSTEM,
 		};
 
+		enum class EmitterType {
+			POINT,
+			LINE,
+			BOX,
+			CIRCLE,
+			SPHERE_SURFACE,
+		};
+
 		class Emitter : public EmitObject
 		{
 		public:
-			explicit Emitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+			explicit Emitter(std::weak_ptr<ParticleSystemContainer> parent, EmitterType type);
+			explicit Emitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node, EmitterType type);
 			virtual ~Emitter();
 			Emitter(const Emitter&);
+
+			void initPhysics();
+
+			EmitterType getType() const { return type_; }
 
 			int getEmittedParticleCountPerCycle(float t);
 			color_vector getColor() const;
@@ -76,6 +89,7 @@ namespace KRE
 
 			virtual EmitterPtr clone() = 0;
 			static EmitterPtr factory(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+			static EmitterPtr factory(std::weak_ptr<ParticleSystemContainer> parent, EmitterType type);
 		protected:
 			virtual void internalCreate(Particle& p, float t) = 0;
 			virtual bool durationExpired() override { return can_be_deleted_; }
@@ -86,6 +100,8 @@ namespace KRE
 			void visualEmitProcess(float t);
 			void emitterEmitProcess(float t);
 			std::weak_ptr<Technique> technique_;
+
+			EmitterType type_;
 
 			// These are generation parameters.
 			ParameterPtr emission_rate_;
@@ -134,7 +150,108 @@ namespace KRE
 
 			glm::vec3 scale_;
 
-			Emitter();
+			Emitter() = delete;
+		};
+
+		class CircleEmitter : public Emitter
+		{
+		public:
+			explicit CircleEmitter(std::weak_ptr<ParticleSystemContainer> parent);
+			explicit CircleEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+
+			const ParameterPtr& getRadius() const { return circle_radius_; }
+			float getStep() const { return circle_step_; }
+			void setStep(float step) { circle_step_ = step; }
+			float getAngle() const { return circle_angle_; }
+			void setAngle(float angle) { circle_angle_ = angle; }
+			bool isRandomLocation() const { return circle_random_; }
+			void setRandomLocation(bool f) { circle_random_ = f; }
+		private:
+			void internalCreate(Particle& p, float t) override;
+			virtual EmitterPtr clone() override {
+				return std::make_shared<CircleEmitter>(*this);
+			}
+			ParameterPtr circle_radius_;
+			float circle_step_;
+			float circle_angle_;
+			bool circle_random_;
+
+			CircleEmitter() = delete;
+		};
+
+		class BoxEmitter : public Emitter
+		{
+		public:
+			explicit BoxEmitter(std::weak_ptr<ParticleSystemContainer> parent);
+			explicit BoxEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+			const glm::vec3& getDimensions() const { return box_dimensions_; }
+			void setDimensions(const glm::vec3& d) { box_dimensions_ = d; }
+			void setDimensions(float x, float y, float z) { box_dimensions_ = glm::vec3(x, y, z); }
+			void setDimensions(float* v) { box_dimensions_ = glm::vec3(v[0], v[1], v[2]); }
+		protected:
+			void internalCreate(Particle& p, float t) override;
+			virtual EmitterPtr clone() override {
+				return std::make_shared<BoxEmitter>(*this);
+			}
+		private:
+			glm::vec3 box_dimensions_;
+			BoxEmitter() = delete;
+		};
+
+		class LineEmitter : public Emitter
+		{
+		public:
+			explicit LineEmitter(std::weak_ptr<ParticleSystemContainer> parent);
+			explicit LineEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+
+			float getLineDeviation() const { return line_deviation_; }
+			void setLineDeviation(float d) { line_deviation_ = d; }
+			float getMinIncrement() const { return min_increment_; }
+			void setMinIncrement(float minc) { min_increment_ = minc; }
+			float getMaxIncrement() const { return max_increment_; }
+			void setMaxIncrement(float maxc) { max_increment_ = maxc; }
+		private:
+			void internalCreate(Particle& p, float t) override;
+			EmitterPtr clone() override {
+				return std::make_shared<LineEmitter>(*this);
+			}
+			glm::vec3 line_end_;
+			float line_deviation_;
+			float min_increment_;
+			float max_increment_;
+
+			LineEmitter() = delete;
+		};
+
+		class PointEmitter : public Emitter
+		{
+		public:
+			explicit PointEmitter(std::weak_ptr<ParticleSystemContainer> parent);
+			explicit PointEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+		protected:
+			void internalCreate(Particle& p, float t) override;
+			EmitterPtr clone() override {
+				return std::make_shared<PointEmitter>(*this);
+			}
+		private:
+			PointEmitter();
+		};
+
+		class SphereSurfaceEmitter : public Emitter
+		{
+		public:
+			explicit SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent);
+			explicit SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
+
+			const ParameterPtr& getRadius() const { return radius_; }
+		protected:
+			void internalCreate(Particle& p, float t) override;
+			EmitterPtr clone() override {
+				return std::make_shared<SphereSurfaceEmitter>(*this);
+			}
+		private:
+			ParameterPtr radius_;
+			SphereSurfaceEmitter() = delete;
 		};
 	}
 }

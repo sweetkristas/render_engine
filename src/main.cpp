@@ -468,7 +468,7 @@ std::vector<float> generate_gaussian(float sigma, int radius = 4)
 }
 
 
-void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
+void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param, float fmin = 0.0f, float fmax = 0.0f)
 {
 	// XXX we need to deal with this condition. Probably add another option to type.
 	if(param == nullptr) {
@@ -485,13 +485,18 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 		param->setType(static_cast<ParameterType>(current_type));
 	}
 
+	float v_speed = 1.0f;
+	if(fmax != 0.0f) {
+		v_speed = fmax / 100.0f;
+	}
+
 	switch(param->getType()){
 		case ParameterType::FIXED: {
 			FixedParams fp;
 			param->getFixedValue(&fp);
 			std::string fixed_label = "Value##";
 			fixed_label += label;
-			if(ImGui::DragFloat(fixed_label.c_str(), &fp.value, 1.0f, 0.0f, 1000.0f)) {
+			if(ImGui::DragFloat(fixed_label.c_str(), &fp.value, v_speed, fmin, fmax)) {
 				param->setFixedValue(fp);
 			}
 			break;
@@ -501,12 +506,12 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 			param->getRandomRange(&rp);
 			std::string min_label = "Min Value##";
 			min_label += label;
-			if(ImGui::DragFloat(min_label.c_str(), &rp.min_value, 1.0f, 0.0f, 1000.0f)) {
+			if(ImGui::DragFloat(min_label.c_str(), &rp.min_value, v_speed, fmin, fmax)) {
 				param->setRandomRange(rp);
 			}
 			std::string max_label = "Max Value##";
 			max_label += label;
-			if(ImGui::DragFloat(max_label.c_str(), &rp.max_value, 1.0f, 0.0f, 1000.0f)) {
+			if(ImGui::DragFloat(max_label.c_str(), &rp.max_value, v_speed, fmin, fmax)) {
 				param->setRandomRange(rp);
 			}
 			break;
@@ -596,7 +601,7 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 			}
 			std::string amplitude_label = "Amplitude##";
 			amplitude_label += label;
-			if(ImGui::DragFloat(amplitude_label.c_str(), &op.amplitude, 1.0f, 0.0f, 1000.0f)) {
+			if(ImGui::DragFloat(amplitude_label.c_str(), &op.amplitude, v_speed, fmin, fmax)) {
 				param->setOscillation(op);
 			}
 			break;
@@ -689,7 +694,7 @@ int main(int argc, char *argv[])
 			p->fastForward();
 		}
 	} catch(json::parse_error& e) {
-		ASSERT_LOG(true, "parse error: " << e.what());
+		ASSERT_LOG(false, "parse error: " << e.what());
 	}
 
 	ASSERT_LOG(psystem != nullptr, "No particle system loaded.");
@@ -731,15 +736,28 @@ int main(int argc, char *argv[])
 			ImGui::End();
 
 			int n = 1;
+
+			auto& ps = psystem->getActiveParticleSystems();
+			auto& tq = ps.front()->getActiveTechniques();
 			
-			for(auto e : psystem->getEmitters()) {
+			std::vector<std::pair<Particles::EmitterPtr, Particles::EmitterPtr>> emitter_replace;
+			for(auto& e : tq.front()->getActiveEmitters()) {
 				std::stringstream ss;
 				ss << "Emitter " << n++;
 				ImGui::Begin(ss.str().c_str());
+				Particles::EmitterType type = e->getType();
+
+				const char* const ptype[] = { "Point", "Line", "Box", "Circle", "Sphere Surface" };
+				int current_type = static_cast<int>(type);
+				if(ImGui::Combo("Type", &current_type, ptype, 5)) {
+					auto new_e = Particles::Emitter::factory(psystem, static_cast<Particles::EmitterType>(current_type));
+					emitter_replace.emplace_back(std::make_pair(e, new_e));
+				}
+
 				ParameterGui("Emission Rate", e->getEmissionRate());
 				ParameterGui("Time to live", e->getTimeToLive());
 				ParameterGui("Velocity", e->getVelocity());
-				ParameterGui("Angle", e->getAngle());
+				ParameterGui("Angle", e->getAngle(), 0.0f, 360.0f);
 				ParameterGui("Mass", e->getMass());
 				ParameterGui("Duration", e->getDuration());
 				ParameterGui("Repeat Delay", e->getRepeatDelay());
@@ -761,30 +779,106 @@ int main(int argc, char *argv[])
 				if(ImGui::Checkbox("Can Be Deleted", &can_be_deleted)) {
 					e->setCanBeDeleted(can_be_deleted);
 				}
+
+				switch (type) {
+				case Particles::EmitterType::POINT: {
+					//auto& pe = std::dynamic_pointer_cast<Particles::PointEmitter>(e);
+					// no extra UI
+					break;
+				}
+				case KRE::Particles::EmitterType::LINE: {
+					auto& le = std::dynamic_pointer_cast<Particles::LineEmitter>(e);
+					float mini = le->getMinIncrement();
+					if(ImGui::DragFloat("Min Increment", &mini, 0.1f, 0.0f, 100.0f)) {
+						le->setMinIncrement(mini);
+					}
+					float maxi = le->getMaxIncrement();
+					if(ImGui::DragFloat("Max Increment", &maxi, 0.1f, 0.0f, 100.0f)) {
+						le->setMinIncrement(maxi);
+					}
+					float ld = le->getLineDeviation();
+					if(ImGui::DragFloat("Line Deviation", &ld, 0.1f, 0.0f, 100.0f)) {
+						le->setLineDeviation(ld);
+					}
+					break;
+				}
+				case KRE::Particles::EmitterType::BOX: {
+					auto& be = std::dynamic_pointer_cast<Particles::BoxEmitter>(e);
+					const auto& dims = be->getDimensions();
+					float v[3]{ dims.x, dims.y, dims.z };
+					if(ImGui::SliderFloat3("Dimensions", v, 0.0f, 100.0f)) {
+						be->setDimensions(v);
+					}
+					break;
+				}
+				case KRE::Particles::EmitterType::CIRCLE: {
+					auto& ce = std::dynamic_pointer_cast<Particles::CircleEmitter>(e);
+					ParameterGui("Radius", ce->getRadius());
+					float step = ce->getStep();
+					if(ImGui::DragFloat("Step", &step, 0.1f, 0.0f, 100.0f)) {
+						ce->setStep(step);
+					}
+					float angle = ce->getAngle();
+					if(ImGui::DragFloat("Angle", &angle, 0.1f, 0.0f, 100.0f)) {
+						ce->setAngle(angle);
+					}
+					bool random_loc = ce->isRandomLocation();
+					if(ImGui::Checkbox("Random Location", &random_loc)) {
+						ce->setRandomLocation(random_loc);
+					}
+					break;
+				}
+				case KRE::Particles::EmitterType::SPHERE_SURFACE: {
+					auto& sse = std::dynamic_pointer_cast<Particles::SphereSurfaceEmitter>(e);
+					ParameterGui("Radius", sse->getRadius());
+					break;
+				}
+				default:
+					ASSERT_LOG(false, "Unrecognized emitter type: " << static_cast<int>(type));
+					break;
+				}
+
 				ImGui::End();
 			}
+			for(auto& e : emitter_replace) {
+				auto it = std::find(tq.front()->getActiveEmitters().begin(), tq.front()->getActiveEmitters().end(), e.first);
+				if(it != tq.front()->getActiveEmitters().end()) {
+					tq.front()->getActiveEmitters().erase(it);
+				}
+				tq.front()->getActiveEmitters().emplace_back(e.second);
+				e.second->init(tq.front());
+			}
 
+			std::vector<std::pair<Particles::AffectorPtr, Particles::AffectorPtr>> affector_replace;
 			n = 1;
-			for(auto& a : psystem->getAffectors()) {
+			for(auto& a : tq.front()->getActiveAffectors()) {
 				std::stringstream ss;
 				ss << "Affector " << n++ << " " << Particles::get_affector_name(a->getType());
 				// should have a function to get pretty name of affector here, based on type.
 				ImGui::Begin(ss.str().c_str());
+
+				const char* const ptype[] = { "Color", "Jet", "Vortex", "Gravity", "Linear Force", "Scale", "Particle Follower", "Align", "Flock Centering", "Black Hole", "Path Follower", "Radomizer", "Sine Force" };
+				int current_type = static_cast<int>(a->getType());
+				if(ImGui::Combo("Type", &current_type, ptype, 13)) {
+					auto new_a = Particles::Affector::factory(psystem, static_cast<Particles::AffectorType>(current_type));
+					affector_replace.emplace_back(std::make_pair(a, new_a));
+				}
+
 				//mass
 				float mass = a->getMass();
-				if(ImGui::SliderFloat("Mass", &mass, 0.0f, 1e6)) {
+				if(ImGui::SliderFloat("Mass", &mass, 0.0f, 1000.0f)) {
 					a->setMass(mass);
 				}
 				//position
 				const auto& pos = a->getPosition();
 				float posf[3] = { pos.x, pos.y, pos.z };
-				if(ImGui::SliderFloat3("Position", posf, 0.0f, 1e6)) {
+				if(ImGui::SliderFloat3("Position", posf, 0.0f, 1000.0f)) {
 					a->setPosition(glm::vec3(posf[0], posf[1], posf[2]));
 				}
 				//scale
 				const auto& scale = a->getScale();
 				float scalef[3] = { scale.x, scale.y, scale.z };
-				if(ImGui::SliderFloat3("Scale", scalef, 0.0f, 1e6)) {
+				if(ImGui::SliderFloat3("Scale", scalef, 0.0f, 1000.0f)) {
 					a->setScale(glm::vec3(scalef[0], scalef[1], scalef[2]));
 				}
 
@@ -796,54 +890,254 @@ int main(int argc, char *argv[])
 						const char* const optype[] = { "Set", "Multiply" };
 						if(ImGui::Combo("Operation", &current_item, optype, 2)) {
 							tca->setOperation(static_cast<Particles::TimeColorAffector::ColourOperation>(current_item));
-						}
-						ImGui::BeginGroup();
+						}					
 						auto tcdata = tca->getTimeColorData();
+						bool data_changed = false;
+						ImGui::BeginGroup();
+						if(ImGui::SmallButton("Clear")) {
+							tca->clearTimeColorData();
+						}
+						ImGui::SameLine();
+						if(ImGui::SmallButton("+")) {
+							tca->addTimecolorEntry(std::make_pair(0.0f, glm::vec4(0.0f)));
+						}
+						ImGui::EndGroup();
 						int tc_counter = 1;
-						for(auto& tc : tcdata) {							
+						std::vector<Particles::TimeColorAffector::tc_pair> tc_data_to_remove;
+						for(auto& tc : tcdata) {
 							std::stringstream tlabel;
-							tlabel << "Time##" << tc_counter;
-							if(ImGui::DragFloat(tlabel.str().c_str(), &tc.first)) {
-								// XXX
+							tlabel << "T##" << tc_counter;
+							ImGui::BeginGroup();
+							ImGui::PushItemWidth(ImGui::CalcItemWidth() * 0.5f);
+							if(ImGui::DragFloat(tlabel.str().c_str(), &tc.first, 0.01f, 0.0f, 1.0f)) {
+								data_changed = true;
 							}
-							ImGui::SameLine(0.0f, ImGui::GetS->Style.ItemInnerSpacing.x);
+							ImGui::SameLine();
 							float col[4] = { tc.second.r,tc.second.g, tc.second.b, tc.second.a };
 							std::stringstream clabel;
-							clabel << "Color##" << tc_counter;
+							clabel << "C##" << tc_counter;
 							if(ImGui::ColorEdit4(clabel.str().c_str(), col)) {
-								// XXX
+								tc.second = glm::vec4(col[0], col[1], col[2], col[3]);
+								data_changed = true;
 							}
+							ImGui::PopItemWidth();
+							ImGui::SameLine();
+							std::stringstream xlabel;
+							xlabel << "X##" << tc_counter;
+							if(ImGui::SmallButton(xlabel.str().c_str())) {
+								tc_data_to_remove.emplace_back(tc);
+								data_changed = true;
+							}
+							ImGui::EndGroup();
 							++tc_counter;
+						}
+						for(auto& p : tc_data_to_remove) {
+							auto it = std::find(tcdata.begin(), tcdata.end(), p);
+							if(it != tcdata.end()) {
+								tcdata.erase(it);
+								data_changed = true;
+							}
+						}
+						if(data_changed) {
+							tca->setTimeColorData(tcdata);
+						}
+						break;
+					}
+					case Particles::AffectorType::JET: {
+						auto ja = std::dynamic_pointer_cast<Particles::JetAffector>(a);
+						ParameterGui("acceleration", ja->getAcceleration(), 0.0f, 100.0f);
+						break;
+					}
+					case Particles::AffectorType::VORTEX: {
+						auto va = std::dynamic_pointer_cast<Particles::VortexAffector>(a);
+						// rotation axis
+						ImGui::BeginGroup();
+						if(ImGui::Button(" +X ")) {
+							va->setRotationAxis(glm::vec3(1.0f, 0.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" +Y ")) {
+							va->setRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" +Z ")) {
+							va->setRotationAxis(glm::vec3(0.0f, 0.0f, 1.0f));
+						}
+						if(ImGui::Button(" -X ")) {
+							va->setRotationAxis(glm::vec3(-1.0f, 0.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" -Y ")) {
+							va->setRotationAxis(glm::vec3(0.0f, -1.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" -Z ")) {
+							va->setRotationAxis(glm::vec3(0.0f, 0.0f, -1.0f));
+						}
+						const auto& axis = va->getRotationAxis();
+						float v[3] { axis.x, axis.y, axis.z };
+						if(ImGui::SliderFloat3("Rotation Axis", v, -1.0f, 1.0f)) {
+							va->setRotationAxis(glm::vec3(v[0], v[1], v[2]));
+						}
+						ImGui::EndGroup();
+						// rotation speed
+						ParameterGui("Rotation Speed", va->getRotationSpeed());
+						break;
+					}
+					case Particles::AffectorType::GRAVITY: {
+						auto ga = std::dynamic_pointer_cast<Particles::GravityAffector>(a);
+						ParameterGui("Gravity", ga->getGravity());
+						break;
+					}
+					case Particles::AffectorType::LINEAR_FORCE: {
+						auto fa = std::dynamic_pointer_cast<Particles::LinearForceAffector>(a);
+						ParameterGui("Force", fa->getForce());
+
+						// rdirection
+						ImGui::BeginGroup();
+						if(ImGui::Button(" +X ")) {
+							fa->setDirection(glm::vec3(1.0f, 0.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" +Y ")) {
+							fa->setDirection(glm::vec3(0.0f, 1.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" +Z ")) {
+							fa->setDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+						}
+						if(ImGui::Button(" -X ")) {
+							fa->setDirection(glm::vec3(-1.0f, 0.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" -Y ")) {
+							fa->setDirection(glm::vec3(0.0f, -1.0f, 0.0f));
+						}
+						ImGui::SameLine();
+						if(ImGui::Button(" -Z ")) {
+							fa->setDirection(glm::vec3(0.0f, 0.0f, -1.0f));
+						}
+
+						const auto& dir = fa->getDirection();
+						float v[3]{ dir[0], dir[1], dir[2] };
+						if(ImGui::SliderFloat3("Direction", v, -1.0f, 1.0f)) {
+							fa->setDirection(glm::vec3(v[0], v[1], v[2]));
 						}
 						ImGui::EndGroup();
 						break;
 					}
-					case Particles::AffectorType::JET: {
+					case Particles::AffectorType::SCALE: {
+						auto& sa = std::dynamic_pointer_cast<Particles::ScaleAffector>(a);
+						auto& xyz_scale = sa->getScaleXYZ();
+						auto& x_scale = sa->getScaleX();
+						auto& y_scale = sa->getScaleY();
+						auto& z_scale = sa->getScaleZ();
+						// XXX need some way to deal with locked scales as opposed to
+						// independent scales.
+						if(xyz_scale) {
+							ParameterGui("XYZ Scale", xyz_scale, 0.0f, 100.0f);
+						} else {
+							if(x_scale) {
+								ParameterGui("X Scale", x_scale, 0.0f, 100.0f);
+							}
+							if(y_scale) {
+								ParameterGui("Y Scale", y_scale, 0.0f, 100.0f);
+							}
+							if(z_scale) {
+								ParameterGui("Z Scale", z_scale, 0.0f, 100.0f);
+							}
+						}
 						break;
 					}
-					case Particles::AffectorType::VORTEX: {
+					case Particles::AffectorType::PARTICLE_FOLLOWER: {
+						auto& pfa = std::dynamic_pointer_cast<Particles::ParticleFollowerAffector>(a);
+						float minmaxd[2]{ pfa->getMinDistance(), pfa->getMaxDistance() };
+						if(ImGui::DragFloat2("Min/Max Distance", minmaxd, 1.0f, 0.0f, 1000.0f)) {
+							pfa->setMinDistance(minmaxd[0]);
+							pfa->setMaxDistance(minmaxd[1]);
+						}
 						break;
 					}
-					case Particles::AffectorType::GRAVITY:
-					case Particles::AffectorType::LINEAR_FORCE:
-					case Particles::AffectorType::SCALE:
-					case Particles::AffectorType::PARTICLE_FOLLOWER:
-					case Particles::AffectorType::ALIGN:
-					case Particles::AffectorType::FLOCK_CENTERING:
-					case Particles::AffectorType::BLACK_HOLE:
-					case Particles::AffectorType::PATH_FOLLOWER:
-					case Particles::AffectorType::RANDOMISER:
-					case Particles::AffectorType::SINE_FORCE:
+					case Particles::AffectorType::ALIGN: {
+						auto& aa = std::dynamic_pointer_cast<Particles::AlignAffector>(a);
+						bool resize = aa->getResizeable();
+						if(ImGui::Checkbox("Resize", &resize)) {
+							aa->setResizeable(resize);
+						}
 						break;
+					}
+					case Particles::AffectorType::FLOCK_CENTERING: {
+						// no extra UI components.
+						break;
+					}
+					case Particles::AffectorType::BLACK_HOLE: {
+						auto& bha = std::dynamic_pointer_cast<Particles::BlackHoleAffector>(a);
+						ParameterGui("Velocity", bha->getVelocity());
+						ParameterGui("Acceleration", bha->getAcceleration());
+						break;
+					}
+					case Particles::AffectorType::PATH_FOLLOWER: {
+						// XXX todo
+						break;
+					}
+					case Particles::AffectorType::RANDOMISER: {
+						auto& ra = std::dynamic_pointer_cast<Particles::RandomiserAffector>(a);
+						float ts = ra->getTimeStep();
+						if(ImGui::DragFloat("Time Step", &ts, 1.0f, 0.0f, 10.0f)) {
+							ra->setTimeStep(ts);
+						}
 
+						bool random_direction = ra->isRandomDirection();
+						if(ImGui::Checkbox("Random Direction", &random_direction)) {
+							ra->setRandomDirection(random_direction);
+						}
+
+						auto& max_deviation = ra->getDeviation();
+						float v[3]{ max_deviation.x, max_deviation.y, max_deviation.z };
+						if(ImGui::DragFloat3("Max Deviation", v, 0.1f, 0.0f, 100.0f)) {
+							ra->setDeviation(v[0], v[1], v[2]);
+						}
+						break;
+					}
+					case Particles::AffectorType::SINE_FORCE: {
+						auto& sfa = std::dynamic_pointer_cast<Particles::SineForceAffector>(a);
+
+						float v[2]{ sfa->getMinFrequency(), sfa->getMaxFrequency() };
+						if(ImGui::DragFloat2("Min/Max Frequency", v, 0.1f, 0.0f, 1000.0f)) {
+							sfa->setMinFrequency(v[0]);
+							sfa->setMaxFrequency(v[1]);
+						}
+
+						auto& force_vector = sfa->getForceVector();
+						float fv[3]{ force_vector.x, force_vector.y, force_vector.z };
+						if(ImGui::DragFloat3("Force Vector", fv, 0.1f, 0.0f, 1000.0f)) {
+							sfa->setForceVector(fv[0], fv[1], fv[2]);
+						}
+						auto op = sfa->getForceApplication();
+						int current_item = static_cast<int>(op);
+						const char* const optype[] = { "Add", "Average" };
+						if(ImGui::Combo("Force Application", &current_item, optype, 2)) {
+							sfa->setForceApplication(static_cast<Particles::SineForceAffector::ForceApplication>(current_item));
+						}			
+						break;
+					}
 					default:
 						ASSERT_LOG(false, "Unhandled affector type: " << static_cast<int>(a->getType()));
 						break;
 				}
 				//excluded emitters
 				ImGui::End();
+
 			}
-			
+			for(auto& aff : affector_replace) {
+				auto it = std::find(tq.front()->getActiveAffectors().begin(), tq.front()->getActiveAffectors().end(), aff.first);
+				if(it != tq.front()->getActiveAffectors().end()) {
+					tq.front()->getActiveAffectors().erase(it);
+				}
+				tq.front()->getActiveAffectors().emplace_back(aff.second);
+				aff.second->setParentTechnique(tq.front());
+			}
+
 		}
 #endif
 

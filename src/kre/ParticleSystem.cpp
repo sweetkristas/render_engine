@@ -748,6 +748,18 @@ namespace KRE
 			return res;
 		}
 
+		EmitObject::EmitObject(std::weak_ptr<ParticleSystemContainer> parent)
+			: name_(),
+			  enabled_(true),
+			  do_debug_draw_(false),
+			  parent_container_(parent) 
+		{
+			ASSERT_LOG(parent.lock() != nullptr, "parent is null");
+			std::stringstream ss;
+			ss << "emit_object_" << static_cast<int>(get_random_float()*100);
+			name_ = ss.str();
+		}
+
 		EmitObject::EmitObject(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
 			: name_(),
 			  enabled_(node["enabled"].as_bool(true)),

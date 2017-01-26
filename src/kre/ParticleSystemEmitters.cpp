@@ -33,155 +33,9 @@ namespace KRE
 {
 	namespace Particles
 	{
-		class CircleEmitter : public Emitter
-		{
-		public:
-			CircleEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 			
-				: Emitter(parent, node), 
-				  circle_radius_(Parameter::factory(node["circle_radius"])),
-				  circle_step_(node["circle_step"].as_float(0.1f)), 
-				  circle_angle_(node["circle_angle"].as_float(0)), 
-				  circle_random_(node["emit_random"].as_bool(true)),
-				  use_x_(false), use_y_(false), use_z_(false)
-			{
-			}
-		protected:
-			void internalCreate(Particle& p, float t) override {
-				float angle = 0.0f;
-				if(circle_random_) {
-					angle = get_random_float(0.0f, float(2.0 * M_PI));
-				} else {
-					angle = t * circle_step_;
-				}
-
-				const float r = circle_radius_->getValue();
-				p.initial.position.x += r * sin(angle + circle_angle_);
-				p.initial.position.y += r * cos(angle + circle_angle_);
-			}
-			virtual EmitterPtr clone() override {
-				return std::make_shared<CircleEmitter>(*this);
-			}
-		private:
-			ParameterPtr circle_radius_;
-			float circle_step_;
-			float circle_angle_;
-			bool circle_random_;
-			bool use_x_;
-			bool use_y_;
-			bool use_z_;
-
-			CircleEmitter();
-		};
-
-		class BoxEmitter : public Emitter
-		{
-		public:
-			BoxEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
-				: Emitter(parent, node), 
-				  box_dimensions_(100.0f) {
-				if(node.has_key("box_width")) {
-					box_dimensions_.x = node["box_width"].as_float();
-				}
-				if(node.has_key("box_height")) {
-					box_dimensions_.y = node["box_height"].as_float();
-				}
-				if(node.has_key("box_depth")) {
-					box_dimensions_.z = node["box_depth"].as_float();
-				}
-			}
-		protected:
-			void internalCreate(Particle& p, float t) override {
-				p.initial.position.x += get_random_float(0.0f, box_dimensions_.x) - box_dimensions_.x/2;
-				p.initial.position.y += get_random_float(0.0f, box_dimensions_.y) - box_dimensions_.y/2;
-				p.initial.position.z += get_random_float(0.0f, box_dimensions_.z) - box_dimensions_.z/2;
-			}
-			virtual EmitterPtr clone() override {
-				return std::make_shared<BoxEmitter>(*this);
-			}
-		private:
-			glm::vec3 box_dimensions_;
-			BoxEmitter();
-		};
-
-		class LineEmitter : public Emitter
-		{
-		public:
-			LineEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
-				: Emitter(parent, node), 
-				  line_end_(0.0f), 
-				  line_deviation_(0.0f),
-				  min_increment_(0.0f), 
-				  max_increment_(0.0f) {
-				if(node.has_key("max_deviation")) {
-					line_deviation_ = node["max_deviation"].as_float();
-				}
-				if(node.has_key("min_increment")) {
-					min_increment_ = node["min_increment"].as_float();
-				}
-				if(node.has_key("max_increment")) {
-					max_increment_ = node["max_increment"].as_float();
-				}
-				// XXX line_end_ ?
-			}
-		protected:
-			void internalCreate(Particle& p, float t) override {
-				// XXX todo
-			}
-			virtual EmitterPtr clone() override {
-				return std::make_shared<LineEmitter>(*this);
-			}
-		private:
-			glm::vec3 line_end_;
-			float line_deviation_;
-			float min_increment_;
-			float max_increment_;
-
-			LineEmitter();
-		};
-
-		class PointEmitter : public Emitter
-		{
-		public:
-			PointEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
-				: Emitter(parent, node) 
-			{}
-		protected:
-			void internalCreate(Particle& p, float t) override {
-				// intentionally does nothing.
-			}
-			virtual EmitterPtr clone() override {
-				return std::make_shared<PointEmitter>(*this);
-			}
-		private:
-			PointEmitter();
-		};
-
-		class SphereSurfaceEmitter : public Emitter
-		{
-		public:
-			SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
-				: Emitter(parent, node), 
-				  radius_(node["radius"].as_float(1.0f)) 
-			{}
-		protected:
-			void internalCreate(Particle& p, float t) override {
-				float theta = get_random_float(0, 2.0f * static_cast<float>(M_PI));
-				float phi = acos(get_random_float(-1.0f, 1.0f));
-				p.initial.position.x += radius_ * sin(phi) * cos(theta);
-				p.initial.position.y += radius_ * sin(phi) * sin(theta);
-				p.initial.position.z += radius_ * cos(phi);
-			}
-			virtual EmitterPtr clone() override {
-				return std::make_shared<SphereSurfaceEmitter>(*this);
-			}
-		private:
-			float radius_;
-			SphereSurfaceEmitter();
-		};
-
-
-		Emitter::Emitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node)
+		Emitter::Emitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node, EmitterType type)
 			: EmitObject(parent, node), 
+			  type_(type),
 			  emission_fraction_(0.0f),
 			  force_emission_(node["force_emission"].as_bool(false)),
 			  force_emission_processed_(false), 
@@ -193,10 +47,7 @@ namespace KRE
 			  particles_remaining_(0),
 			  scale_(1.0f)
 		{
-			init_physics_parameters(initial);
-			init_physics_parameters(current);
-			initial.time_to_live = current.time_to_live = 100000000.0;
-			initial.velocity = current.velocity = 0;
+			initPhysics();
 
 			setEmissionRate(node["emission_rate"]);
 
@@ -300,12 +151,52 @@ namespace KRE
 			}
 		}
 
+		Emitter::Emitter(std::weak_ptr<ParticleSystemContainer> parent, EmitterType type)
+			: EmitObject(parent), 
+			  technique_(),
+			  type_(type),
+			  emission_rate_(new Parameter(10.0f)),
+			  time_to_live_(new Parameter(4.0f)),
+			  velocity_(new Parameter(100.0f)),
+			  angle_(new Parameter(20.0f)),
+			  mass_(new Parameter(1.0f)),
+			  duration_(nullptr),
+			  repeat_delay_(nullptr),
+			  orientation_range_(nullptr),
+			  color_range_(nullptr),
+			  color_(1.0f,1.0f,1.0f,1.0f),
+			  particle_width_(nullptr),
+			  particle_height_(nullptr),
+			  particle_depth_(nullptr),
+			  force_emission_(false),
+			  force_emission_processed_(false), 
+			  can_be_deleted_(false),
+			  emits_type_(EmitsType::VISUAL),
+			  emits_name_(),
+			  emission_fraction_(0.0f),
+			  duration_remaining_(0),
+			  repeat_delay_remaining_(0),
+			  particles_remaining_(0),
+			  scale_(1.0f)
+		{
+			initPhysics();
+		}
+
+		void Emitter::initPhysics()
+		{
+			init_physics_parameters(initial);
+			init_physics_parameters(current);
+			initial.time_to_live = current.time_to_live = 100000000.0;
+			initial.velocity = current.velocity = 0;
+		}
+
 		Emitter::~Emitter()
 		{
 		}
 
 		Emitter::Emitter(const Emitter& e)
 			: EmitObject(e),
+			  type_(e.type_),
 			  emission_rate_(e.emission_rate_),
 			  time_to_live_(e.time_to_live_),
 			  velocity_(e.velocity_),
@@ -381,7 +272,7 @@ namespace KRE
 			if(duration_) {
 				particles_remaining_ -= cnt;
 				if(particles_remaining_ <= 0) {
-					enable(false);
+					setEnable(false);
 				}
 			}
 
@@ -416,7 +307,7 @@ namespace KRE
 			if(duration_) {
 				particles_remaining_ -= cnt;
 				if(particles_remaining_ <= 0) {
-					enable(false);
+					setEnable(false);
 				}
 			}
 
@@ -450,7 +341,7 @@ namespace KRE
 				if(repeat_delay_) {
 					repeat_delay_remaining_ = repeat_delay_->getValue(getTechnique()->getParticleSystem()->getElapsedTime());
 				} else {
-					enable(true);
+					setEnable(true);
 				}
 				if(repeat_delay_remaining_ > 0) {
 					duration_remaining_ = 0;
@@ -475,13 +366,13 @@ namespace KRE
 				if(duration_) {
 					duration_remaining_ -= t;
 					if(duration_remaining_ < 0.0f) {
-						enable(false);					
+						setEnable(false);					
 					}
 				}
 			} else if(repeat_delay_) {
 				repeat_delay_remaining_ -= t;
 				if(repeat_delay_remaining_ < 0) {
-					enable(true);
+					setEnable(true);
 				}
 			}
 		}
@@ -638,5 +529,160 @@ namespace KRE
 			ASSERT_LOG(false, "Unrecognised emitter type: " << ntype);
 			return nullptr;
 		}
+
+		EmitterPtr Emitter::factory(std::weak_ptr<ParticleSystemContainer> parent, EmitterType type)
+		{
+			switch (type) {
+				case EmitterType::POINT:
+					return std::make_shared<PointEmitter>(parent);
+				case EmitterType::LINE:
+					return std::make_shared<LineEmitter>(parent);
+				case EmitterType::BOX:
+					return std::make_shared<BoxEmitter>(parent);
+				case EmitterType::CIRCLE:
+					return std::make_shared<CircleEmitter>(parent);
+				case EmitterType::SPHERE_SURFACE:
+					return std::make_shared<SphereSurfaceEmitter>(parent);
+				default:
+					ASSERT_LOG(false, "Unkown emitter type given: " << static_cast<int>(type));
+					break;
+			}
+			return nullptr;
+		}
+
+		CircleEmitter::CircleEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 			
+			: Emitter(parent, node, EmitterType::CIRCLE), 
+			  circle_radius_(Parameter::factory(node["circle_radius"])),
+			  circle_step_(node["circle_step"].as_float(0.1f)), 
+			  circle_angle_(node["circle_angle"].as_float(0)), 
+			  circle_random_(node["emit_random"].as_bool(true))
+		{
+		}
+
+		CircleEmitter::CircleEmitter(std::weak_ptr<ParticleSystemContainer> parent)
+			: Emitter(parent, EmitterType::CIRCLE), 
+			  circle_radius_(new Parameter(1.0f)),
+			  circle_step_(0.1f), 
+			  circle_angle_(0.0f), 
+			  circle_random_(false)
+		{
+		}
+		void CircleEmitter::internalCreate(Particle& p, float t)
+		{
+			float angle = 0.0f;
+			if(circle_random_) {
+				angle = get_random_float(0.0f, float(2.0 * M_PI));
+			} else {
+				angle = t * circle_step_;
+			}
+
+			const float r = circle_radius_->getValue();
+			p.initial.position.x += r * sin(angle + circle_angle_);
+			p.initial.position.y += r * cos(angle + circle_angle_);
+		}
+
+		BoxEmitter::BoxEmitter(std::weak_ptr<ParticleSystemContainer> parent) 
+			: Emitter(parent, EmitterType::BOX), 
+			  box_dimensions_(1.0f) 
+		{
+		}
+
+		BoxEmitter::BoxEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
+			: Emitter(parent, node, EmitterType::BOX), 
+			  box_dimensions_(1.0f) 
+		{
+			if(node.has_key("box_width")) {
+				box_dimensions_.x = node["box_width"].as_float();
+			}
+			if(node.has_key("box_height")) {
+				box_dimensions_.y = node["box_height"].as_float();
+			}
+			if(node.has_key("box_depth")) {
+				box_dimensions_.z = node["box_depth"].as_float();
+			}
+		}
+
+		void BoxEmitter::internalCreate(Particle& p, float t) 
+		{
+			p.initial.position.x += get_random_float(0.0f, box_dimensions_.x) - box_dimensions_.x/2;
+			p.initial.position.y += get_random_float(0.0f, box_dimensions_.y) - box_dimensions_.y/2;
+			p.initial.position.z += get_random_float(0.0f, box_dimensions_.z) - box_dimensions_.z/2;
+		}
+
+		LineEmitter::LineEmitter(std::weak_ptr<ParticleSystemContainer> parent) 
+			: Emitter(parent, EmitterType::LINE), 
+			  line_end_(0.0f), 
+			  line_deviation_(0.0f),
+			  min_increment_(0.0f), 
+			  max_increment_(0.0f) 
+		{
+		}
+
+		LineEmitter::LineEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
+			: Emitter(parent, node, EmitterType::LINE), 
+			  line_end_(0.0f), 
+			  line_deviation_(0.0f),
+			  min_increment_(0.0f), 
+			  max_increment_(0.0f) 
+		{
+			if(node.has_key("max_deviation")) {
+				line_deviation_ = node["max_deviation"].as_float();
+			}
+			if(node.has_key("min_increment")) {
+				min_increment_ = node["min_increment"].as_float();
+			}
+			if(node.has_key("max_increment")) {
+				max_increment_ = node["max_increment"].as_float();
+			}
+			// XXX line_end_ ?
+		}
+
+		void LineEmitter::internalCreate(Particle& p, float t)
+		{
+			// XXX todo
+		}
+
+		PointEmitter::PointEmitter(std::weak_ptr<ParticleSystemContainer> parent) 
+			: Emitter(parent, EmitterType::POINT) 
+		{
+		}
+
+		PointEmitter::PointEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
+			: Emitter(parent, node, EmitterType::POINT) 
+		{
+		}
+
+		void PointEmitter::internalCreate(Particle& p, float t) 
+		{
+			// intentionally does nothing.
+		}
+
+		SphereSurfaceEmitter::SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent) 
+			: Emitter(parent, EmitterType::SPHERE_SURFACE), 
+			  radius_(new Parameter(1.0f)) 
+		{
+		}
+
+		SphereSurfaceEmitter::SphereSurfaceEmitter(std::weak_ptr<ParticleSystemContainer> parent, const variant& node) 
+			: Emitter(parent, node, EmitterType::SPHERE_SURFACE), 
+			  radius_(nullptr) 
+		{
+			if(node.has_key("radius")) {
+				radius_ = Parameter::factory(node["radius"]);
+			} else {
+				radius_.reset(new Parameter(1.0f));
+			}
+		}
+
+		void SphereSurfaceEmitter::internalCreate(Particle& p, float t) 
+		{
+			float theta = get_random_float(0, 2.0f * static_cast<float>(M_PI));
+			float phi = acos(get_random_float(-1.0f, 1.0f));
+			float r = radius_->getValue(t);
+			p.initial.position.x += r * sin(phi) * cos(theta);
+			p.initial.position.y += r * sin(phi) * sin(theta);
+			p.initial.position.z += r * cos(phi);
+		}
+
 	}
 }
