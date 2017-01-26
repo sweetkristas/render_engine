@@ -47,3 +47,4 @@ vs2013/*/Release
 vs2013/data
 vs2013/images
 *.db
+*.opendb
