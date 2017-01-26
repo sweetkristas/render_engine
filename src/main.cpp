@@ -15,6 +15,7 @@
 #include "LightObject.hpp"
 #include "ModelMatrixScope.hpp"
 #include "ParticleSystem.hpp"
+#include "ParticleSystemAffectors.hpp"
 #include "ParticleSystemEmitters.hpp"
 #include "ParticleSystemParameters.hpp"
 #include "Renderable.hpp"
@@ -478,7 +479,7 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 	ImGui::Text(label);
 	const char* const ptype[] = { "Fixed", "Random", "Linear", "Spline", "Oscillate" };
 	int current_type = static_cast<int>(param->getType());
-	std::string combo_label = "Type#";
+	std::string combo_label = "Type##";
 	combo_label += label;
 	if(ImGui::Combo(combo_label.c_str(), &current_type, ptype, 5)) {
 		param->setType(static_cast<ParameterType>(current_type));
@@ -488,7 +489,7 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 		case ParameterType::FIXED: {
 			FixedParams fp;
 			param->getFixedValue(&fp);
-			std::string fixed_label = "Value#";
+			std::string fixed_label = "Value##";
 			fixed_label += label;
 			if(ImGui::DragFloat(fixed_label.c_str(), &fp.value, 1.0f, 0.0f, 1000.0f)) {
 				param->setFixedValue(fp);
@@ -498,12 +499,12 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 		case ParameterType::RANDOM: {
 			RandomParams rp;
 			param->getRandomRange(&rp);
-			std::string min_label = "Min Value#";
+			std::string min_label = "Min Value##";
 			min_label += label;
 			if(ImGui::DragFloat(min_label.c_str(), &rp.min_value, 1.0f, 0.0f, 1000.0f)) {
 				param->setRandomRange(rp);
 			}
-			std::string max_label = "Max Value#";
+			std::string max_label = "Max Value##";
 			max_label += label;
 			if(ImGui::DragFloat(max_label.c_str(), &rp.max_value, 1.0f, 0.0f, 1000.0f)) {
 				param->setRandomRange(rp);
@@ -527,7 +528,7 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 					}
 				}
 			}
-			std::string linear_label = "Linear#";
+			std::string linear_label = "Linear##";
 			linear_label += label;
 			if(ImGui::Curve(linear_label.c_str(), ImVec2(300, 200), 10, points)) {
 				cp.control_points.clear();
@@ -555,7 +556,7 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 					}
 				}
 			}
-			std::string spline_label = "Spline#";
+			std::string spline_label = "Spline##";
 			spline_label += label;
 			if(ImGui::Spline(spline_label.c_str(), ImVec2(300.0f, 200.0f), 10, points)) {
 				cp.control_points.clear();
@@ -572,28 +573,28 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param)
 			param->getOscillation(&op);
 			const char* const osc_items[] = { "Sine", "Square" };
 			int otype = static_cast<int>(op.osc_type);
-			std::string wtype_label = "Wave Type#";
+			std::string wtype_label = "Wave Type##";
 			wtype_label += label;
 			if(ImGui::Combo(wtype_label.c_str(), &otype, osc_items, 2)) {
 				op.osc_type = static_cast<WaveType>(otype);
 				param->setOscillation(op);
 			}
-			std::string freq_label = "Frequency#";
+			std::string freq_label = "Frequency##";
 			freq_label += label;
 			if(ImGui::DragFloat(freq_label.c_str(), &op.frequency, 1.0f, 1.0f, 10000.0f)) {
 				param->setOscillation(op);
 			}
-			std::string phase_label = "Phase#";
+			std::string phase_label = "Phase##";
 			phase_label += label;
 			if(ImGui::DragFloat(phase_label.c_str(), &op.phase, 1.0f, 0.0f, 360.0f)) {
 				param->setOscillation(op);
 			}
-			std::string base_label = "Base#";
+			std::string base_label = "Base##";
 			base_label += label;
 			if(ImGui::DragFloat(base_label.c_str(), &op.base, 1.0f, 0.0f, 1000.0f)) {
 				param->setOscillation(op);
 			}
-			std::string amplitude_label = "Amplitude#";
+			std::string amplitude_label = "Amplitude##";
 			amplitude_label += label;
 			if(ImGui::DragFloat(amplitude_label.c_str(), &op.amplitude, 1.0f, 0.0f, 1000.0f)) {
 				param->setOscillation(op);
@@ -626,7 +627,8 @@ int main(int argc, char *argv[])
 	hints.add("renderer", "GLESv2");
 	hints.add("dpi_aware", true);
 	hints.add("use_vsync", true);
-	int neww = 2560, newh = 1440;
+	//int neww = 2560, newh = 1440;
+	int neww = 1600, newh = 900;
 	//if(!autoWindowSize(neww, newh)) {
 	//	LOG_DEBUG("Couldn't get automatic window size. Defaulting to " << neww << "x" << newh);
 	//}
@@ -759,6 +761,86 @@ int main(int argc, char *argv[])
 				if(ImGui::Checkbox("Can Be Deleted", &can_be_deleted)) {
 					e->setCanBeDeleted(can_be_deleted);
 				}
+				ImGui::End();
+			}
+
+			n = 1;
+			for(auto& a : psystem->getAffectors()) {
+				std::stringstream ss;
+				ss << "Affector " << n++ << " " << Particles::get_affector_name(a->getType());
+				// should have a function to get pretty name of affector here, based on type.
+				ImGui::Begin(ss.str().c_str());
+				//mass
+				float mass = a->getMass();
+				if(ImGui::SliderFloat("Mass", &mass, 0.0f, 1e6)) {
+					a->setMass(mass);
+				}
+				//position
+				const auto& pos = a->getPosition();
+				float posf[3] = { pos.x, pos.y, pos.z };
+				if(ImGui::SliderFloat3("Position", posf, 0.0f, 1e6)) {
+					a->setPosition(glm::vec3(posf[0], posf[1], posf[2]));
+				}
+				//scale
+				const auto& scale = a->getScale();
+				float scalef[3] = { scale.x, scale.y, scale.z };
+				if(ImGui::SliderFloat3("Scale", scalef, 0.0f, 1e6)) {
+					a->setScale(glm::vec3(scalef[0], scalef[1], scalef[2]));
+				}
+
+				switch(a->getType()) {
+					case Particles::AffectorType::COLOR: {
+						auto tca = std::dynamic_pointer_cast<Particles::TimeColorAffector>(a);
+						auto op = tca->getOperation();
+						int current_item = static_cast<int>(op);
+						const char* const optype[] = { "Set", "Multiply" };
+						if(ImGui::Combo("Operation", &current_item, optype, 2)) {
+							tca->setOperation(static_cast<Particles::TimeColorAffector::ColourOperation>(current_item));
+						}
+						ImGui::BeginGroup();
+						auto tcdata = tca->getTimeColorData();
+						int tc_counter = 1;
+						for(auto& tc : tcdata) {							
+							std::stringstream tlabel;
+							tlabel << "Time##" << tc_counter;
+							if(ImGui::DragFloat(tlabel.str().c_str(), &tc.first)) {
+								// XXX
+							}
+							ImGui::SameLine(0.0f, ImGui::GetS->Style.ItemInnerSpacing.x);
+							float col[4] = { tc.second.r,tc.second.g, tc.second.b, tc.second.a };
+							std::stringstream clabel;
+							clabel << "Color##" << tc_counter;
+							if(ImGui::ColorEdit4(clabel.str().c_str(), col)) {
+								// XXX
+							}
+							++tc_counter;
+						}
+						ImGui::EndGroup();
+						break;
+					}
+					case Particles::AffectorType::JET: {
+						break;
+					}
+					case Particles::AffectorType::VORTEX: {
+						break;
+					}
+					case Particles::AffectorType::GRAVITY:
+					case Particles::AffectorType::LINEAR_FORCE:
+					case Particles::AffectorType::SCALE:
+					case Particles::AffectorType::PARTICLE_FOLLOWER:
+					case Particles::AffectorType::ALIGN:
+					case Particles::AffectorType::FLOCK_CENTERING:
+					case Particles::AffectorType::BLACK_HOLE:
+					case Particles::AffectorType::PATH_FOLLOWER:
+					case Particles::AffectorType::RANDOMISER:
+					case Particles::AffectorType::SINE_FORCE:
+						break;
+
+					default:
+						ASSERT_LOG(false, "Unhandled affector type: " << static_cast<int>(a->getType()));
+						break;
+				}
+				//excluded emitters
 				ImGui::End();
 			}
 			
