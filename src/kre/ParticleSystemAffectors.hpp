@@ -62,8 +62,8 @@ namespace KRE
 
 			float getMass() const { return mass_; }
 			void setMass(float m) { mass_ = m; }
-			const glm::vec3& getPosition() const override { return position_; }
-			void setPosition(const glm::vec3& pos) override { position_ = pos; }
+			const glm::vec3& getPosition() const { return position_; }
+			void setPosition(const glm::vec3& pos) { position_ = pos; }
 			const glm::vec3& getScale() const { return scale_; }
 			void setScale(const glm::vec3& scale) { scale_ = scale; }
 

@@ -7,8 +7,10 @@
 
 #include "AttributeSet.hpp"
 #include "json.hpp"
+#include "filesystem.hpp"
 #include "profile_timer.hpp"
 #include "SDLWrapper.hpp"
+#include "Blend.hpp"
 #include "CameraObject.hpp"
 #include "Canvas.hpp"
 #include "Font.hpp"
@@ -53,6 +55,7 @@ namespace ImGui
 
 	bool Spline(const char *label, const ImVec2& size, int maxpoints, ImVec2 *points);
 };
+bool ColorPicker4(float* col, bool show_alpha);
 
 namespace
 {	
@@ -610,6 +613,78 @@ void ParameterGui(const char* label, const KRE::Particles::ParameterPtr& param, 
 	}
 }
 
+void theme_imgui()
+{
+	// Setup style
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.Colors[ImGuiCol_Text] = ImVec4(0.31f, 0.25f, 0.24f, 1.00f);
+	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 1.00f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.74f, 0.74f, 0.94f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.68f, 0.68f, 0.68f, 0.00f);
+	style.Colors[ImGuiCol_Border] = ImVec4(0.50f, 0.50f, 0.50f, 0.60f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.62f, 0.70f, 0.72f, 0.56f);
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.95f, 0.33f, 0.14f, 0.47f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.97f, 0.31f, 0.13f, 0.81f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.42f, 0.75f, 1.00f, 0.53f);
+	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.65f, 0.80f, 0.20f);
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.40f, 0.62f, 0.80f, 0.15f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.39f, 0.64f, 0.80f, 0.30f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.28f, 0.67f, 0.80f, 0.59f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.25f, 0.48f, 0.53f, 0.67f);
+	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.89f, 0.98f, 1.00f, 0.99f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.48f, 0.47f, 0.47f, 0.71f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.31f, 0.47f, 0.99f, 1.00f);
+	style.Colors[ImGuiCol_Button] = ImVec4(1.00f, 0.79f, 0.18f, 0.78f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.42f, 0.82f, 1.00f, 0.81f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.72f, 1.00f, 1.00f, 0.86f);
+	style.Colors[ImGuiCol_Header] = ImVec4(0.65f, 0.78f, 0.84f, 0.80f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.75f, 0.88f, 0.94f, 0.80f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.55f, 0.68f, 0.74f, 0.80f);
+	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.60f, 0.60f, 0.80f, 0.30f);
+	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
+	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
+	style.Colors[ImGuiCol_CloseButton] = ImVec4(0.41f, 0.75f, 0.98f, 0.50f);
+	style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(1.00f, 0.47f, 0.41f, 0.60f);
+	style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(1.00f, 0.16f, 0.00f, 1.00f);
+	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(1.00f, 0.99f, 0.54f, 0.43f);
+	style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+	
+	style.Alpha = 1.0f;
+	style.FrameRounding = 4;
+	style.IndentSpacing = 12.0f;
+}
+
+bool vector_string_getter(void* data, int n, const char** out_text)
+{
+	const std::vector<std::string>& v = *static_cast<std::vector<std::string>*>(data);
+	*out_text = v[n].c_str();
+	return true;
+}
+
+void EmitObjectUI(const KRE::Particles::EmitObjectPtr& eo)
+{
+	using namespace KRE::Particles;
+
+	std::array<char, 64> text;
+	std::fill(text.begin(), text.end(), 0);
+	std::copy(eo->getName().begin(), eo->getName().end(), text.data());
+	if(ImGui::InputText("Name", text.data(), text.size())) {
+		eo->setName(text.data());
+	}
+
+	bool enabled = eo->isEnabled();
+	if(ImGui::Checkbox("Enabled", &enabled)) {
+		eo->setEnable(enabled);
+	}
+
+	bool debug_draw = eo->doDebugDraw();
+	if(ImGui::Checkbox("Debug Draw", &debug_draw)) {
+		eo->setDebugDraw(debug_draw);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 #ifdef _MSC_VER
@@ -642,6 +717,7 @@ int main(int argc, char *argv[])
 	main_wnd->enableVsync(true);
 	const float aspect_ratio = static_cast<float>(neww) / newh;
 
+	std::string image_path;
 	std::map<std::string, std::string> font_paths;
 #if defined(__linux__)
 	LOG_DEBUG("setting image file filter to 'images/'");
@@ -649,12 +725,14 @@ int main(int argc, char *argv[])
 	Surface::setFileFilter(FileFilterType::SAVE, [](const std::string& fname) { return "images/" + fname; });
 	
 	font_paths["FreeSans.ttf"] = "data/fonts/FreeSans.ttf";
+	image_path = "images/";
 #else
 	LOG_DEBUG("setting image file filter to '../images/'");
 	Surface::setFileFilter(FileFilterType::LOAD, [](const std::string& fname) { return "../images/" + fname; });
 	Surface::setFileFilter(FileFilterType::SAVE, [](const std::string& fname) { return "../images/" + fname; });
 
 	font_paths["FreeSans.ttf"] = "../data/fonts/FreeSans.ttf";
+	image_path = "../images/";
 #endif
 	Font::setAvailableFonts(font_paths);
 
@@ -701,6 +779,11 @@ int main(int argc, char *argv[])
 
 	Uint32 t = SDL_GetTicks();
 
+	theme_imgui();
+
+	auto ps_camera = std::make_shared<Camera>("ps_camera", 0, neww, 0, newh);
+	psystem->getTechniques().front()->setCamera(ps_camera);
+
 	SDL_Event e;
 	bool done = false;
 	while(!done) {
@@ -730,115 +813,250 @@ int main(int argc, char *argv[])
 
 #ifdef USE_IMGUI
 		{
-			ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiSetCond_Always);
-			ImGui::Begin("some");
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			ImGui::End();
+			//ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiSetCond_Always);
 
 			int n = 1;
 
 			auto& ps = psystem->getActiveParticleSystems();
 			auto& tq = ps.front()->getActiveTechniques();
+
+			ImGui::Begin("Particle System Editor");
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+			if(ImGui::CollapsingHeader("Camera")) {
+				static std::vector<std::string> camera_types{ "Perspective", "Orthogonal" };
+					tq.front()->setCamera(ps_camera);
+					int current_item = ps_camera->getType();
+				
+				if(ImGui::Combo("Type", &current_item, vector_string_getter, static_cast<void*>(&camera_types), camera_types.size())) {
+					if(current_item == Camera::CAMERA_PERSPECTIVE) {
+						ps_camera.reset(new Camera("ps_camera", 45.0, aspect_ratio, 0.01f, 100.0f));
+					} else if(current_item == Camera::CAMERA_ORTHOGONAL) {
+						ps_camera.reset(new Camera("ps_camera", 0, neww, 0, newh));
+					} else {
+						ASSERT_LOG(false, "Bad camera type: " << current_item);
+					}
+				}
+
+				if(current_item == Camera::CAMERA_PERSPECTIVE) {
+					
+				} else if(current_item == Camera::CAMERA_ORTHOGONAL) {				
+					int tbv[2]{ ps_camera->getOrthoTop(), ps_camera->getOrthoBottom() };
+					if(ImGui::DragInt2("Top/Bottom", tbv, 1.0f, 0.0f, 4000.0f)) {
+						ps_camera->setOrthoWindow(ps_camera->getOrthoLeft(),ps_camera->getOrthoRight(), tbv[0], tbv[1]);
+					}
+					int lrv[2]{ ps_camera->getOrthoLeft(), ps_camera->getOrthoRight() };
+					if(ImGui::DragInt2("Left/Right", lrv, 1.0f, 0.0f, 4000.0f)) {
+						ps_camera->setOrthoWindow(lrv[0], lrv[1], ps_camera->getOrthoTop(), ps_camera->getOrthoBottom());
+					}
+				}
+			}
+
+			{
+				if(ImGui::CollapsingHeader("Particle System")) {
+					auto&ps1 = ps.front();
+					float sv = ps1->getScaleVelocity();
+					if(ImGui::DragFloat("Scale Velocity", &sv, 0.5f, -100.0f, 100.0f)) {
+						ps1->setScaleVelocity(sv);
+					}
+					float st = ps1->getScaleTime();
+					if(ImGui::DragFloat("Scale Time", &st, 0.5f, 0.1f, 100.0f)) {
+						ps1->setScaleTime(st);
+					}
+					glm::vec3 scale_dims = ps1->getScaleDimensions();
+					float sd[3]{ scale_dims[0], scale_dims[1], scale_dims[2] };
+					if(ImGui::DragFloat3("Scale Dimensions", sd, 0.1f, 0.1f, 100.0f)) {
+						ps1->setScaleDimensions(sd);
+					}
+
+					// technique stuff
+					auto q = tq.front();
+					auto dim = q->getDefaultDimensions();
+				
+					if(ImGui::SliderFloat("Default Width", &dim.x, 0.0f, 100.0f)) {
+						q->setDefaultWidth(dim.x);
+					}
+					if(ImGui::SliderFloat("Default Height", &dim.y, 0.0f, 100.0f)) {
+						q->setDefaultHeight(dim.y);
+					}
+					if(ImGui::SliderFloat("Default Depth", &dim.z, 0.0f, 100.0f)) {
+						q->setDefaultDepth(dim.z);
+					}
+
+					int quota = q->getQuota();
+					if(ImGui::DragInt("Particle Quota", &quota, 1, 1, 100000)) {
+						q->setParticleQuota(quota);
+					}
+
+					int current_tex = 0;
+
+					sys::file_path_map image_files;
+					sys::get_unique_files(image_path, image_files);
+					std::vector<std::string> ifiles;
+					for(auto& f : image_files) {
+						ifiles.emplace_back(f.first);
+					}
+				
+					std::string selected_texture = q->getTexture()->getSurface(0)->getName();
+					int current_file = std::distance(ifiles.begin(), std::find(ifiles.begin(), ifiles.end(), selected_texture));
+					ImGui::Text(selected_texture.c_str());
+					if(ImGui::ListBox("Textures", &current_file, vector_string_getter, static_cast<void*>(&ifiles), ifiles.size())) {
+						q->setTexture(Texture::createTexture(ifiles[current_file]));
+					}
+
+					bool has_max_velocity = q->hasMaxVelocity();
+					if(ImGui::Checkbox("Has Max Velocity", &has_max_velocity)) {
+						if(has_max_velocity) {
+							q->setMaxVelocity(0);
+						} else {
+							q->clearMaxVelocity();
+						}
+					}
+
+					if(q->hasMaxVelocity()) {
+						float maxv = q->getMaxVelocity();
+						if(ImGui::DragFloat("Max Velocity", &maxv, 1.0f, 0.0f, 1000.0f)) {
+							q->setMaxVelocity(maxv);
+						}
+					}
+
+					// stuff from renderable
+					bool ignore_global_mm = q->ignoreGlobalModelMatrix();
+					if(ImGui::Checkbox("Ignore Global Transform", &ignore_global_mm)) {
+						q->useGlobalModelMatrix(ignore_global_mm);
+					}
+					const auto& pos = q->getPosition();
+					float v[3]{ pos.x, pos.y, pos.z };
+					if(ImGui::DragFloat3("Position", v)) {
+						q->setPosition(v[0], v[1], v[2]);
+					}
+					// blend mode
+					const auto& bm = q->getBlendMode();
+					auto blend_modes = BlendMode::getBlendModeStrings();
+
+					std::string bm_string = bm.to_string();
+					auto it = std::find(blend_modes.begin(), blend_modes.end(), bm_string);
+					int current_item = 0;
+					if(it != blend_modes.end()) {
+						current_item = std::distance(blend_modes.begin(), it);
+					}
+				
+					if(ImGui::Combo("Blend Mode", &current_item, vector_string_getter, static_cast<void*>(&blend_modes), blend_modes.size())) {
+						q->setBlendMode(BlendMode(blend_modes[current_item]));
+					}
+
+					bool depth_write = q->isDepthWriteEnable();
+					if(ImGui::Checkbox("Depth Write", &depth_write)) {
+						q->setDepthWrite(depth_write);
+					}
+					bool depth_check = q->isDepthEnabled();
+					if(ImGui::Checkbox("Depth Check", &depth_check)) {
+						q->setDepthEnable(depth_check);
+					}
+				}
+			}
 			
 			std::vector<std::pair<Particles::EmitterPtr, Particles::EmitterPtr>> emitter_replace;
 			for(auto& e : tq.front()->getActiveEmitters()) {
 				std::stringstream ss;
 				ss << "Emitter " << n++;
-				ImGui::Begin(ss.str().c_str());
-				Particles::EmitterType type = e->getType();
 
-				const char* const ptype[] = { "Point", "Line", "Box", "Circle", "Sphere Surface" };
-				int current_type = static_cast<int>(type);
-				if(ImGui::Combo("Type", &current_type, ptype, 5)) {
-					auto new_e = Particles::Emitter::factory(psystem, static_cast<Particles::EmitterType>(current_type));
-					emitter_replace.emplace_back(std::make_pair(e, new_e));
-				}
+				if(ImGui::CollapsingHeader(ss.str().c_str())) {
+					Particles::EmitterType type = e->getType();
 
-				ParameterGui("Emission Rate", e->getEmissionRate());
-				ParameterGui("Time to live", e->getTimeToLive());
-				ParameterGui("Velocity", e->getVelocity());
-				ParameterGui("Angle", e->getAngle(), 0.0f, 360.0f);
-				ParameterGui("Mass", e->getMass());
-				ParameterGui("Duration", e->getDuration());
-				ParameterGui("Repeat Delay", e->getRepeatDelay());
-				//orientation_range_
-				//color_range_
-				float col[4] = { e->getColorFloat().r, e->getColorFloat().g, e->getColorFloat().b, e->getColorFloat().a };
-				if(ImGui::ColorEdit4("color", col, true)) {
-					e->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
-				}
-				ParameterGui("Width", e->getParticleWidth());
-				ParameterGui("Height", e->getParticleHeight());
-				ParameterGui("Depth", e->getParticleDepth());
+					EmitObjectUI(e);
 
-				bool force_emission = e->getForceEmission();
-				if(ImGui::Checkbox("Force Emission", &force_emission)) {
-					e->setForceEmission(force_emission);
-				}
-				bool can_be_deleted = e->getCanBeDeleted();
-				if(ImGui::Checkbox("Can Be Deleted", &can_be_deleted)) {
-					e->setCanBeDeleted(can_be_deleted);
-				}
+					const char* const ptype[] = { "Point", "Line", "Box", "Circle", "Sphere Surface" };
+					int current_type = static_cast<int>(type);
+					if(ImGui::Combo("Type", &current_type, ptype, 5)) {
+						auto new_e = Particles::Emitter::factory(psystem, static_cast<Particles::EmitterType>(current_type));
+						emitter_replace.emplace_back(std::make_pair(e, new_e));
+					}
 
-				switch (type) {
-				case Particles::EmitterType::POINT: {
-					//auto& pe = std::dynamic_pointer_cast<Particles::PointEmitter>(e);
-					// no extra UI
-					break;
-				}
-				case KRE::Particles::EmitterType::LINE: {
-					auto& le = std::dynamic_pointer_cast<Particles::LineEmitter>(e);
-					float mini = le->getMinIncrement();
-					if(ImGui::DragFloat("Min Increment", &mini, 0.1f, 0.0f, 100.0f)) {
-						le->setMinIncrement(mini);
+					ParameterGui("Emission Rate", e->getEmissionRate());
+					ParameterGui("Time to live", e->getTimeToLive());
+					ParameterGui("Velocity", e->getVelocity());
+					ParameterGui("Angle", e->getAngle(), 0.0f, 360.0f);
+					ParameterGui("Mass", e->getMass());
+					ParameterGui("Duration", e->getDuration());
+					ParameterGui("Repeat Delay", e->getRepeatDelay());
+					//orientation_range_
+					//color_range_
+					float col[4] = { e->getColorFloat().r, e->getColorFloat().g, e->getColorFloat().b, e->getColorFloat().a };
+					if(ImGui::ColorEdit4("color", col, true)) {
+						e->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
 					}
-					float maxi = le->getMaxIncrement();
-					if(ImGui::DragFloat("Max Increment", &maxi, 0.1f, 0.0f, 100.0f)) {
-						le->setMinIncrement(maxi);
-					}
-					float ld = le->getLineDeviation();
-					if(ImGui::DragFloat("Line Deviation", &ld, 0.1f, 0.0f, 100.0f)) {
-						le->setLineDeviation(ld);
-					}
-					break;
-				}
-				case KRE::Particles::EmitterType::BOX: {
-					auto& be = std::dynamic_pointer_cast<Particles::BoxEmitter>(e);
-					const auto& dims = be->getDimensions();
-					float v[3]{ dims.x, dims.y, dims.z };
-					if(ImGui::SliderFloat3("Dimensions", v, 0.0f, 100.0f)) {
-						be->setDimensions(v);
-					}
-					break;
-				}
-				case KRE::Particles::EmitterType::CIRCLE: {
-					auto& ce = std::dynamic_pointer_cast<Particles::CircleEmitter>(e);
-					ParameterGui("Radius", ce->getRadius());
-					float step = ce->getStep();
-					if(ImGui::DragFloat("Step", &step, 0.1f, 0.0f, 100.0f)) {
-						ce->setStep(step);
-					}
-					float angle = ce->getAngle();
-					if(ImGui::DragFloat("Angle", &angle, 0.1f, 0.0f, 100.0f)) {
-						ce->setAngle(angle);
-					}
-					bool random_loc = ce->isRandomLocation();
-					if(ImGui::Checkbox("Random Location", &random_loc)) {
-						ce->setRandomLocation(random_loc);
-					}
-					break;
-				}
-				case KRE::Particles::EmitterType::SPHERE_SURFACE: {
-					auto& sse = std::dynamic_pointer_cast<Particles::SphereSurfaceEmitter>(e);
-					ParameterGui("Radius", sse->getRadius());
-					break;
-				}
-				default:
-					ASSERT_LOG(false, "Unrecognized emitter type: " << static_cast<int>(type));
-					break;
-				}
+					ParameterGui("Width", e->getParticleWidth());
+					ParameterGui("Height", e->getParticleHeight());
+					ParameterGui("Depth", e->getParticleDepth());
 
-				ImGui::End();
+					bool force_emission = e->getForceEmission();
+					if(ImGui::Checkbox("Force Emission", &force_emission)) {
+						e->setForceEmission(force_emission);
+					}
+					bool can_be_deleted = e->getCanBeDeleted();
+					if(ImGui::Checkbox("Can Be Deleted", &can_be_deleted)) {
+						e->setCanBeDeleted(can_be_deleted);
+					}
+
+					switch (type) {
+					case Particles::EmitterType::POINT: {
+						//auto& pe = std::dynamic_pointer_cast<Particles::PointEmitter>(e);
+						// no extra UI
+						break;
+					}
+					case KRE::Particles::EmitterType::LINE: {
+						auto& le = std::dynamic_pointer_cast<Particles::LineEmitter>(e);
+						float mini = le->getMinIncrement();
+						if(ImGui::DragFloat("Min Increment", &mini, 0.1f, 0.0f, 100.0f)) {
+							le->setMinIncrement(mini);
+						}
+						float maxi = le->getMaxIncrement();
+						if(ImGui::DragFloat("Max Increment", &maxi, 0.1f, 0.0f, 100.0f)) {
+							le->setMinIncrement(maxi);
+						}
+						float ld = le->getLineDeviation();
+						if(ImGui::DragFloat("Line Deviation", &ld, 0.1f, 0.0f, 100.0f)) {
+							le->setLineDeviation(ld);
+						}
+						break;
+					}
+					case KRE::Particles::EmitterType::BOX: {
+						auto& be = std::dynamic_pointer_cast<Particles::BoxEmitter>(e);
+						const auto& dims = be->getDimensions();
+						float v[3]{ dims.x, dims.y, dims.z };
+						if(ImGui::SliderFloat3("Dimensions", v, 0.0f, 100.0f)) {
+							be->setDimensions(v);
+						}
+						break;
+					}
+					case KRE::Particles::EmitterType::CIRCLE: {
+						auto& ce = std::dynamic_pointer_cast<Particles::CircleEmitter>(e);
+						ParameterGui("Radius", ce->getRadius());
+						float step = ce->getStep();
+						if(ImGui::DragFloat("Step", &step, 0.1f, 0.0f, 100.0f)) {
+							ce->setStep(step);
+						}
+						float angle = ce->getAngle();
+						if(ImGui::DragFloat("Angle", &angle, 0.1f, 0.0f, 100.0f)) {
+							ce->setAngle(angle);
+						}
+						bool random_loc = ce->isRandomLocation();
+						if(ImGui::Checkbox("Random Location", &random_loc)) {
+							ce->setRandomLocation(random_loc);
+						}
+						break;
+					}
+					case KRE::Particles::EmitterType::SPHERE_SURFACE: {
+						auto& sse = std::dynamic_pointer_cast<Particles::SphereSurfaceEmitter>(e);
+						ParameterGui("Radius", sse->getRadius());
+						break;
+					}
+					default:
+						ASSERT_LOG(false, "Unrecognized emitter type: " << static_cast<int>(type));
+						break;
+					}
+				}
 			}
 			for(auto& e : emitter_replace) {
 				auto it = std::find(tq.front()->getActiveEmitters().begin(), tq.front()->getActiveEmitters().end(), e.first);
@@ -855,279 +1073,280 @@ int main(int argc, char *argv[])
 				std::stringstream ss;
 				ss << "Affector " << n++ << " " << Particles::get_affector_name(a->getType());
 				// should have a function to get pretty name of affector here, based on type.
-				ImGui::Begin(ss.str().c_str());
+				if(ImGui::CollapsingHeader(ss.str().c_str())) {
+					EmitObjectUI(a);
 
-				const char* const ptype[] = { "Color", "Jet", "Vortex", "Gravity", "Linear Force", "Scale", "Particle Follower", "Align", "Flock Centering", "Black Hole", "Path Follower", "Radomizer", "Sine Force" };
-				int current_type = static_cast<int>(a->getType());
-				if(ImGui::Combo("Type", &current_type, ptype, 13)) {
-					auto new_a = Particles::Affector::factory(psystem, static_cast<Particles::AffectorType>(current_type));
-					affector_replace.emplace_back(std::make_pair(a, new_a));
-				}
+					const char* const ptype[] = { "Color", "Jet", "Vortex", "Gravity", "Linear Force", "Scale", "Particle Follower", "Align", "Flock Centering", "Black Hole", "Path Follower", "Radomizer", "Sine Force" };
+					int current_type = static_cast<int>(a->getType());
+					if(ImGui::Combo("Type", &current_type, ptype, 13)) {
+						auto new_a = Particles::Affector::factory(psystem, static_cast<Particles::AffectorType>(current_type));
+						affector_replace.emplace_back(std::make_pair(a, new_a));
+					}
 
-				//mass
-				float mass = a->getMass();
-				if(ImGui::SliderFloat("Mass", &mass, 0.0f, 1000.0f)) {
-					a->setMass(mass);
-				}
-				//position
-				const auto& pos = a->getPosition();
-				float posf[3] = { pos.x, pos.y, pos.z };
-				if(ImGui::SliderFloat3("Position", posf, 0.0f, 1000.0f)) {
-					a->setPosition(glm::vec3(posf[0], posf[1], posf[2]));
-				}
-				//scale
-				const auto& scale = a->getScale();
-				float scalef[3] = { scale.x, scale.y, scale.z };
-				if(ImGui::SliderFloat3("Scale", scalef, 0.0f, 1000.0f)) {
-					a->setScale(glm::vec3(scalef[0], scalef[1], scalef[2]));
-				}
+					//mass
+					float mass = a->getMass();
+					if(ImGui::SliderFloat("Mass", &mass, 0.0f, 1000.0f)) {
+						a->setMass(mass);
+					}
+					//position
+					const auto& pos = a->getPosition();
+					float posf[3] = { pos.x, pos.y, pos.z };
+					if(ImGui::SliderFloat3("Position", posf, 0.0f, 1000.0f)) {
+						a->setPosition(glm::vec3(posf[0], posf[1], posf[2]));
+					}
+					//scale
+					const auto& scale = a->getScale();
+					float scalef[3] = { scale.x, scale.y, scale.z };
+					if(ImGui::SliderFloat3("Scale", scalef, 0.0f, 1000.0f)) {
+						a->setScale(glm::vec3(scalef[0], scalef[1], scalef[2]));
+					}
 
-				switch(a->getType()) {
-					case Particles::AffectorType::COLOR: {
-						auto tca = std::dynamic_pointer_cast<Particles::TimeColorAffector>(a);
-						auto op = tca->getOperation();
-						int current_item = static_cast<int>(op);
-						const char* const optype[] = { "Set", "Multiply" };
-						if(ImGui::Combo("Operation", &current_item, optype, 2)) {
-							tca->setOperation(static_cast<Particles::TimeColorAffector::ColourOperation>(current_item));
-						}					
-						auto tcdata = tca->getTimeColorData();
-						bool data_changed = false;
-						ImGui::BeginGroup();
-						if(ImGui::SmallButton("Clear")) {
-							tca->clearTimeColorData();
-						}
-						ImGui::SameLine();
-						if(ImGui::SmallButton("+")) {
-							tca->addTimecolorEntry(std::make_pair(0.0f, glm::vec4(0.0f)));
-						}
-						ImGui::EndGroup();
-						int tc_counter = 1;
-						std::vector<Particles::TimeColorAffector::tc_pair> tc_data_to_remove;
-						for(auto& tc : tcdata) {
-							std::stringstream tlabel;
-							tlabel << "T##" << tc_counter;
+					switch(a->getType()) {
+						case Particles::AffectorType::COLOR: {
+							auto tca = std::dynamic_pointer_cast<Particles::TimeColorAffector>(a);
+							auto op = tca->getOperation();
+							int current_item = static_cast<int>(op);
+							const char* const optype[] = { "Set", "Multiply" };
+							if(ImGui::Combo("Operation", &current_item, optype, 2)) {
+								tca->setOperation(static_cast<Particles::TimeColorAffector::ColourOperation>(current_item));
+							}					
+							auto tcdata = tca->getTimeColorData();
+							bool data_changed = false;
 							ImGui::BeginGroup();
-							ImGui::PushItemWidth(ImGui::CalcItemWidth() * 0.5f);
-							if(ImGui::DragFloat(tlabel.str().c_str(), &tc.first, 0.01f, 0.0f, 1.0f)) {
-								data_changed = true;
+							if(ImGui::SmallButton("Clear")) {
+								tca->clearTimeColorData();
 							}
 							ImGui::SameLine();
-							float col[4] = { tc.second.r,tc.second.g, tc.second.b, tc.second.a };
-							std::stringstream clabel;
-							clabel << "C##" << tc_counter;
-							if(ImGui::ColorEdit4(clabel.str().c_str(), col)) {
-								tc.second = glm::vec4(col[0], col[1], col[2], col[3]);
-								data_changed = true;
-							}
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							std::stringstream xlabel;
-							xlabel << "X##" << tc_counter;
-							if(ImGui::SmallButton(xlabel.str().c_str())) {
-								tc_data_to_remove.emplace_back(tc);
-								data_changed = true;
+							if(ImGui::SmallButton("+")) {
+								tca->addTimecolorEntry(std::make_pair(0.0f, glm::vec4(0.0f)));
 							}
 							ImGui::EndGroup();
-							++tc_counter;
-						}
-						for(auto& p : tc_data_to_remove) {
-							auto it = std::find(tcdata.begin(), tcdata.end(), p);
-							if(it != tcdata.end()) {
-								tcdata.erase(it);
-								data_changed = true;
+							int tc_counter = 1;
+							std::vector<Particles::TimeColorAffector::tc_pair> tc_data_to_remove;
+							for(auto& tc : tcdata) {
+								std::stringstream tlabel;
+								tlabel << "T##" << tc_counter;
+								ImGui::BeginGroup();
+								ImGui::PushItemWidth(ImGui::CalcItemWidth() * 0.5f);
+								if(ImGui::DragFloat(tlabel.str().c_str(), &tc.first, 0.01f, 0.0f, 1.0f)) {
+									data_changed = true;
+								}
+								ImGui::SameLine();
+								float col[4] = { tc.second.r,tc.second.g, tc.second.b, tc.second.a };
+								std::stringstream clabel;
+								clabel << "C##" << tc_counter;
+								if(ImGui::ColorEdit4(clabel.str().c_str(), col)) {
+								//if(ColorPicker4(col, true)) {
+									tc.second = glm::vec4(col[0], col[1], col[2], col[3]);
+									data_changed = true;
+								}
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								std::stringstream xlabel;
+								xlabel << "X##" << tc_counter;
+								if(ImGui::SmallButton(xlabel.str().c_str())) {
+									tc_data_to_remove.emplace_back(tc);
+									data_changed = true;
+								}
+								ImGui::EndGroup();
+								++tc_counter;
 							}
-						}
-						if(data_changed) {
-							tca->setTimeColorData(tcdata);
-						}
-						break;
-					}
-					case Particles::AffectorType::JET: {
-						auto ja = std::dynamic_pointer_cast<Particles::JetAffector>(a);
-						ParameterGui("acceleration", ja->getAcceleration(), 0.0f, 100.0f);
-						break;
-					}
-					case Particles::AffectorType::VORTEX: {
-						auto va = std::dynamic_pointer_cast<Particles::VortexAffector>(a);
-						// rotation axis
-						ImGui::BeginGroup();
-						if(ImGui::Button(" +X ")) {
-							va->setRotationAxis(glm::vec3(1.0f, 0.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" +Y ")) {
-							va->setRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" +Z ")) {
-							va->setRotationAxis(glm::vec3(0.0f, 0.0f, 1.0f));
-						}
-						if(ImGui::Button(" -X ")) {
-							va->setRotationAxis(glm::vec3(-1.0f, 0.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" -Y ")) {
-							va->setRotationAxis(glm::vec3(0.0f, -1.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" -Z ")) {
-							va->setRotationAxis(glm::vec3(0.0f, 0.0f, -1.0f));
-						}
-						const auto& axis = va->getRotationAxis();
-						float v[3] { axis.x, axis.y, axis.z };
-						if(ImGui::SliderFloat3("Rotation Axis", v, -1.0f, 1.0f)) {
-							va->setRotationAxis(glm::vec3(v[0], v[1], v[2]));
-						}
-						ImGui::EndGroup();
-						// rotation speed
-						ParameterGui("Rotation Speed", va->getRotationSpeed());
-						break;
-					}
-					case Particles::AffectorType::GRAVITY: {
-						auto ga = std::dynamic_pointer_cast<Particles::GravityAffector>(a);
-						ParameterGui("Gravity", ga->getGravity());
-						break;
-					}
-					case Particles::AffectorType::LINEAR_FORCE: {
-						auto fa = std::dynamic_pointer_cast<Particles::LinearForceAffector>(a);
-						ParameterGui("Force", fa->getForce());
-
-						// rdirection
-						ImGui::BeginGroup();
-						if(ImGui::Button(" +X ")) {
-							fa->setDirection(glm::vec3(1.0f, 0.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" +Y ")) {
-							fa->setDirection(glm::vec3(0.0f, 1.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" +Z ")) {
-							fa->setDirection(glm::vec3(0.0f, 0.0f, 1.0f));
-						}
-						if(ImGui::Button(" -X ")) {
-							fa->setDirection(glm::vec3(-1.0f, 0.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" -Y ")) {
-							fa->setDirection(glm::vec3(0.0f, -1.0f, 0.0f));
-						}
-						ImGui::SameLine();
-						if(ImGui::Button(" -Z ")) {
-							fa->setDirection(glm::vec3(0.0f, 0.0f, -1.0f));
-						}
-
-						const auto& dir = fa->getDirection();
-						float v[3]{ dir[0], dir[1], dir[2] };
-						if(ImGui::SliderFloat3("Direction", v, -1.0f, 1.0f)) {
-							fa->setDirection(glm::vec3(v[0], v[1], v[2]));
-						}
-						ImGui::EndGroup();
-						break;
-					}
-					case Particles::AffectorType::SCALE: {
-						auto& sa = std::dynamic_pointer_cast<Particles::ScaleAffector>(a);
-						auto& xyz_scale = sa->getScaleXYZ();
-						auto& x_scale = sa->getScaleX();
-						auto& y_scale = sa->getScaleY();
-						auto& z_scale = sa->getScaleZ();
-						// XXX need some way to deal with locked scales as opposed to
-						// independent scales.
-						if(xyz_scale) {
-							ParameterGui("XYZ Scale", xyz_scale, 0.0f, 100.0f);
-						} else {
-							if(x_scale) {
-								ParameterGui("X Scale", x_scale, 0.0f, 100.0f);
+							for(auto& p : tc_data_to_remove) {
+								auto it = std::find(tcdata.begin(), tcdata.end(), p);
+								if(it != tcdata.end()) {
+									tcdata.erase(it);
+									data_changed = true;
+								}
 							}
-							if(y_scale) {
-								ParameterGui("Y Scale", y_scale, 0.0f, 100.0f);
+							if(data_changed) {
+								tca->setTimeColorData(tcdata);
 							}
-							if(z_scale) {
-								ParameterGui("Z Scale", z_scale, 0.0f, 100.0f);
+							break;
+						}
+						case Particles::AffectorType::JET: {
+							auto ja = std::dynamic_pointer_cast<Particles::JetAffector>(a);
+							ParameterGui("acceleration", ja->getAcceleration(), 0.0f, 100.0f);
+							break;
+						}
+						case Particles::AffectorType::VORTEX: {
+							auto va = std::dynamic_pointer_cast<Particles::VortexAffector>(a);
+							// rotation axis
+							ImGui::BeginGroup();
+							if(ImGui::Button(" +X ")) {
+								va->setRotationAxis(glm::vec3(1.0f, 0.0f, 0.0f));
 							}
+							ImGui::SameLine();
+							if(ImGui::Button(" +Y ")) {
+								va->setRotationAxis(glm::vec3(0.0f, 1.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" +Z ")) {
+								va->setRotationAxis(glm::vec3(0.0f, 0.0f, 1.0f));
+							}
+							if(ImGui::Button(" -X ")) {
+								va->setRotationAxis(glm::vec3(-1.0f, 0.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" -Y ")) {
+								va->setRotationAxis(glm::vec3(0.0f, -1.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" -Z ")) {
+								va->setRotationAxis(glm::vec3(0.0f, 0.0f, -1.0f));
+							}
+							const auto& axis = va->getRotationAxis();
+							float v[3] { axis.x, axis.y, axis.z };
+							if(ImGui::SliderFloat3("Rotation Axis", v, -1.0f, 1.0f)) {
+								va->setRotationAxis(glm::vec3(v[0], v[1], v[2]));
+							}
+							ImGui::EndGroup();
+							// rotation speed
+							ParameterGui("Rotation Speed", va->getRotationSpeed());
+							break;
 						}
-						break;
-					}
-					case Particles::AffectorType::PARTICLE_FOLLOWER: {
-						auto& pfa = std::dynamic_pointer_cast<Particles::ParticleFollowerAffector>(a);
-						float minmaxd[2]{ pfa->getMinDistance(), pfa->getMaxDistance() };
-						if(ImGui::DragFloat2("Min/Max Distance", minmaxd, 1.0f, 0.0f, 1000.0f)) {
-							pfa->setMinDistance(minmaxd[0]);
-							pfa->setMaxDistance(minmaxd[1]);
+						case Particles::AffectorType::GRAVITY: {
+							auto ga = std::dynamic_pointer_cast<Particles::GravityAffector>(a);
+							ParameterGui("Gravity", ga->getGravity());
+							break;
 						}
-						break;
-					}
-					case Particles::AffectorType::ALIGN: {
-						auto& aa = std::dynamic_pointer_cast<Particles::AlignAffector>(a);
-						bool resize = aa->getResizeable();
-						if(ImGui::Checkbox("Resize", &resize)) {
-							aa->setResizeable(resize);
-						}
-						break;
-					}
-					case Particles::AffectorType::FLOCK_CENTERING: {
-						// no extra UI components.
-						break;
-					}
-					case Particles::AffectorType::BLACK_HOLE: {
-						auto& bha = std::dynamic_pointer_cast<Particles::BlackHoleAffector>(a);
-						ParameterGui("Velocity", bha->getVelocity());
-						ParameterGui("Acceleration", bha->getAcceleration());
-						break;
-					}
-					case Particles::AffectorType::PATH_FOLLOWER: {
-						// XXX todo
-						break;
-					}
-					case Particles::AffectorType::RANDOMISER: {
-						auto& ra = std::dynamic_pointer_cast<Particles::RandomiserAffector>(a);
-						float ts = ra->getTimeStep();
-						if(ImGui::DragFloat("Time Step", &ts, 1.0f, 0.0f, 10.0f)) {
-							ra->setTimeStep(ts);
-						}
+						case Particles::AffectorType::LINEAR_FORCE: {
+							auto fa = std::dynamic_pointer_cast<Particles::LinearForceAffector>(a);
+							ParameterGui("Force", fa->getForce());
 
-						bool random_direction = ra->isRandomDirection();
-						if(ImGui::Checkbox("Random Direction", &random_direction)) {
-							ra->setRandomDirection(random_direction);
-						}
+							// rdirection
+							ImGui::BeginGroup();
+							if(ImGui::Button(" +X ")) {
+								fa->setDirection(glm::vec3(1.0f, 0.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" +Y ")) {
+								fa->setDirection(glm::vec3(0.0f, 1.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" +Z ")) {
+								fa->setDirection(glm::vec3(0.0f, 0.0f, 1.0f));
+							}
+							if(ImGui::Button(" -X ")) {
+								fa->setDirection(glm::vec3(-1.0f, 0.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" -Y ")) {
+								fa->setDirection(glm::vec3(0.0f, -1.0f, 0.0f));
+							}
+							ImGui::SameLine();
+							if(ImGui::Button(" -Z ")) {
+								fa->setDirection(glm::vec3(0.0f, 0.0f, -1.0f));
+							}
 
-						auto& max_deviation = ra->getDeviation();
-						float v[3]{ max_deviation.x, max_deviation.y, max_deviation.z };
-						if(ImGui::DragFloat3("Max Deviation", v, 0.1f, 0.0f, 100.0f)) {
-							ra->setDeviation(v[0], v[1], v[2]);
+							const auto& dir = fa->getDirection();
+							float v[3]{ dir[0], dir[1], dir[2] };
+							if(ImGui::SliderFloat3("Direction", v, -1.0f, 1.0f)) {
+								fa->setDirection(glm::vec3(v[0], v[1], v[2]));
+							}
+							ImGui::EndGroup();
+							break;
 						}
-						break;
+						case Particles::AffectorType::SCALE: {
+							auto& sa = std::dynamic_pointer_cast<Particles::ScaleAffector>(a);
+							auto& xyz_scale = sa->getScaleXYZ();
+							auto& x_scale = sa->getScaleX();
+							auto& y_scale = sa->getScaleY();
+							auto& z_scale = sa->getScaleZ();
+							// XXX need some way to deal with locked scales as opposed to
+							// independent scales.
+							if(xyz_scale) {
+								ParameterGui("XYZ Scale", xyz_scale, 0.0f, 100.0f);
+							} else {
+								if(x_scale) {
+									ParameterGui("X Scale", x_scale, 0.0f, 100.0f);
+								}
+								if(y_scale) {
+									ParameterGui("Y Scale", y_scale, 0.0f, 100.0f);
+								}
+								if(z_scale) {
+									ParameterGui("Z Scale", z_scale, 0.0f, 100.0f);
+								}
+							}
+							break;
+						}
+						case Particles::AffectorType::PARTICLE_FOLLOWER: {
+							auto& pfa = std::dynamic_pointer_cast<Particles::ParticleFollowerAffector>(a);
+							float minmaxd[2]{ pfa->getMinDistance(), pfa->getMaxDistance() };
+							if(ImGui::DragFloat2("Min/Max Distance", minmaxd, 1.0f, 0.0f, 1000.0f)) {
+								pfa->setMinDistance(minmaxd[0]);
+								pfa->setMaxDistance(minmaxd[1]);
+							}
+							break;
+						}
+						case Particles::AffectorType::ALIGN: {
+							auto& aa = std::dynamic_pointer_cast<Particles::AlignAffector>(a);
+							bool resize = aa->getResizeable();
+							if(ImGui::Checkbox("Resize", &resize)) {
+								aa->setResizeable(resize);
+							}
+							break;
+						}
+						case Particles::AffectorType::FLOCK_CENTERING: {
+							// no extra UI components.
+							break;
+						}
+						case Particles::AffectorType::BLACK_HOLE: {
+							auto& bha = std::dynamic_pointer_cast<Particles::BlackHoleAffector>(a);
+							ParameterGui("Velocity", bha->getVelocity());
+							ParameterGui("Acceleration", bha->getAcceleration());
+							break;
+						}
+						case Particles::AffectorType::PATH_FOLLOWER: {
+							// XXX todo
+							break;
+						}
+						case Particles::AffectorType::RANDOMISER: {
+							auto& ra = std::dynamic_pointer_cast<Particles::RandomiserAffector>(a);
+							float ts = ra->getTimeStep();
+							if(ImGui::DragFloat("Time Step", &ts, 1.0f, 0.0f, 10.0f)) {
+								ra->setTimeStep(ts);
+							}
+
+							bool random_direction = ra->isRandomDirection();
+							if(ImGui::Checkbox("Random Direction", &random_direction)) {
+								ra->setRandomDirection(random_direction);
+							}
+
+							auto& max_deviation = ra->getDeviation();
+							float v[3]{ max_deviation.x, max_deviation.y, max_deviation.z };
+							if(ImGui::DragFloat3("Max Deviation", v, 0.1f, 0.0f, 100.0f)) {
+								ra->setDeviation(v[0], v[1], v[2]);
+							}
+							break;
+						}
+						case Particles::AffectorType::SINE_FORCE: {
+							auto& sfa = std::dynamic_pointer_cast<Particles::SineForceAffector>(a);
+
+							float v[2]{ sfa->getMinFrequency(), sfa->getMaxFrequency() };
+							if(ImGui::DragFloat2("Min/Max Frequency", v, 0.1f, 0.0f, 1000.0f)) {
+								sfa->setMinFrequency(v[0]);
+								sfa->setMaxFrequency(v[1]);
+							}
+
+							auto& force_vector = sfa->getForceVector();
+							float fv[3]{ force_vector.x, force_vector.y, force_vector.z };
+							if(ImGui::DragFloat3("Force Vector", fv, 0.1f, 0.0f, 1000.0f)) {
+								sfa->setForceVector(fv[0], fv[1], fv[2]);
+							}
+							auto op = sfa->getForceApplication();
+							int current_item = static_cast<int>(op);
+							const char* const optype[] = { "Add", "Average" };
+							if(ImGui::Combo("Force Application", &current_item, optype, 2)) {
+								sfa->setForceApplication(static_cast<Particles::SineForceAffector::ForceApplication>(current_item));
+							}			
+							break;
+						}
+						default:
+							ASSERT_LOG(false, "Unhandled affector type: " << static_cast<int>(a->getType()));
+							break;
 					}
-					case Particles::AffectorType::SINE_FORCE: {
-						auto& sfa = std::dynamic_pointer_cast<Particles::SineForceAffector>(a);
-
-						float v[2]{ sfa->getMinFrequency(), sfa->getMaxFrequency() };
-						if(ImGui::DragFloat2("Min/Max Frequency", v, 0.1f, 0.0f, 1000.0f)) {
-							sfa->setMinFrequency(v[0]);
-							sfa->setMaxFrequency(v[1]);
-						}
-
-						auto& force_vector = sfa->getForceVector();
-						float fv[3]{ force_vector.x, force_vector.y, force_vector.z };
-						if(ImGui::DragFloat3("Force Vector", fv, 0.1f, 0.0f, 1000.0f)) {
-							sfa->setForceVector(fv[0], fv[1], fv[2]);
-						}
-						auto op = sfa->getForceApplication();
-						int current_item = static_cast<int>(op);
-						const char* const optype[] = { "Add", "Average" };
-						if(ImGui::Combo("Force Application", &current_item, optype, 2)) {
-							sfa->setForceApplication(static_cast<Particles::SineForceAffector::ForceApplication>(current_item));
-						}			
-						break;
-					}
-					default:
-						ASSERT_LOG(false, "Unhandled affector type: " << static_cast<int>(a->getType()));
-						break;
+					//excluded emitters
 				}
-				//excluded emitters
-				ImGui::End();
-
 			}
 			for(auto& aff : affector_replace) {
 				auto it = std::find(tq.front()->getActiveAffectors().begin(), tq.front()->getActiveAffectors().end(), aff.first);
@@ -1137,8 +1356,8 @@ int main(int argc, char *argv[])
 				tq.front()->getActiveAffectors().emplace_back(aff.second);
 				aff.second->setParentTechnique(tq.front());
 			}
-
 		}
+		ImGui::End();
 #endif
 
 		main_wnd->swap();

@@ -296,13 +296,11 @@ namespace KRE
 			  default_particle_width_(node["default_particle_width"].as_float(1.0f)),
 			  default_particle_height_(node["default_particle_height"].as_float(1.0f)),
 			  default_particle_depth_(node["default_particle_depth"].as_float(1.0f)),
-			  lod_index_(node["lod_index"].as_int32(0)),
 			  particle_quota_(node["visual_particle_quota"].as_int32(100)),
 			  emitter_quota_(node["emitted_emitter_quota"].as_int32(50)),
 			  affector_quota_(node["emitted_affector_quota"].as_int32(10)),
 			  technique_quota_(node["emitted_technique_quota"].as_int32(10)),
 			  system_quota_(node["emitted_system_quota"].as_int32(10)),
-			  velocity_(0.0f),
 			  max_velocity_(),
 			  active_emitters_(),
 			  active_affectors_(),
@@ -404,8 +402,6 @@ namespace KRE
 			  affector_quota_(tq.affector_quota_),
 			  technique_quota_(tq.technique_quota_),
 			  system_quota_(tq.system_quota_),
-			  lod_index_(tq.lod_index_),
-			  velocity_(tq.velocity_),
 			  parent_particle_system_(tq.parent_particle_system_)
 		{
 			setShader(ShaderProgram::getProgram("vtc_shader"));
@@ -569,7 +565,7 @@ namespace KRE
 		{
 			for(auto& a : active_particle_systems_) {
 				attachNode(a);
-				a->setNodeName("ps_node_" + a->name());
+				a->setNodeName("ps_node_" + a->getName());
 			}
 		}
 
@@ -653,7 +649,7 @@ namespace KRE
 		ParticleSystemPtr ParticleSystemContainer::cloneParticleSystem(const std::string& name)
 		{
 			for(auto ps : particle_systems_) {
-				if(ps->name() == name) {
+				if(ps->getName() == name) {
 					return std::make_shared<ParticleSystem>(*ps);
 				}
 			}
@@ -664,7 +660,7 @@ namespace KRE
 		TechniquePtr ParticleSystemContainer::cloneTechnique(const std::string& name)
 		{
 			for(auto tq : techniques_) {
-				if(tq->name() == name) {
+				if(tq->getName() == name) {
 					return tq->clone();
 				}
 			}
@@ -675,7 +671,7 @@ namespace KRE
 		EmitterPtr ParticleSystemContainer::cloneEmitter(const std::string& name)
 		{
 			for(auto e : emitters_) {
-				if(e->name() == name) {
+				if(e->getName() == name) {
 					return e->clone();
 				}
 			}
@@ -686,7 +682,7 @@ namespace KRE
 		AffectorPtr ParticleSystemContainer::cloneAffector(const std::string& name)
 		{
 			for(auto a : affectors_) {
-				if(a->name() == name) {
+				if(a->getName() == name) {
 					return a->clone();
 				}
 			}
@@ -783,12 +779,6 @@ namespace KRE
 			auto parent = parent_container_.lock();
 			ASSERT_LOG(parent != nullptr, "parent container is nullptr");
 			return parent; 
-		}
-
-		const glm::vec3& EmitObject::getPosition() const 
-		{ 
-			static glm::vec3 res; 
-			return res; 
 		}
 
 		DebugDrawHelper::DebugDrawHelper() 

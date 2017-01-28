@@ -60,8 +60,6 @@ namespace KRE
 		// geometry_rotator (use own rotation, speed(parameter), axis(x,y,z))
 		// inter_particle_collider (sounds like a lot of calculations)
 		// line
-		// linear_force
-		// path_follower
 		// plane_collider
 		// scale_velocity (parameter_ptr scale; bool since_system_start, bool stop_at_flip)
 		// sphere_collider
@@ -117,14 +115,14 @@ namespace KRE
 			auto tq = getTechnique();
 			for(auto& e : tq->getActiveEmitters()) {
 				if(e->emitted_by != nullptr) {
-					if(!isEmitterExcluded(e->emitted_by->name())) {
+					if(!isEmitterExcluded(e->emitted_by->getName())) {
 						internalApply(*e,t);
 					}
 				}
 			}
 			for(auto& p : tq->getActiveParticles()) {
 				ASSERT_LOG(p.emitted_by != nullptr, "p.emitted_by is null");
-				if(!isEmitterExcluded(p.emitted_by->name())) {
+				if(!isEmitterExcluded(p.emitted_by->getName())) {
 					internalApply(p,t);
 				}
 			}

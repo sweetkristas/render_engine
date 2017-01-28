@@ -91,7 +91,7 @@ namespace KRE
 			explicit EmitObject(std::weak_ptr<ParticleSystemContainer> parent);
 			explicit EmitObject(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			virtual ~EmitObject() {}
-			const std::string& name() const { return name_; }
+			const std::string& getName() const { return name_; }
 			void emitProcess(float t) {
 				handleEmitProcess(t);
 			}
@@ -99,8 +99,6 @@ namespace KRE
 				handleDraw(wnd);
 			}
 			ParticleSystemContainerPtr getParentContainer() const;
-			virtual const glm::vec3& getPosition() const;
-			virtual void setPosition(const glm::vec3& pos) {}
 			bool isEnabled() const { return enabled_; }
 			void setEnable(bool en) { enabled_ = en; handleEnable(); }
 			bool doDebugDraw() const { return do_debug_draw_; }
@@ -135,7 +133,6 @@ namespace KRE
 			int getAffectorQuota() const { return affector_quota_; }
 			glm::vec3 getDefaultDimensions() const { return glm::vec3(default_particle_width_, default_particle_height_, default_particle_depth_); }
 			ParticleSystemPtr getParticleSystem() const;
-			EmitObjectPtr getEmitObject(const std::string& name);
 			void setParent(std::weak_ptr<ParticleSystem> parent);
 			// Direct access here for *speed* reasons.
 			std::vector<Particle>& getActiveParticles() { return active_particles_; }
@@ -143,6 +140,17 @@ namespace KRE
 			std::vector<AffectorPtr>& getActiveAffectors() { return active_affectors_; }
 			void preRender(const WindowPtr& wnd) override;
 			void postRender(const WindowPtr& wnd) override;
+
+			void setDefaultWidth(float w) { default_particle_width_ = w; }
+			void setDefaultHeight(float h) { default_particle_height_ = h; }
+			void setDefaultDepth(float d) { default_particle_depth_ = d; }
+
+			void setParticleQuota(int q) { particle_quota_ = q; }
+
+			bool hasMaxVelocity() const { return max_velocity_ != nullptr; }
+			float getMaxVelocity() const { return *max_velocity_; }
+			void setMaxVelocity(float mv) { max_velocity_.reset(new float(mv)); }
+			void clearMaxVelocity() { max_velocity_.reset(); }
 
 			static TechniquePtr create(std::weak_ptr<ParticleSystemContainer> parent, const variant& node);
 			TechniquePtr clone() const;
@@ -156,14 +164,12 @@ namespace KRE
 			float default_particle_width_;
 			float default_particle_height_;
 			float default_particle_depth_;
-			int lod_index_;
 
 			int particle_quota_;
 			int emitter_quota_;
 			int affector_quota_;
 			int technique_quota_;
 			int system_quota_;
-			float velocity_;
 			std::unique_ptr<float> max_velocity_;
 
 			//renderer_ptr renderer_;
@@ -194,6 +200,12 @@ namespace KRE
 			float getScaleVelocity() const { return scale_velocity_; }
 			float getScaleTime() const { return scale_time_; }
 			const glm::vec3& getScaleDimensions() const { return scale_dimensions_; }
+
+			void setScaleVelocity(float sv) { scale_velocity_ = sv; }
+			void setScaleTime(float st) { scale_time_ = st; }
+			void setScaleDimensions(const glm::vec3& dim) { scale_dimensions_ = dim; }
+			void setScaleDimensions(float x, float y, float z) { scale_dimensions_ = glm::vec3(x, y, z); }
+			void setScaleDimensions(float* dim) { scale_dimensions_ = glm::vec3(dim[0], dim[1], dim[2]); }
 
 			void addTechnique(TechniquePtr tq);
 			std::vector<TechniquePtr>& getActiveTechniques() { return active_techniques_; }
